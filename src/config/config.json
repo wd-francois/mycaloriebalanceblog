@@ -1,0 +1,22 @@
+{
+  "site": {
+    "trailing_slash": true,
+    "favicon": "/favicon.ico"
+  },
+
+  "settings": {
+  },
+
+  "metadata": {
+  },
+
+  "params": {
+    "contact_form_action": "#"
+  },
+
+  "contactinfo": {
+    "address": "Your Address",
+    "email": "your.email@example.com",
+    "phone": "+1 234 567 8900"
+  }
+}
