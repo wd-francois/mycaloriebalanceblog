@@ -6,7 +6,7 @@ date: 2025-08-05
 image: "../../assets/images/02.jpg"
 authors: ["MCB"]
 categories: ["Supplements"]
-tags: ["supplements", "nutrition",]
+tags: ["supplements", "nutrition"]
 ---
 
 ## What is Creatine?

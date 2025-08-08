@@ -14,6 +14,16 @@ export default defineConfig({
   // Base path (set to '/' for most sites)
   base: '/',
   
+  // Align Vite/Astro aliases with tsconfig paths for consistent resolution in .astro files
+  alias: {
+    '@components': './src/layouts/components',
+    '@layouts': './src/layouts',
+    '@config': './src/config',
+    '@utils': './src/utils',
+    '@styles': './src/styles',
+    '@assets': './src/assets',
+  },
+  
   // Configure Vite plugins and server settings
   vite: {
     plugins: [
