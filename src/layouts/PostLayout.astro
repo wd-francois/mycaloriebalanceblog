@@ -43,8 +43,7 @@ breadcrumbs.push({ name: title, url: canonicalURL });
   publishDate={date}
   author={authors && authors.length > 0 ? { name: authors[0] } : undefined}
   tags={tags}
-  categories={categories}
-  breadcrumbs={breadcrumbs}>
+  categories={categories}>
   <!-- Reading Progress Bar -->
 <ReadingProgress />
 
@@ -58,9 +57,11 @@ breadcrumbs.push({ name: title, url: canonicalURL });
         <!-- Date -->
         <div class="flex items-center">
           <Icon name="mdi:calendar" class="w-5 h-5 mr-1" />
-          <time datetime={date?.toISOString()}>
-            {date ? formatDate(date) : ''}
-          </time>
+          {date && (
+            <time datetime={date.toISOString()}>
+              {formatDate(date)}
+            </time>
+          )}
         </div>
         
 

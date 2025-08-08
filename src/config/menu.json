@@ -9,38 +9,9 @@
       "url": "/about/"
     },
     {
-      "name": "Series",
-      "url": "/series/"
+      "name": "Blog",
+      "url": "/blog/"
     },
-
-    {
-      "name": "Pages",
-      "url": "",
-      "hasChildren": true,
-      "children": [
-        {
-          "name": "Authors",
-          "url": "/authors/"
-        },
-        {
-          "name": "Categories",
-          "url": "/categories/"
-        },
-        {
-          "name": "Tags",
-          "url": "/tags/"
-        },
-        {
-          "name": "About",
-          "url": "/about/"
-        },
-        {
-          "name": "Privacy Policy",
-          "url": "/privacy/"
-        }
-      ]
-    },
-
     {
       "name": "Contact",
       "url": "/contact/"

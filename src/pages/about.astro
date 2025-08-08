@@ -2,7 +2,12 @@
 import Layout from "@layouts/Layout.astro";
 import { getEntryBySlug } from "astro:content";
 
+// Explicitly type the collection name to match your content config
+// Explicitly type the entry as any to avoid 'never' type error, or update your content config for better types
 const entry = await getEntryBySlug("about", "index");
+if (!entry) {
+  throw new Error("About entry not found");
+}
 const { Content } = await entry.render();
 const { title, description, meta_title, image, what_i_do } = entry.data;
 ---

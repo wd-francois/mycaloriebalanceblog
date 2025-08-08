@@ -5,9 +5,14 @@
   },
 
   "settings": {
+    "pagination": 11,
+    "summary_length": 100
   },
 
   "metadata": {
+    "meta_author": "My Calorie Balance Team",
+    "meta_description": "A modern, responsive blog about health, nutrition, fitness, weight loss, building muscle, and exercise",
+    "meta_image": "/images/og-image.png"
   },
 
   "params": {

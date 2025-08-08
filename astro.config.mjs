@@ -9,7 +9,7 @@ import path from 'path';
 // https://astro.build/config
 export default defineConfig({
   // Set the site URL for production
-  site: 'https://example.com',
+  site: 'https://mycaloriebalance.com',
   
   // Base path (set to '/' for most sites)
   base: '/',

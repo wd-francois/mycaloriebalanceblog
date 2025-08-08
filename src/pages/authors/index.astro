@@ -24,7 +24,7 @@ const authorCounts = authors.map(author => {
 }).sort((a, b) => b.count - a.count); // Sort by post count (descending)
 
 // Format author names for display
-const formatAuthorName = (name) => {
+const formatAuthorName = (name: string) => {
   return name.split(' ').map(word => 
     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
   ).join(' ');

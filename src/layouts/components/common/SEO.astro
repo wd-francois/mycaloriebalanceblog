@@ -39,6 +39,7 @@ const {
   publishDate,
   modifiedDate,
   author,
+  
   tags,
   categories
 } = Astro.props;
@@ -66,10 +67,10 @@ const publishISODate = publishDate ? new Date(publishDate).toISOString() : null;
 const modifiedISODate = modifiedDate ? new Date(modifiedDate).toISOString() : publishISODate;
 
 // Prepare schema.org JSON-LD
-let schema = null;
+let schema: any = null;
 
 // Safe URL creation function
-const safeUrl = (path, base) => {
+const safeUrl = (path: string, base?: string | URL) => {
   // Astro.site should be defined as per astro.config.mjs.
   // If base is not provided, Astro.site will be used.
   const baseToUse = base ? base.toString() : (Astro.site ? Astro.site.toString() : '');
@@ -134,11 +135,7 @@ if (article && publishISODate) {
     "image": safeUrl(image, Astro.site), // Use Astro.site
     "datePublished": publishISODate,
     "dateModified": modifiedISODate || publishISODate,
-    "author": author ? {
-      "@type": "Person",
-      "name": author.name,
-      "url": author.url
-    } : null,
+    
     "publisher": {
       "@type": "Organization",
       "name": siteConfig.title, // Updated from siteConfig.name
@@ -151,7 +148,12 @@ if (article && publishISODate) {
       "@type": "WebPage",
       "@id": safeUrl(canonical, Astro.site) // Use Astro.site
     },
-    "keywords": tags?.join(", ") || ""
+    "keywords": tags?.join(", ") || "",
+    "author": author ? {
+      "@type": "Person",
+      "name": author.name,
+      "url": author.url
+    } : null
   };
 } else if (Astro.props.video) {
   schema = videoSchema;
