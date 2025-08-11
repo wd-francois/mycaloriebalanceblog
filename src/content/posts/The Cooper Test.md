@@ -1,9 +1,9 @@
 ---
 title: "Get Fit Fast: Use the Cooper Test to Measure and Improve Your Fitness"
 meta_title: "The Cooper Test: A Simple 12-Minute Run to Test Your Fitness and Boost Endurance"
+description: "How to test your aerobic capacity"
 date: 2025-08-05
 image: "../../assets/images/01.jpg"
-authors: ["MCB"]
 categories: ["Fitness"]
 tags: ["Cardio", "Fitness", "Testing", "VO2 Max"]
 ---

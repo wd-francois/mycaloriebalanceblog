@@ -4,7 +4,6 @@ meta_title: "The Benefits of Creatine"
 description: "Discover the science-backed benefits of creatine, a powerful supplement that enhances athletic performance, supports muscle growth, aids recovery, and boosts cognitive function."
 date: 2025-08-05
 image: "../../assets/images/02.jpg"
-authors: ["MCB"]
 categories: ["Supplements"]
 tags: ["supplements", "nutrition"]
 ---

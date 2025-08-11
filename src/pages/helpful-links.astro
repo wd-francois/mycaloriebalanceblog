@@ -1,0 +1,268 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
+---
+
+<Layout
+  title="Helpful Links - Health & Fitness Resources"
+  description="Discover useful health and fitness tools, calculators, and resources to support your wellness journey."
+  wideContent={true}
+>
+  <main class="w-full py-8">
+    <!-- Page Header -->
+    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+        Helpful Links & Resources
+      </h1>
+      <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+        Curated collection of health and fitness tools, calculators, and reliable resources to help you achieve your wellness goals.
+      </p>
+    </section>
+
+    <!-- Calorie & Nutrition Tools -->
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Calorie & Nutrition Tools</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Essential calculators and tools for tracking your nutrition</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <a 
+          href="https://www.calculator.net/bmr-calculator.html" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+        >
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              BMR Calculator
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400">Calculate your Basal Metabolic Rate to understand your daily calorie needs</p>
+        </a>
+
+        <a 
+          href="https://www.calculator.net/calorie-calculator.html" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+        >
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-green-600 dark:text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+              Daily Calorie Calculator
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400">Determine your daily calorie requirements based on activity level and goals</p>
+        </a>
+
+        <a 
+          href="https://www.calculator.net/macro-calculator.html" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+        >
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-purple-600 dark:text-purple-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+              Macro Calculator
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400">Calculate your protein, carbs, and fat requirements for optimal nutrition</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- Fitness & Workout Tools -->
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Fitness & Workout Tools</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Tools to track your fitness progress and plan workouts</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <a 
+          href="https://www.calculator.net/body-fat-calculator.html" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+        >
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-red-600 dark:text-red-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+              Body Fat Calculator
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400">Estimate your body fat percentage using various measurement methods</p>
+        </a>
+
+        <a 
+          href="https://www.calculator.net/one-rep-max-calculator.html" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+        >
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-orange-600 dark:text-orange-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+              1RM Calculator
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400">Calculate your one-rep max for strength training and program design</p>
+        </a>
+
+        <a 
+          href="https://www.calculator.net/pace-calculator.html" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+        >
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              Pace Calculator
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400">Calculate running pace, time, and distance for your training runs</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- Health & Wellness Resources -->
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Health & Wellness Resources</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Reliable sources for health information and guidance</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <a 
+          href="https://www.who.int/health-topics/physical-activity" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+        >
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              WHO Physical Activity
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400">World Health Organization guidelines for physical activity and health</p>
+        </a>
+
+        <a 
+          href="https://www.cdc.gov/physicalactivity/index.html" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+        >
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-green-600 dark:text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+              CDC Physical Activity
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400">Centers for Disease Control physical activity guidelines and resources</p>
+        </a>
+
+        <a 
+          href="https://www.nutrition.gov/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+        >
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
+              Nutrition.gov
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400">USDA's comprehensive nutrition information and dietary guidelines</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- Mobile Apps & Tools -->
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Recommended Apps & Tools</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300">Popular apps and tools for tracking health and fitness</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-green-600 dark:text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">MyFitnessPal</h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Popular calorie and macro tracking app with extensive food database</p>
+          <div class="flex space-x-2">
+            <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded">iOS</span>
+            <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded">Android</span>
+          </div>
+        </div>
+
+        <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Fitbit</h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Activity tracking, heart rate monitoring, and sleep analysis</p>
+          <div class="flex space-x-2">
+            <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded">iOS</span>
+            <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded">Android</span>
+          </div>
+        </div>
+
+        <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center mb-4">
+            <svg class="w-8 h-8 text-purple-600 dark:text-purple-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Nike Training Club</h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Free workout videos and training plans for all fitness levels</p>
+          <div class="flex space-x-2">
+            <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded">iOS</span>
+            <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded">Android</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Disclaimer -->
+    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">Important Disclaimer</h3>
+        <p class="text-blue-800 dark:text-blue-200 text-sm">
+          These tools and resources are provided for informational purposes only. Always consult with healthcare professionals before making significant changes to your diet or exercise routine. The calculators provide estimates and should not replace professional medical advice.
+        </p>
+      </div>
+    </section>
+  </main>
+</Layout>
+

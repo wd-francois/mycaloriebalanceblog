@@ -14,18 +14,19 @@ export default defineConfig({
   // Base path (set to '/' for most sites)
   base: '/',
   
-  // Align Vite/Astro aliases with tsconfig paths for consistent resolution in .astro files
-  alias: {
-    '@components': './src/layouts/components',
-    '@layouts': './src/layouts',
-    '@config': './src/config',
-    '@utils': './src/utils',
-    '@styles': './src/styles',
-    '@assets': './src/assets',
-  },
-  
   // Configure Vite plugins and server settings
   vite: {
+    // Align Vite/Astro aliases with tsconfig paths for consistent resolution in .astro files
+    resolve: {
+      alias: {
+        '@components': path.resolve('./src/layouts/components'),
+        '@layouts': path.resolve('./src/layouts'),
+        '@config': path.resolve('./src/config'),
+        '@utils': path.resolve('./src/utils'),
+        '@styles': path.resolve('./src/styles'),
+        '@assets': path.resolve('./src/assets'),
+      },
+    },
     plugins: [
       tailwindcss() // Reverted to simpler form, configPath removed
     ],
