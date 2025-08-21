@@ -18,7 +18,9 @@ Creatine is a naturally occurring compound found in small amounts in foods like 
 - **Supports Muscle Growth**: Creatine promotes muscle hypertrophy by increasing water content in muscle cells and stimulating protein synthesis. Over time, this leads to greater muscle mass and strength gains, making it a favorite among bodybuilders and those aiming to sculpt their physique.
 - **Enhances Recovery**: Creatine can reduce muscle damage and inflammation after intense exercise, helping you recover faster. This means less downtime between workouts and the ability to train harder and more consistently.
 - **Improves Cognitive Function**: Beyond physical benefits, creatine may support brain health. Research suggests it can enhance cognitive performance, particularly in tasks requiring short-term memory and quick thinking. This is because the brain, like muscles, relies on ATP for energy, and creatine helps maintain those energy levels.
-- **Safe and Accessible**:Creatine monohydrate, the most common form, is affordable, widely available, and has a strong safety profile when used as directed. A typical dose of 3–5 grams daily is enough to reap its benefits, with no need for complex cycling or loading phases.
+- **Safe and Accessible**: Creatine monohydrate, the most common form, is affordable, widely available, and has a strong safety profile when used as directed. All those fancy "new" forms of creatine are scams. Stick with creatine monohydrate. A typical dose of 3–5 grams daily is enough to reap its benefits, with no need for complex cycling or loading phases.  
+ 
+
 
 ## Conclusion
 
