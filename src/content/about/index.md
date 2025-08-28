@@ -1,6 +1,7 @@
 ---
 title: "About"
 meta_title: "About"
+description: "Learn more about My Calorie Balance - your trusted resource for health, nutrition, fitness, and exercise advice."
 image: "/src/assets/images/avatar-placeholder.svg"
 draft: false
 
@@ -19,9 +20,6 @@ what_i_do:
 
 At My Calorie Balance, we’re passionate about helping you achieve a healthier, more balanced lifestyle through expert advice on health, nutrition, fitness, and exercise. Our mission is to empower you with practical, science-backed tips to maintain your calorie balance and live your best life.
 
-### Who We Are
-
-We’re a team of health enthusiasts, nutritionists, and fitness experts dedicated to providing you with reliable, actionable content. Whether you’re looking to master meal prep, explore new workout routines, or understand the science behind calorie balance, we’ve got you covered.
 
 ### What We Offer
 

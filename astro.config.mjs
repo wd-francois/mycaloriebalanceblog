@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import mdx from '@astrojs/mdx';
 import icon from 'astro-icon';
 import sitemap from '@astrojs/sitemap';
+import react from '@astrojs/react';
 import path from 'path';
 
 // https://astro.build/config
@@ -20,6 +21,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@components': path.resolve('./src/layouts/components'),
+        '@react': path.resolve('./src/components'),
         '@layouts': path.resolve('./src/layouts'),
         '@config': path.resolve('./src/config'),
         '@utils': path.resolve('./src/utils'),
@@ -47,5 +49,5 @@ export default defineConfig({
   },
   
   // Configure Astro integrations
-  integrations: [mdx(), icon(), sitemap()]
+  integrations: [mdx(), icon(), sitemap(), react()]
 });
