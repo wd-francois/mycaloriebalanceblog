@@ -3,12 +3,14 @@ import { getCollection } from 'astro:content';
 import { siteConfig } from '@config/site';
 import { formatDate } from '@utils/date';
 
-export async function GET(context) {
+export async function GET(context: any) {
   const posts = await getCollection('posts');
   
-  // Sort posts by date (newest first)
+  // Sort posts by date (newest first), handling undefined dates
   const sortedPosts = posts.sort((a, b) => {
-    return new Date(b.data.date).getTime() - new Date(a.data.date).getTime();
+    const dateA = a.data.date || new Date(0);
+    const dateB = b.data.date || new Date(0);
+    return new Date(dateB).getTime() - new Date(dateA).getTime();
   });
 
   return rss({

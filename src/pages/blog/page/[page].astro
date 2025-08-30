@@ -37,7 +37,7 @@ export async function getStaticPaths() {
 }
 
 const { posts, page, totalPosts } = Astro.props;
-const currentPage = parseInt(page);
+const currentPage = Number(page);
 const basePath = '/blog';
 
 // Get pagination data

@@ -68,7 +68,7 @@ const aboutCollection = defineCollection({
           icon: z.string().optional()
         })
       )
-    })
+    }).optional()
   }),
 });
 

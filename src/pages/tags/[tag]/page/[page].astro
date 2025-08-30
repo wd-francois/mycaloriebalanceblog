@@ -6,7 +6,7 @@ import Pagination from '@components/common/Pagination.astro';
 import { getPagination } from '@utils/pagination';
 import { siteConfig } from '@config/site';
 
-export async function getStaticPaths({ paginate }) {
+export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => {
     return !data.draft;
   });
@@ -48,7 +48,7 @@ export async function getStaticPaths({ paginate }) {
 }
 
 const { tag, posts, page, count } = Astro.props;
-const currentPage = parseInt(page);
+const currentPage = Number(page);
 const basePath = `/tags/${tag.toLowerCase()}`;
 
 // Get pagination data
