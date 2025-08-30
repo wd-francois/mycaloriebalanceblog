@@ -55,6 +55,12 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
     return entries[dateKey] && entries[dateKey].length > 0;
   };
 
+  // Check if date is today
+  const isToday = (date) => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
   function goPrevMonth() {
     setViewMonth((m) => {
       if (m === 0) {
@@ -81,29 +87,58 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   });
 
   return (
-    <div className="p-6 border border-neutral-400 rounded-md bg-white text-black w-full max-w-md">
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={goPrevMonth} className="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">{'<'}</button>
-        <h2 className="text-xl font-semibold text-center">{monthLabel}</h2>
-        <button onClick={goNextMonth} className="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">{'>'}</button>
+    <div className="p-6 border border-gray-200 rounded-xl bg-white text-gray-900 shadow-lg shadow-gray-100/50 w-full max-w-md">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <button 
+          onClick={goPrevMonth} 
+          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label="Previous month"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h2 className="text-xl font-bold text-gray-900 text-center">{monthLabel}</h2>
+        <button 
+          onClick={goNextMonth} 
+          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label="Next month"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-sm text-gray-600 mb-1">
+      {/* Weekday labels */}
+      <div className="grid grid-cols-7 gap-1 text-center text-sm font-semibold text-gray-600 mb-3">
         {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="py-1 font-medium">{label}</div>
+          <div key={label} className="py-2 px-1">{label}</div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center">
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-1">
         {monthMatrix.map((week) =>
           week.map((cell) => {
             const isSelected = cell.key === selectedKey;
             const hasEntriesForDay = hasEntries(cell.date);
-            const baseClasses = 'py-2 rounded cursor-pointer select-none';
-            const stateClasses = [
-              cell.inCurrentMonth ? 'text-gray-900' : 'text-gray-400',
-              isSelected ? 'bg-blue-600 text-white' : 'hover:bg-gray-100',
-            ].join(' ');
+            const isTodayDate = isToday(cell.date);
+            
+            const baseClasses = 'py-3 px-1 rounded-lg cursor-pointer select-none transition-all duration-200 relative';
+            let stateClasses = '';
+            
+            if (isSelected) {
+              stateClasses = 'bg-blue-600 text-white shadow-lg shadow-blue-200';
+            } else if (isTodayDate) {
+              stateClasses = 'bg-blue-50 text-blue-700 border-2 border-blue-200';
+            } else if (cell.inCurrentMonth) {
+              stateClasses = 'text-gray-900 hover:bg-gray-50 hover:shadow-sm';
+            } else {
+              stateClasses = 'text-gray-400 hover:bg-gray-50';
+            }
+
             return (
               <div
                 key={cell.key}
@@ -121,19 +156,51 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                 }}
                 aria-selected={isSelected}
                 role="gridcell"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (typeof onSelectDate === 'function') {
+                      onSelectDate(cell.date);
+                    }
+                  }
+                }}
               >
-                <div className="flex flex-col items-center">
-                  <span>{cell.dayNumber}</span>
+                <div className="flex flex-col items-center justify-center min-h-[2.5rem]">
+                  <span className={`font-medium ${isTodayDate && !isSelected ? 'text-blue-700' : ''}`}>
+                    {cell.dayNumber}
+                  </span>
+                  
+                  {/* Entry indicator */}
                   {hasEntriesForDay && (
                     <div className={`w-2 h-2 rounded-full mt-1 ${
                       isSelected ? 'bg-white' : 'bg-blue-500'
                     }`}></div>
+                  )}
+                  
+                  {/* Today indicator */}
+                  {isTodayDate && !isSelected && (
+                    <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
                   )}
                 </div>
               </div>
             );
           })
         )}
+      </div>
+      
+      {/* Legend */}
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span>Has entries</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span>Today</span>
+          </div>
+        </div>
       </div>
     </div>
   );

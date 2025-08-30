@@ -16,12 +16,12 @@
   },
 
   "params": {
-    "contact_form_action": "#"
+    "contact_form_action": "https://formspree.io/f/xvgbkdvg"
   },
 
   "contactinfo": {
     "address": "Your Address",
-    "email": "your.email@example.com",
+    "email": "pt.francois@gmail.com",
     "phone": "+1 234 567 8900"
   }
 }

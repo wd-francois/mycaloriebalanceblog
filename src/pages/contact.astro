@@ -9,7 +9,7 @@ const { address, email, phone } = config.contactinfo;
 const { contact_form_action } = config.params;
 
 // Function to convert markdown to HTML (simplified version)
-const markdownify = (content) => {
+const markdownify = (content: string | undefined) => {
   if (!content) return "";
   return content;
 };
@@ -26,34 +26,17 @@ const markdownify = (content) => {
         <div class="md:col-span-4">
           <p class="mb-8 text-2xl font-bold text-gray-900 dark:text-white">Contact Info</p>
           <ul class="flex flex-col space-y-8">
-            <li>
-              <div class="flex text-gray-900 dark:text-white items-center text-xl">
-                <Icon
-                  name="mdi:card-account-details-star-outline"
-                  class="mr-3 text-blue-600 dark:text-blue-400 text-2xl"
-                />
-                <p class="font-semibold">Address</p>
-              </div>
-              <p class="mt-2 leading-5 pl-8 text-gray-700 dark:text-gray-300">{address}</p>
-            </li>
+        
             <li>
               <div class="flex text-gray-900 dark:text-white items-center text-xl">
                 <Icon name="mdi:email" class="mr-3 text-blue-600 dark:text-blue-400 text-2xl" />
-                <p class="font-semibold">Email</p>
+                <p class="font-semibold">pt.francois@gmail.com</p>
               </div>
               <p class="mt-2 leading-5 pl-8 text-gray-700 dark:text-gray-300">
-                <a href={`mailto:${email}`} class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{email}</a>
+                <!-- <a href={`mailto:${email}`} class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{email}</a> -->
               </p>
             </li>
-            <li>
-              <div class="flex text-gray-900 dark:text-white items-center text-xl">
-                <Icon name="mdi:phone" class="mr-3 text-blue-600 dark:text-blue-400 text-2xl" />
-                <p class="font-semibold">Phone</p>
-              </div>
-              <p class="mt-2 leading-5 pl-8 text-gray-700 dark:text-gray-300">
-                <a href={`tel:${phone.replace(/\s+/g, '')}`} class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">{phone}</a>
-              </p>
-            </li>
+          
           </ul>
         </div>
         <div class="md:col-span-8">
@@ -61,7 +44,6 @@ const markdownify = (content) => {
             class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
             method="POST"
             action={contact_form_action}
-            data-astro-reload
           >
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
               <div>

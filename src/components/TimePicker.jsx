@@ -38,40 +38,63 @@ const TimePicker = ({
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <select
-        aria-label="Hour"
-        className="border border-gray-300 dark:border-gray-700 rounded px-2 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-        value={hour}
-        onChange={handleHourChange}
-      >
-        {HOURS.map((h) => (
-          <option key={h} value={h}>{h}</option>
-        ))}
-      </select>
+    <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+      {/* Hour selector */}
+      <div className="flex flex-col items-center">
+        <label className="text-xs font-medium text-gray-600 mb-1">Hour</label>
+        <select
+          aria-label="Hour"
+          className="w-16 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+          value={hour}
+          onChange={handleHourChange}
+        >
+          {HOURS.map((h) => (
+            <option key={h} value={h}>{h}</option>
+          ))}
+        </select>
+      </div>
 
-      <span className="text-gray-900 dark:text-white">:</span>
+      {/* Separator */}
+      <div className="flex flex-col items-center justify-center">
+        <div className="text-gray-400 text-2xl font-bold">:</div>
+      </div>
 
-      <select
-        aria-label="Minute"
-        className="border border-gray-300 dark:border-gray-700 rounded px-2 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-        value={minute}
-        onChange={handleMinuteChange}
-      >
-        {MINUTES.map((m) => (
-          <option key={m} value={m}>{pad2(m)}</option>
-        ))}
-      </select>
+      {/* Minute selector */}
+      <div className="flex flex-col items-center">
+        <label className="text-xs font-medium text-gray-600 mb-1">Minute</label>
+        <select
+          aria-label="Minute"
+          className="w-16 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+          value={minute}
+          onChange={handleMinuteChange}
+        >
+          {MINUTES.map((m) => (
+            <option key={m} value={m}>{pad2(m)}</option>
+          ))}
+        </select>
+      </div>
 
-      <select
-        aria-label="AM/PM"
-        className="border border-gray-300 dark:border-gray-700 rounded px-2 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-        value={period}
-        onChange={handlePeriodChange}
-      >
-        <option value="AM">AM</option>
-        <option value="PM">PM</option>
-      </select>
+      {/* Period selector */}
+      <div className="flex flex-col items-center">
+        <label className="text-xs font-medium text-gray-600 mb-1">Period</label>
+        <select
+          aria-label="AM/PM"
+          className="w-20 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+          value={period}
+          onChange={handlePeriodChange}
+        >
+          <option value="AM">AM</option>
+          <option value="PM">PM</option>
+        </select>
+      </div>
+
+      {/* Display time */}
+      <div className="flex flex-col items-center ml-2">
+        <label className="text-xs font-medium text-gray-600 mb-1">Time</label>
+        <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-md text-blue-900 text-sm font-semibold">
+          {formatted}
+        </div>
+      </div>
     </div>
   );
 };

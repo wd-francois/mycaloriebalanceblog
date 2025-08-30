@@ -2,26 +2,16 @@
 title: "About"
 meta_title: "About"
 description: "Learn more about My Calorie Balance - your trusted resource for health, nutrition, fitness, and exercise advice."
-image: "/src/assets/images/avatar-placeholder.svg"
+# image: "/src/assets/images/avatar-placeholder.svg"
 draft: false
 
-what_i_do:
-  title: "What We Do"
-  items:
-    - title: "Content Creation"
-      description: "High-quality content tailored to your audience."
 
-    - title: "Web Development"
-      description: "Modern websites built with cutting-edge technologies."
-
-    - title: "Digital Marketing"
-      description: "Strategic marketing solutions to grow your online presence."
 ---
 
 At My Calorie Balance, we’re passionate about helping you achieve a healthier, more balanced lifestyle through expert advice on health, nutrition, fitness, and exercise. Our mission is to empower you with practical, science-backed tips to maintain your calorie balance and live your best life.
 
 
-### What We Offer
+<!-- ### **What We Offer**
 
 Nutrition Guides: From debunking diet myths to creating healthy meal plans, our [nutrition articles][nutrition-link] help you make informed food choices.
 
@@ -46,6 +36,5 @@ Ready to start your journey to a healthier you? Subscribe to our newsletter for 
 ## Get In Touch With Us
 
 - [Contact Us](/contact/)
-- [Privacy Policy](/privacy/)
-- [Terms of Service](/terms/)
-- [Blog](/blog/)
+
+- [Blog](/blog/) -->
