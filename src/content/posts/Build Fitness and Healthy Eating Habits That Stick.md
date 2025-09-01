@@ -2,7 +2,7 @@
 title: "Can’t Get Motivated to Work Out?"
 meta_title: "Quick Guide: Build Fitness and Healthy Eating Habits That Stick"
 description: "Struggling with motivation? Learn how to make fitness and healthy eating automatic with simple habit-building strategies."
-date: 2025-08-31
+date: 2025-09-01
 image: "../../assets/images/4.jpg"
 categories: ["Motivation"]
 tags: ["Motivation", "Habits", "Fitness"]
