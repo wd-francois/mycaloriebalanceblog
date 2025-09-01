@@ -31,7 +31,7 @@ Willpower fades, but your environment shapes your behavior daily. The easier a h
 
 **Focus on the Feeling** 
 
-Forget abstract goals like “lose 10kg.” Instead, notice the energy boost after a workout, the mental clarity from eating well, or the sluggishness after junk food. That immediate feedback fuels your drive to keep going.
+Forget abstract goals like “lose 10kg.” Instead, notice the energy boost after a workout, the mental clarity from eating well, the buzz of a new personal best or the sluggishness after junk food. That immediate feedback fuels your drive to keep going.
 
 ## **The Takeaway**  
  
