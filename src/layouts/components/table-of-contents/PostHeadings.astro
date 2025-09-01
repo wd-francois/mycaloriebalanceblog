@@ -8,6 +8,10 @@ interface Props {
 }
 
 function buildToc(headings: MarkdownHeading[]) {
+  if (!headings || !Array.isArray(headings) || headings.length === 0) {
+    return [];
+  }
+  
   const toc: Heading[] = [];
   const parentHeadings = new Map();
   headings
@@ -18,13 +22,21 @@ function buildToc(headings: MarkdownHeading[]) {
       if (heading.depth === 2) {
         toc.push(heading);
       } else {
-        parentHeadings.get(heading.depth - 1).subheadings.push(heading);
+        const parent = parentHeadings.get(heading.depth - 1);
+        if (parent && parent.subheadings) {
+          parent.subheadings.push(heading);
+        }
       }
     });
   return toc;
 }
 
 const { headings } = Astro.props;
+
+// Safety check for headings
+if (!headings || !Array.isArray(headings) || headings.length === 0) {
+  return null;
+}
 
 const tableOfContents = buildToc(headings);
 ---

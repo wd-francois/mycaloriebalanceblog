@@ -100,6 +100,21 @@ const {
         border-radius: 0.375rem;
         padding: 1rem;
       }
+      /* Force ordered lists to show numbers */
+      .prose ol {
+        list-style-type: decimal !important;
+        list-style-position: outside !important;
+        padding-left: 1.5em !important;
+      }
+      .prose ol li {
+        display: list-item !important;
+        list-style-type: decimal !important;
+      }
+      .prose ol li::marker {
+        content: counter(list-item) "." !important;
+        color: inherit !important;
+        font-weight: inherit !important;
+      }
       .dark .prose pre {
         background-color: #1f2937;
       }
