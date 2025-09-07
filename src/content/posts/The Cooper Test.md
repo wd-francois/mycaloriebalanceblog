@@ -2,7 +2,7 @@
 title: "Get Fit Fast: Use the Cooper Test to Measure and Improve Your Fitness"
 meta_title: "The Cooper Test: A Simple 12-Minute Run to Test Your Fitness and Boost Endurance"
 description: "How to test your aerobic capacity"
-date: 2025-08-05
+date: 2025-09-07
 image: "../../assets/images/01.jpg"
 categories: ["Fitness"]
 tags: ["Cardio", "Fitness", "Testing", "VO2 Max"]
@@ -57,7 +57,7 @@ A smartwatch or ask friend or coach to handle the timing.
 ## **Tip For beginners**
 
  Don’t aim to break records on your first try. Walking or alternating between walking and jogging is perfectly fine. Use your initial result as a baseline and focus on gradual improvement. To boost your score, incorporate regular aerobic exercises like running, cycling, swimming, or brisk walking, and slowly increase intensity over time. 
- 
+
 ## **Final Thoughts**
 
 The Cooper Test is a straightforward, cost-free way to gauge your cardiovascular fitness and track progress over time. Whether you’re training for a race, rebuilding your fitness, or simply curious about your aerobic capacity, this 12-minute challenge is a fantastic starting point.  For a video demonstration and more information about The Cooper Test see this [**video:**](https://www.youtube.com/watch?v=6G0ZK114-RI)
