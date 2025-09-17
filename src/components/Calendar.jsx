@@ -87,34 +87,34 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   });
 
   return (
-    <div className="p-6 border border-gray-200 rounded-xl bg-white text-gray-900 shadow-lg shadow-gray-100/50 w-full max-w-md">
+    <div className="p-3 sm:p-6 border border-gray-200 rounded-xl bg-white text-gray-900 shadow-lg shadow-gray-100/50 w-full max-w-md">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <button 
           onClick={goPrevMonth} 
-          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="p-2 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
           aria-label="Previous month"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h2 className="text-xl font-bold text-gray-900 text-center">{monthLabel}</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 text-center px-2">{monthLabel}</h2>
         <button 
           onClick={goNextMonth} 
-          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="p-2 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
           aria-label="Next month"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
       </div>
 
       {/* Weekday labels */}
-      <div className="grid grid-cols-7 gap-1 text-center text-sm font-semibold text-gray-600 mb-3">
+      <div className="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm font-semibold text-gray-600 mb-2 sm:mb-3">
         {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="py-2 px-1">{label}</div>
+          <div key={label} className="py-1 sm:py-2 px-1">{label}</div>
         ))}
       </div>
 
@@ -126,7 +126,7 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
             const hasEntriesForDay = hasEntries(cell.date);
             const isTodayDate = isToday(cell.date);
             
-            const baseClasses = 'py-3 px-1 rounded-lg cursor-pointer select-none transition-all duration-200 relative';
+            const baseClasses = 'py-2 sm:py-3 px-1 rounded-lg cursor-pointer select-none transition-all duration-200 relative touch-manipulation min-h-[32px] sm:min-h-[36px] flex items-center justify-center';
             let stateClasses = '';
             
             if (isSelected) {

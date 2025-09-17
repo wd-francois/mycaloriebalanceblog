@@ -52,7 +52,7 @@ const DateTimeSelector = () => {
 
   // Entries state - store entries per date (meals, exercises, sleep)
   const [entries, setEntries] = useState({});
-  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' } });
+  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: '', reps: '', load: '', amount: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' } });
   const [formError, setFormError] = useState('');
   const [activeForm, setActiveForm] = useState('meal'); // 'meal', 'exercise', 'sleep'
   const [showMealInput, setShowMealInput] = useState(false);
@@ -363,7 +363,7 @@ const DateTimeSelector = () => {
   }
 
   function resetForm() {
-    setFormState({ id: null, name: '', type: activeForm, sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' } });
+    setFormState({ id: null, name: '', type: activeForm, sets: '', reps: '', load: '', amount: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' } });
     setFormError('');
     setShowMealInput(false);
     setShowExerciseInput(false);
@@ -392,14 +392,8 @@ const DateTimeSelector = () => {
         type: activeForm,
         date: selectedDate,
         time,
-        ...(activeForm === 'exercise' && { sets: formState.sets }),
-        ...(activeForm === 'meal' && { 
-          amount: formState.amount,
-          calories: formState.calories,
-          protein: formState.protein,
-          carbs: formState.carbs,
-          fats: formState.fats
-        }),
+        ...(activeForm === 'exercise' && { sets: formState.sets, reps: formState.reps, load: formState.load }),
+        ...(activeForm === 'meal' && { amount: formState.amount }),
         ...(activeForm === 'sleep' && { bedtime: formState.bedtime, waketime: formState.waketime, duration: calculateSleepDuration(formState.bedtime, formState.waketime) })
       };
       setEntries((prev) => ({
@@ -421,14 +415,8 @@ const DateTimeSelector = () => {
             type: activeForm,
             date: selectedDate, 
             time,
-            ...(activeForm === 'exercise' && { sets: formState.sets }),
-            ...(activeForm === 'meal' && { 
-              amount: formState.amount,
-              calories: formState.calories,
-              protein: formState.protein,
-              carbs: formState.carbs,
-              fats: formState.fats
-            }),
+            ...(activeForm === 'exercise' && { sets: formState.sets, reps: formState.reps, load: formState.load }),
+            ...(activeForm === 'meal' && { amount: formState.amount }),
             ...(activeForm === 'sleep' && { bedtime: formState.bedtime, waketime: formState.waketime, duration: calculateSleepDuration(formState.bedtime, formState.waketime) })
           } : e
         )
@@ -445,12 +433,10 @@ const DateTimeSelector = () => {
       id: entry.id,
       name: entry.name,
       type: entry.type,
-      sets: entry.sets || [],
+      sets: entry.sets || '',
+      reps: entry.reps || '',
+      load: entry.load || '',
       amount: entry.amount || '',
-      calories: entry.calories || '',
-      protein: entry.protein || '',
-      carbs: entry.carbs || '',
-      fats: entry.fats || '',
       bedtime: entry.bedtime || { hour: 10, minute: 0, period: 'PM' },
       waketime: entry.waketime || { hour: 6, minute: 0, period: 'AM' },
       duration: entry.duration || '',
@@ -465,30 +451,6 @@ const DateTimeSelector = () => {
     } else if (entry.type === 'sleep') {
       setShowSleepInput(true);
     }
-  }
-
-  // Functions to handle individual sets
-  function addSet() {
-    setFormState(prev => ({
-      ...prev,
-      sets: [...prev.sets, { reps: '', load: '' }]
-    }));
-  }
-
-  function updateSet(index, field, value) {
-    setFormState(prev => ({
-      ...prev,
-      sets: prev.sets.map((set, i) => 
-        i === index ? { ...set, [field]: value } : set
-      )
-    }));
-  }
-
-  function removeSet(index) {
-    setFormState(prev => ({
-      ...prev,
-      sets: prev.sets.filter((_, i) => i !== index)
-    }));
   }
 
   function handleDelete(id) {
@@ -642,96 +604,58 @@ const DateTimeSelector = () => {
 
   return (
     <div className="w-full">
-      <div className="w-full max-w-sm mx-auto flex flex-col gap-4 px-2 sm:px-0">
+      <div className="w-full max-w-sm mx-auto flex flex-col gap-4">
         <div className="flex justify-center">
           <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />
         </div>
       </div>
 
       {/* Inline FAQ / Features Accordion below calendar */}
-      <div className="w-full max-w-2xl mx-auto mt-6 px-2 sm:px-4">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Frequent Questions</h2>
+      <div className="w-full max-w-2xl mx-auto mt-6 px-4">
+        <h2 className="text-xl font-semibold text-gray-900 mb-3">Frequent Questions</h2>
         <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm">
-          <details className="group p-3 sm:p-4" open>
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
-              <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I log a meal with nutrition info?</span>
-              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+          <details className="group p-4" open>
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+              <span className="text-base font-semibold text-gray-900">How do I log a meal?</span>
+              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
-            <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-            How do I log a meal?
-            Click a date on the calendar, select "Add Meal", then fill in the meal name and amount (e.g., "1 cup"). You can optionally add nutrition details like calories, protein, carbs, and fats, but these aren't required. Use the autocomplete to quickly select from your food library.
+            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
+              Click a date on the calendar, then use the time picker and enter a meal name. Press “Add Entry”.
             </div>
           </details>
           <details className="group p-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I log exercises?</span>
+              <span className="text-base font-semibold text-gray-900">Where can I see meals for a specific day?</span>
               <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Select "Add Exercise", enter the exercise name, then click "Add Set" for each set. You can optionally enter reps and load (e.g., "50kg") for each set - these details aren't required. Add as many sets as needed.
+              Select a date to open the daily panel. All entries for that date appear in the list below the form.
+            </div>
+          </details><details className="group p-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+              <span className="text-base font-semibold text-gray-900">Where are my data entries saved?</span>
+              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
+              All the data is saved in your browser's local storage.
             </div>
           </details>
           <details className="group p-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">What is the food and exercise library?</span>
+              <span className="text-base font-semibold text-gray-900">Can I edit or delete an entry?</span>
               <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Your personal database of frequently used foods and exercises. Click "Manage Library" to add, edit, or delete items. The autocomplete will suggest items from your library as you type, making data entry much faster.
+              Yes. Use the Edit button to change the name or time, or Delete to remove it.
             </div>
           </details>
           <details className="group p-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I reorder my entries?</span>
+              <span className="text-base font-semibold text-gray-900">How do exports work?</span>
               <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Simply drag and drop any entry to reorder them. Entries with the same time are grouped together and can be collapsed/expanded by clicking the time header.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How are entries grouped by time?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              All entries for the same time (e.g., 8:00 AM) are automatically grouped together under a single time header. This keeps your log organized and makes it easy to see what you did at specific times. Click the time header to collapse or expand each group. You can have multiple meals, exercises, or sleep entries at the same time.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">What are the quick-add buttons?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              These show your most recently used food and exercise items. Click any button to instantly add that item to your log with pre-filled details, saving you time on data entry.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I add notes to entries?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Click the information (i) button next to any entry to add notes or additional details. This is useful for tracking how you felt, intensity levels, or any other observations.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">Where is my data stored?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              All data is stored locally in your browser using IndexedDB, which is more reliable than regular storage. Your data stays private and is not sent to any servers. Use the Export feature to backup your data.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I export my data?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              In the daily panel header, click "Export" and choose from JSON (for data backup), CSV (for spreadsheet analysis), or PDF (for printing). This includes all your entries with nutrition and exercise details.
+              In the daily panel header, open Export and choose JSON, CSV, or PDF to download your data.
             </div>
           </details>
         </div>
@@ -822,7 +746,7 @@ const DateTimeSelector = () => {
                 </h3>
                 
                 <form className="space-y-4" onSubmit={handleSubmit}>
-                  <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <TimePicker onChange={setTime} />
                     </div>
@@ -954,62 +878,6 @@ const DateTimeSelector = () => {
                           />
                         </div>
 
-                        {/* Nutrition Information */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-calories">
-                              Calories
-                            </label>
-                            <input
-                              id="meal-calories"
-                              type="number"
-                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                              placeholder="e.g., 250"
-                              value={formState.calories}
-                              onChange={(e) => setFormState((s) => ({ ...s, calories: e.target.value }))}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-protein">
-                              Protein (g)
-                            </label>
-                            <input
-                              id="meal-protein"
-                              type="number"
-                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                              placeholder="e.g., 20"
-                              value={formState.protein}
-                              onChange={(e) => setFormState((s) => ({ ...s, protein: e.target.value }))}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-carbs">
-                              Carbs (g)
-                            </label>
-                            <input
-                              id="meal-carbs"
-                              type="number"
-                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                              placeholder="e.g., 30"
-                              value={formState.carbs}
-                              onChange={(e) => setFormState((s) => ({ ...s, carbs: e.target.value }))}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-fats">
-                              Fats (g)
-                            </label>
-                            <input
-                              id="meal-fats"
-                              type="number"
-                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                              placeholder="e.g., 10"
-                              value={formState.fats}
-                              onChange={(e) => setFormState((s) => ({ ...s, fats: e.target.value }))}
-                            />
-                          </div>
-                        </div>
-
                         <div className="flex items-center gap-3">
                     <button
                       type="submit"
@@ -1068,82 +936,51 @@ const DateTimeSelector = () => {
                           </div>
                         </div>
                         
-                        {/* Individual Sets */}
-                        <div>
-                          <div className="flex items-center justify-between mb-4">
-                            <label className="block text-sm font-medium text-gray-700">
-                              Sets ({formState.sets.length})
+                        {/* Exercise Details Grid */}
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="exercise-sets">
+                              Sets
                             </label>
-                            <button
-                              type="button"
-                              onClick={addSet}
-                              className="inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                            >
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                              Add Set
-                            </button>
+                            <input
+                              id="exercise-sets"
+                              type="number"
+                              min="1"
+                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                              placeholder="3"
+                              value={formState.sets}
+                              onChange={(e) => setFormState((s) => ({ ...s, sets: e.target.value }))}
+                            />
                           </div>
                           
-                          {formState.sets.length === 0 ? (
-                            <div className="text-center py-8 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-                              <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                              <p className="text-sm text-gray-500">No sets added yet. Click "Add Set" to get started.</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                              {formState.sets.map((set, index) => (
-                                <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <h4 className="text-sm font-medium text-gray-700">Set {index + 1}</h4>
-                                    <button
-                                      type="button"
-                                      onClick={() => removeSet(index)}
-                                      className="text-red-500 hover:text-red-700 transition-colors"
-                                      title="Remove set"
-                                    >
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                      </svg>
-                                    </button>
-                                  </div>
-                                  
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                                        Reps
-                                      </label>
-                                      <input
-                                        type="number"
-                                        min="1"
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-sm"
-                                        placeholder="10"
-                                        value={set.reps}
-                                        onChange={(e) => updateSet(index, 'reps', e.target.value)}
-                                      />
-                                    </div>
-                                    
-                                    <div>
-                                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                                        Load
-                                      </label>
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-sm"
-                                        placeholder="50kg"
-                                        value={set.load}
-                                        onChange={(e) => updateSet(index, 'load', e.target.value)}
-                                      />
-                                    </div>
-                                  </div>
-                                  
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="exercise-reps">
+                              Reps
+                            </label>
+                            <input
+                              id="exercise-reps"
+                              type="number"
+                              min="1"
+                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                              placeholder="10"
+                              value={formState.reps}
+                              onChange={(e) => setFormState((s) => ({ ...s, reps: e.target.value }))}
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="exercise-load">
+                              Load
+                            </label>
+                            <input
+                              id="exercise-load"
+                              type="text"
+                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                              placeholder="50kg, 25lbs"
+                              value={formState.load}
+                              onChange={(e) => setFormState((s) => ({ ...s, load: e.target.value }))}
+                            />
+                          </div>
                         </div>
                         
                         <div className="flex items-center gap-3">
@@ -1179,7 +1016,7 @@ const DateTimeSelector = () => {
                     <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
                       <div className="space-y-4">
                         {/* Bedtime and Wake Time */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               Bedtime
@@ -1358,11 +1195,158 @@ const DateTimeSelector = () => {
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onInfoClick={handleInfoClick}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
                 />
+                      // Get type-specific styling and info
+                      const getTypeInfo = (type) => {
+                        switch (type) {
+                          case 'meal':
+                            return {
+                              emoji: '🍽️',
+                              color: 'blue',
+                              bgColor: 'bg-blue-100',
+                              textColor: 'text-blue-800',
+                              label: 'Meal'
+                            };
+                          case 'exercise':
+                            return {
+                              emoji: '💪',
+                              color: 'green',
+                              bgColor: 'bg-green-100',
+                              textColor: 'text-green-800',
+                              label: 'Exercise'
+                            };
+                          case 'sleep':
+                            return {
+                              emoji: '😴',
+                              color: 'purple',
+                              bgColor: 'bg-purple-100',
+                              textColor: 'text-purple-800',
+                              label: 'Sleep'
+                            };
+                          default:
+                            return {
+                              emoji: '📝',
+                              color: 'gray',
+                              bgColor: 'bg-gray-100',
+                              textColor: 'text-gray-800',
+                              label: 'Entry'
+                            };
+                        }
+                      };
+
+                      const typeInfo = getTypeInfo(entry.type);
+                      
+                      return (
+                        <div
+                          key={entry.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, entry)}
+                          onDragEnd={handleDragEnd}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, entry)}
+                          className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-all duration-200 cursor-move hover:border-blue-300"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                                </svg>
+                                <div className="px-3 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">
+                                  {formatTime(entry.time)}
+                                </div>
+                              </div>
+                              <div className={`px-3 py-1 ${typeInfo.bgColor} ${typeInfo.textColor} text-xs font-medium rounded-full`}>
+                                {typeInfo.emoji} {typeInfo.label}
+                              </div>
+                              <div className="font-medium text-gray-900 text-lg">
+                                {entry.name}
+                              </div>
+                            </div>
+                            
+                            {/* Additional info based on entry type */}
+                            {entry.type === 'meal' && entry.amount && (
+                              <div className="mt-2 text-sm text-gray-600">
+                                Amount: {entry.amount}
+                              </div>
+                            )}
+                            
+                            {entry.type === 'exercise' && (entry.sets || entry.reps || entry.load) && (
+                              <div className="mt-2 text-sm text-gray-600">
+                                {entry.sets && `Sets: ${entry.sets}`}
+                                {entry.sets && entry.reps && ' • '}
+                                {entry.reps && `Reps: ${entry.reps}`}
+                                {entry.load && (entry.sets || entry.reps) && ' • '}
+                                {entry.load && `Load: ${entry.load}`}
+                              </div>
+                            )}
+                            
+                            {entry.type === 'sleep' && entry.duration && (
+                              <div className="mt-2 text-sm text-gray-600">
+                                Duration: {entry.duration}
+                                {entry.bedtime && entry.waketime && (
+                                  <span className="ml-2">
+                                    ({formatTime(entry.bedtime)} - {formatTime(entry.waketime)})
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Additional Information */}
+                            {entry.notes && (
+                              <div className="mt-2 text-sm text-gray-500">
+                                <div className="mb-1">
+                                  <span className="font-medium">Notes:</span> {entry.notes}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleInfoClick(entry)}
+                              className="inline-flex items-center p-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                              aria-label="Add information"
+                              title="Add information"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(entry)}
+                              className="inline-flex items-center p-2 text-sm bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                              aria-label="Edit entry"
+                              title="Edit entry"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(entry.id)}
+                              className="inline-flex items-center p-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                              aria-label="Delete entry"
+                              title="Delete entry"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Close modal */}
