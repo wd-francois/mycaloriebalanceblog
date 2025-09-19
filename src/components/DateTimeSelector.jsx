@@ -1022,11 +1022,11 @@ const DateTimeSelector = () => {
                       {headerText}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                    <div className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full w-fit">
+                    <div className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full w-fit flex items-center justify-center">
                       {currentDateEntries.length} entries
                       </div>
                       {totalSleepDuration && (
-                        <div className="px-3 py-1 bg-purple-100 text-purple-800 text-sm font-medium rounded-full w-fit">
+                        <div className="px-3 py-1 bg-purple-100 text-purple-800 text-sm font-medium rounded-full w-fit flex items-center justify-center">
                           😴 {totalSleepDuration} sleep
                         </div>
                       )}
@@ -1324,7 +1324,7 @@ const DateTimeSelector = () => {
                                     e.nativeEvent.stopImmediatePropagation();
                                     handleQuickAdd(item, 'meal');
                                   }}
-                                  className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full hover:bg-blue-200 transition-colors"
+                                  className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full hover:bg-blue-200 transition-colors flex items-center justify-center"
                                 >
                                   {item.name}
                                 </button>
@@ -1482,7 +1482,7 @@ const DateTimeSelector = () => {
                                     e.nativeEvent.stopImmediatePropagation();
                                     handleQuickAdd(item, 'exercise');
                                   }}
-                                  className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full hover:bg-green-200 transition-colors"
+                                  className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full hover:bg-green-200 transition-colors flex items-center justify-center"
                                 >
                                   {item.name}
                                 </button>

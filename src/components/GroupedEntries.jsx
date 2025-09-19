@@ -173,7 +173,7 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                  <div className="px-2 sm:px-3 py-1 bg-gray-200 text-gray-800 text-xs sm:text-sm font-medium rounded-full">
+                  <div className="px-2 sm:px-3 py-1 bg-gray-200 text-gray-800 text-xs sm:text-sm font-medium rounded-full flex items-center justify-center">
                     {timeKey}
                   </div>
                   <span className="text-xs sm:text-sm text-gray-600">
@@ -209,7 +209,7 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                   >
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <div className={`px-3 py-1 ${typeInfo.bgColor} ${typeInfo.textColor} text-xs font-medium rounded-full`}>
+                          <div className={`px-3 py-1 ${typeInfo.bgColor} ${typeInfo.textColor} text-xs font-medium rounded-full flex items-center justify-center`}>
                             {typeInfo.emoji} {typeInfo.label}
                           </div>
                           <div className="font-medium text-gray-900 text-lg">
