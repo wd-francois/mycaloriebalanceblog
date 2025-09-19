@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, onDragStart, onDragEnd, onDragOver, onDrop }) => {
+const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, onDragStart, onDragEnd, onDragOver, onDrop, settings = { weightUnit: 'lbs', lengthUnit: 'in' } }) => {
   const [collapsedTimes, setCollapsedTimes] = useState(new Set());
+
 
   // Separate sleep entries from other entries
   const sleepEntries = entries.filter(entry => entry.type === 'sleep');
@@ -67,6 +68,14 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
           bgColor: 'bg-purple-100',
           textColor: 'text-purple-800',
           label: 'Sleep'
+        };
+      case 'measurements':
+        return {
+          emoji: '📏',
+          color: 'orange',
+          bgColor: 'bg-orange-100',
+          textColor: 'text-orange-800',
+          label: 'Measurements'
         };
       default:
         return {
@@ -214,6 +223,8 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                             {entry.amount && (
                               <div>Amount: {entry.amount}</div>
                             )}
+                            
+                            
                             {(entry.calories || entry.protein || entry.carbs || entry.fats) && (
                               <div className="flex flex-wrap gap-3 text-xs">
                                 {entry.calories && <span>🔥 {entry.calories} cal</span>}
@@ -245,6 +256,40 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                         {entry.type === 'sleep' && entry.duration && (
                           <div className="mt-2 text-sm text-gray-600">
                             Duration: {entry.duration}
+                          </div>
+                        )}
+
+                        {entry.type === 'measurements' && (
+                          <div className="mt-2 text-sm text-gray-600 space-y-1">
+                            {entry.weight && (
+                              <div className="font-medium">Weight: {entry.weight} {settings.weightUnit}</div>
+                            )}
+                            
+                            {(entry.neck || entry.shoulders || entry.chest || entry.waist || entry.hips || entry.thigh || entry.arm) && (
+                              <div className="flex flex-wrap gap-3 text-xs">
+                                {entry.neck && <span>Neck: {entry.neck}{settings.lengthUnit}</span>}
+                                {entry.shoulders && <span>Shoulders: {entry.shoulders}{settings.lengthUnit}</span>}
+                                {entry.chest && <span>Chest: {entry.chest}{settings.lengthUnit}</span>}
+                                {entry.waist && <span>Waist: {entry.waist}{settings.lengthUnit}</span>}
+                                {entry.hips && <span>Hips: {entry.hips}{settings.lengthUnit}</span>}
+                                {entry.thigh && <span>Thigh: {entry.thigh}{settings.lengthUnit}</span>}
+                                {entry.arm && <span>Arm: {entry.arm}{settings.lengthUnit}</span>}
+                              </div>
+                            )}
+
+                            {(entry.chestSkinfold || entry.abdominalSkinfold || entry.thighSkinfold || entry.tricepSkinfold || entry.subscapularSkinfold || entry.suprailiacSkinfold) && (
+                              <div className="mt-2">
+                                <div className="text-xs font-medium text-gray-500 mb-1">Skinfolds:</div>
+                                <div className="flex flex-wrap gap-3 text-xs">
+                                  {entry.chestSkinfold && <span>Chest: {entry.chestSkinfold}mm</span>}
+                                  {entry.abdominalSkinfold && <span>Abdominal: {entry.abdominalSkinfold}mm</span>}
+                                  {entry.thighSkinfold && <span>Thigh: {entry.thighSkinfold}mm</span>}
+                                  {entry.tricepSkinfold && <span>Tricep: {entry.tricepSkinfold}mm</span>}
+                                  {entry.subscapularSkinfold && <span>Subscapular: {entry.subscapularSkinfold}mm</span>}
+                                  {entry.suprailiacSkinfold && <span>Suprailiac: {entry.suprailiacSkinfold}mm</span>}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 

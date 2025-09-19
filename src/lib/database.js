@@ -45,6 +45,12 @@ class HealthDatabase {
           entriesStore.createIndex('date', 'date', { unique: false });
           entriesStore.createIndex('type', 'type', { unique: false });
         }
+
+        // Create measurements store
+        if (!db.objectStoreNames.contains('measurements')) {
+          const measurementsStore = db.createObjectStore('measurements', { keyPath: 'id', autoIncrement: true });
+          measurementsStore.createIndex('date', 'date', { unique: false });
+        }
       };
     });
   }
@@ -247,6 +253,52 @@ class HealthDatabase {
     const transaction = this.db.transaction(['userEntries'], 'readwrite');
     const store = transaction.objectStore('userEntries');
     return store.delete(id);
+  }
+
+  // Measurements Methods
+  async saveMeasurement(measurement) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['measurements'], 'readwrite');
+      const store = transaction.objectStore('measurements');
+      
+      const request = store.add(measurement);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getMeasurements(date) {
+    const transaction = this.db.transaction(['measurements'], 'readonly');
+    const store = transaction.objectStore('measurements');
+    const index = store.index('date');
+    
+    return new Promise((resolve, reject) => {
+      const request = index.getAll(date);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getAllMeasurements() {
+    const transaction = this.db.transaction(['measurements'], 'readonly');
+    const store = transaction.objectStore('measurements');
+    
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async deleteMeasurement(id) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['measurements'], 'readwrite');
+      const store = transaction.objectStore('measurements');
+      
+      const request = store.delete(id);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
   }
 
   // Migration from localStorage

@@ -73,30 +73,34 @@ const AutocompleteInput = ({
 
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
-    if (!isOpen || suggestions.length === 0) return;
-
     switch (e.key) {
       case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < suggestions.length - 1 ? prev + 1 : 0
-        );
+        if (isOpen && suggestions.length > 0) {
+          e.preventDefault();
+          setSelectedIndex(prev => 
+            prev < suggestions.length - 1 ? prev + 1 : 0
+          );
+        }
         break;
       case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => 
-          prev > 0 ? prev - 1 : suggestions.length - 1
-        );
+        if (isOpen && suggestions.length > 0) {
+          e.preventDefault();
+          setSelectedIndex(prev => 
+            prev > 0 ? prev - 1 : suggestions.length - 1
+          );
+        }
         break;
       case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+        e.preventDefault(); // Always prevent form submission
+        if (isOpen && selectedIndex >= 0 && selectedIndex < suggestions.length) {
           handleItemSelect(suggestions[selectedIndex]);
         }
         break;
       case 'Escape':
-        setIsOpen(false);
-        setSelectedIndex(-1);
+        if (isOpen) {
+          setIsOpen(false);
+          setSelectedIndex(-1);
+        }
         break;
     }
   };

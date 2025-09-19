@@ -38,13 +38,13 @@ const TimePicker = ({
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+    <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 border border-gray-200 rounded-lg">
       {/* Hour selector */}
       <div className="flex flex-col items-center">
-        <label className="text-xs font-medium text-gray-600 mb-1">Hour</label>
+        <label className="text-xs font-medium text-gray-600 mb-1 hidden sm:block">Hour</label>
         <select
           aria-label="Hour"
-          className="w-16 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+          className="w-14 sm:w-16 px-2 sm:px-3 py-1.5 sm:py-2 text-left sm:text-center border border-gray-300 rounded-md bg-white text-gray-900 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
           value={hour}
           onChange={handleHourChange}
         >
@@ -55,16 +55,16 @@ const TimePicker = ({
       </div>
 
       {/* Separator */}
-      <div className="flex flex-col items-center justify-center">
-        <div className="text-gray-400 text-2xl font-bold">:</div>
+      <div className="flex items-center justify-center">
+        <div className="text-gray-400 text-lg sm:text-2xl font-bold">:</div>
       </div>
 
       {/* Minute selector */}
       <div className="flex flex-col items-center">
-        <label className="text-xs font-medium text-gray-600 mb-1">Minute</label>
+        <label className="text-xs font-medium text-gray-600 mb-1 hidden sm:block">Minute</label>
         <select
           aria-label="Minute"
-          className="w-16 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+          className="w-14 sm:w-16 px-2 sm:px-3 py-1.5 sm:py-2 text-left sm:text-center border border-gray-300 rounded-md bg-white text-gray-900 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
           value={minute}
           onChange={handleMinuteChange}
         >
@@ -76,10 +76,10 @@ const TimePicker = ({
 
       {/* Period selector */}
       <div className="flex flex-col items-center">
-        <label className="text-xs font-medium text-gray-600 mb-1">Period</label>
+        <label className="text-xs font-medium text-gray-600 mb-1 hidden sm:block">Period</label>
         <select
           aria-label="AM/PM"
-          className="w-20 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+          className="w-14 sm:w-20 px-2 sm:px-3 py-1.5 sm:py-2 text-left sm:text-center border border-gray-300 rounded-md bg-white text-gray-900 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
           value={period}
           onChange={handlePeriodChange}
         >
@@ -88,10 +88,10 @@ const TimePicker = ({
         </select>
       </div>
 
-      {/* Display time */}
-      <div className="flex flex-col items-center ml-2">
+      {/* Display time - only show on larger screens */}
+      <div className="hidden sm:flex flex-col items-center ml-2">
         <label className="text-xs font-medium text-gray-600 mb-1">Time</label>
-        <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-md text-blue-900 text-sm font-semibold">
+        <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 border border-blue-200 rounded-md text-blue-900 text-xs sm:text-sm font-semibold">
           {formatted}
         </div>
       </div>

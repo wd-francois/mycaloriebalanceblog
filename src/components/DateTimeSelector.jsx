@@ -4,7 +4,76 @@ import TimePicker from '@react/TimePicker.jsx';
 import AutocompleteInput from './AutocompleteInput.jsx';
 import LibraryManager from './LibraryManager.jsx';
 import GroupedEntries from './GroupedEntries.jsx';
+import MeasurementsForm from './MeasurementsForm.jsx';
 import healthDB from '../lib/database.js';
+
+// Quick Add Manager Content Component
+const QuickAddManagerContent = ({ type, frequentItems, onToggleItem }) => {
+  const [allItems, setAllItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadItems = async () => {
+      try {
+        setLoading(true);
+        const items = type === 'food' ? 
+          await healthDB.getFoodItems() : 
+          await healthDB.getExerciseItems();
+        setAllItems(items);
+      } catch (error) {
+        console.error('Error loading items:', error);
+        setAllItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadItems();
+  }, [type]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-gray-500">Loading items...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {allItems.map((item) => {
+        const isSelected = frequentItems[type].some(frequentItem => frequentItem.id === item.id);
+        return (
+          <div
+            key={item.id}
+            className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+              isSelected 
+                ? 'bg-blue-50 border-blue-200' 
+                : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-gray-900 truncate">{item.name}</h4>
+              {item.description && (
+                <p className="text-sm text-gray-600 truncate">{item.description}</p>
+              )}
+            </div>
+            <button
+              onClick={() => onToggleItem(item, type)}
+              className={`ml-3 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                isSelected
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {isSelected ? 'Selected' : 'Select'}
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 function formatDate(date) {
   return date?.toLocaleDateString(undefined, {
@@ -52,12 +121,13 @@ const DateTimeSelector = () => {
 
   // Entries state - store entries per date (meals, exercises, sleep)
   const [entries, setEntries] = useState({});
-  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' } });
+  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' });
   const [formError, setFormError] = useState('');
   const [activeForm, setActiveForm] = useState('meal'); // 'meal', 'exercise', 'sleep'
   const [showMealInput, setShowMealInput] = useState(false);
   const [showExerciseInput, setShowExerciseInput] = useState(false);
   const [showSleepInput, setShowSleepInput] = useState(false);
+  const [showMeasurementsInput, setShowMeasurementsInput] = useState(false);
   const [showLibraryManager, setShowLibraryManager] = useState(false);
   const [libraryType, setLibraryType] = useState('food');
   const [isDBInitialized, setIsDBInitialized] = useState(false);
@@ -67,6 +137,40 @@ const DateTimeSelector = () => {
   const [infoFormData, setInfoFormData] = useState({ notes: '' });
   const [draggedEntry, setDraggedEntry] = useState(null);
   const [collapsedTimes, setCollapsedTimes] = useState(new Set());
+  const [showMenu, setShowMenu] = useState(false);
+  const [showExportSubmenu, setShowExportSubmenu] = useState(false);
+  const [showQuickAddSubmenu, setShowQuickAddSubmenu] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
+  const [showQuickAddManager, setShowQuickAddManager] = useState(false);
+  const [quickAddType, setQuickAddType] = useState('food');
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState({
+    weightUnit: 'lbs',
+    lengthUnit: 'in',
+    dateFormat: 'MM/DD/YYYY',
+    timeFormat: '12h',
+    // Feature toggles
+    enableMeasurements: true,
+    enableExercise: true,
+    enableSleep: true,
+    enableMeals: true
+  });
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showMenu && !event.target.closest('.menu-container')) {
+        setShowMenu(false);
+        setShowExportSubmenu(false);
+        setShowQuickAddSubmenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
 
   // Local storage functions
   const saveToLocalStorage = (data) => {
@@ -138,6 +242,29 @@ const DateTimeSelector = () => {
   useEffect(() => {
     saveToLocalStorage(entries);
   }, [entries]);
+
+  // Load settings from localStorage
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('healthTrackerSettings');
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSettings(prev => ({
+          ...prev,
+          weightUnit: parsed.weightUnit || 'lbs',
+          lengthUnit: parsed.lengthUnit || 'in',
+          dateFormat: parsed.dateFormat || 'MM/DD/YYYY',
+          timeFormat: parsed.timeFormat || '12h',
+          enableMeasurements: parsed.enableMeasurements !== undefined ? parsed.enableMeasurements : true,
+          enableExercise: parsed.enableExercise !== undefined ? parsed.enableExercise : true,
+          enableSleep: parsed.enableSleep !== undefined ? parsed.enableSleep : true,
+          enableMeals: parsed.enableMeals !== undefined ? parsed.enableMeals : true
+        }));
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    }
+  }, []);
 
   // Export data functions
   const exportToJSON = () => {
@@ -363,28 +490,44 @@ const DateTimeSelector = () => {
   }
 
   function resetForm() {
-    setFormState({ id: null, name: '', type: activeForm, sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' } });
+    setFormState({ id: null, name: '', type: activeForm, sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' });
     setFormError('');
-    setShowMealInput(false);
-    setShowExerciseInput(false);
-    setShowSleepInput(false);
+    // Don't close input forms - let user continue adding entries
   }
 
   function handleSubmit(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    handleSubmitWithData(formState);
+  }
+
+  function handleSubmitWithData(data) {
     setFormError('');
 
-    const name = formState.name.trim();
+    const name = activeForm === 'measurements' ? 'Body Measurements' : data.name.trim();
 
-    // Temporarily removed name validation
-    // if (!name) {
-    //   setFormError(`${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} name is required.`);
-    //   return;
-    // }
+    // Add validation back for exercise and meal entries (not sleep or measurements)
+    if (!name && activeForm !== 'sleep' && activeForm !== 'measurements') {
+      setFormError(`${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} name is required.`);
+      return;
+    }
+
+    // Validate measurements
+    if (activeForm === 'measurements') {
+      if (!data.weight || !data.weight.toString().trim()) {
+        setFormError('Weight is required for measurements.');
+        return;
+      }
+      if (isNaN(parseFloat(data.weight)) || parseFloat(data.weight) <= 0) {
+        setFormError('Please enter a valid weight.');
+        return;
+      }
+    }
 
     const dateKey = selectedDate.toDateString();
 
-    if (formState.id == null) {
+    if (data.id == null) {
       // Add new entry
       const newEntry = {
         id: Date.now(),
@@ -392,51 +535,89 @@ const DateTimeSelector = () => {
         type: activeForm,
         date: selectedDate,
         time,
-        ...(activeForm === 'exercise' && { sets: formState.sets }),
+        ...(activeForm === 'exercise' && { sets: data.sets }),
         ...(activeForm === 'meal' && { 
-          amount: formState.amount,
-          calories: formState.calories,
-          protein: formState.protein,
-          carbs: formState.carbs,
-          fats: formState.fats
+          amount: data.amount,
+          calories: data.calories,
+          protein: data.protein,
+          carbs: data.carbs,
+          fats: data.fats
         }),
-        ...(activeForm === 'sleep' && { bedtime: formState.bedtime, waketime: formState.waketime, duration: calculateSleepDuration(formState.bedtime, formState.waketime) })
+        ...(activeForm === 'sleep' && { bedtime: data.bedtime, waketime: data.waketime, duration: calculateSleepDuration(data.bedtime, data.waketime) }),
+        ...(activeForm === 'measurements' && { 
+          weight: parseFloat(data.weight),
+          neck: data.neck ? parseFloat(data.neck) : null,
+          shoulders: data.shoulders ? parseFloat(data.shoulders) : null,
+          chest: data.chest ? parseFloat(data.chest) : null,
+          waist: data.waist ? parseFloat(data.waist) : null,
+          hips: data.hips ? parseFloat(data.hips) : null,
+          thigh: data.thigh ? parseFloat(data.thigh) : null,
+          arm: data.arm ? parseFloat(data.arm) : null,
+          chestSkinfold: data.chestSkinfold ? parseFloat(data.chestSkinfold) : null,
+          abdominalSkinfold: data.abdominalSkinfold ? parseFloat(data.abdominalSkinfold) : null,
+          thighSkinfold: data.thighSkinfold ? parseFloat(data.thighSkinfold) : null,
+          tricepSkinfold: data.tricepSkinfold ? parseFloat(data.tricepSkinfold) : null,
+          subscapularSkinfold: data.subscapularSkinfold ? parseFloat(data.subscapularSkinfold) : null,
+          suprailiacSkinfold: data.suprailiacSkinfold ? parseFloat(data.suprailiacSkinfold) : null,
+          notes: data.notes
+        })
       };
       setEntries((prev) => ({
         ...prev,
         [dateKey]: [...(prev[dateKey] || []), newEntry]
       }));
       resetForm();
-      setShowMealInput(false);
-      setShowExerciseInput(false);
-      setShowSleepInput(false);
+      // Close measurements form after successful submission
+      if (activeForm === 'measurements') {
+        setShowMeasurementsInput(false);
+      }
+      // Don't close the input forms after adding entries - let user continue adding
     } else {
       // Update existing
       setEntries((prev) => ({
         ...prev,
         [dateKey]: (prev[dateKey] || []).map((e) => 
-          e.id === formState.id ? { 
+          e.id === data.id ? { 
             ...e, 
             name, 
             type: activeForm,
             date: selectedDate, 
             time,
-            ...(activeForm === 'exercise' && { sets: formState.sets }),
+            ...(activeForm === 'exercise' && { sets: data.sets }),
             ...(activeForm === 'meal' && { 
-              amount: formState.amount,
-              calories: formState.calories,
-              protein: formState.protein,
-              carbs: formState.carbs,
-              fats: formState.fats
+              amount: data.amount,
+              calories: data.calories,
+              protein: data.protein,
+              carbs: data.carbs,
+              fats: data.fats
             }),
-            ...(activeForm === 'sleep' && { bedtime: formState.bedtime, waketime: formState.waketime, duration: calculateSleepDuration(formState.bedtime, formState.waketime) })
+            ...(activeForm === 'sleep' && { bedtime: data.bedtime, waketime: data.waketime, duration: calculateSleepDuration(data.bedtime, data.waketime) }),
+            ...(activeForm === 'measurements' && { 
+              weight: parseFloat(data.weight),
+              neck: data.neck ? parseFloat(data.neck) : null,
+              shoulders: data.shoulders ? parseFloat(data.shoulders) : null,
+              chest: data.chest ? parseFloat(data.chest) : null,
+              waist: data.waist ? parseFloat(data.waist) : null,
+              hips: data.hips ? parseFloat(data.hips) : null,
+              thigh: data.thigh ? parseFloat(data.thigh) : null,
+              arm: data.arm ? parseFloat(data.arm) : null,
+              chestSkinfold: data.chestSkinfold ? parseFloat(data.chestSkinfold) : null,
+              abdominalSkinfold: data.abdominalSkinfold ? parseFloat(data.abdominalSkinfold) : null,
+              thighSkinfold: data.thighSkinfold ? parseFloat(data.thighSkinfold) : null,
+              tricepSkinfold: data.tricepSkinfold ? parseFloat(data.tricepSkinfold) : null,
+              subscapularSkinfold: data.subscapularSkinfold ? parseFloat(data.subscapularSkinfold) : null,
+              suprailiacSkinfold: data.suprailiacSkinfold ? parseFloat(data.suprailiacSkinfold) : null,
+              notes: data.notes
+            })
           } : e
         )
       }));
       resetForm();
-      setShowMealInput(false);
-      setShowExerciseInput(false);
-      setShowSleepInput(false);
+      // Close measurements form after successful edit
+      if (activeForm === 'measurements') {
+        setShowMeasurementsInput(false);
+      }
+      // Don't close the input forms after editing entries
     }
   }
 
@@ -455,7 +636,22 @@ const DateTimeSelector = () => {
       waketime: entry.waketime || { hour: 6, minute: 0, period: 'AM' },
       duration: entry.duration || '',
       intensity: entry.intensity || '',
-      quality: entry.quality || ''
+      quality: entry.quality || '',
+      weight: entry.weight || '',
+      neck: entry.neck || '',
+      shoulders: entry.shoulders || '',
+      chest: entry.chest || '',
+      waist: entry.waist || '',
+      hips: entry.hips || '',
+      thigh: entry.thigh || '',
+      arm: entry.arm || '',
+      chestSkinfold: entry.chestSkinfold || '',
+      abdominalSkinfold: entry.abdominalSkinfold || '',
+      thighSkinfold: entry.thighSkinfold || '',
+      tricepSkinfold: entry.tricepSkinfold || '',
+      subscapularSkinfold: entry.subscapularSkinfold || '',
+      suprailiacSkinfold: entry.suprailiacSkinfold || '',
+      notes: entry.notes || ''
     });
     setActiveForm(entry.type);
     if (entry.type === 'meal') {
@@ -464,6 +660,8 @@ const DateTimeSelector = () => {
       setShowExerciseInput(true);
     } else if (entry.type === 'sleep') {
       setShowSleepInput(true);
+    } else if (entry.type === 'measurements') {
+      setShowMeasurementsInput(true);
     }
   }
 
@@ -505,10 +703,15 @@ const DateTimeSelector = () => {
   // Handle autocomplete selection
   const handleAutocompleteSelect = (item) => {
     if (activeForm === 'exercise' && item.defaultSets && item.defaultReps) {
+      // Create a default set with the exercise's default values
+      const defaultSet = {
+        reps: item.defaultReps.toString(),
+        load: item.defaultLoad || ''
+      };
+      
       setFormState(prev => ({
         ...prev,
-        sets: item.defaultSets.toString(),
-        reps: item.defaultReps.toString()
+        sets: [defaultSet]
       }));
     }
   };
@@ -521,8 +724,6 @@ const DateTimeSelector = () => {
 
   // Load frequent items
   const loadFrequentItems = async () => {
-    if (!isDBInitialized) return;
-    
     try {
       const [foodItems, exerciseItems] = await Promise.all([
         healthDB.getFoodItems('', 5),
@@ -530,25 +731,41 @@ const DateTimeSelector = () => {
       ]);
       
       setFrequentItems({
-        food: foodItems,
-        exercise: exerciseItems
+        food: foodItems || [],
+        exercise: exerciseItems || []
       });
     } catch (error) {
       console.error('Error loading frequent items:', error);
+      // Set empty arrays as fallback
+      setFrequentItems({
+        food: [],
+        exercise: []
+      });
     }
   };
 
   // Handle quick add
   const handleQuickAdd = (item, type) => {
-    setFormState(prev => ({
-      ...prev,
-      name: item.name,
-      type: type,
-      ...(type === 'exercise' && item.defaultSets && item.defaultReps && {
-        sets: item.defaultSets.toString(),
-        reps: item.defaultReps.toString()
-      })
-    }));
+    if (type === 'exercise' && item.defaultSets && item.defaultReps) {
+      // Create a default set with the exercise's default values
+      const defaultSet = {
+        reps: item.defaultReps.toString(),
+        load: item.defaultLoad || ''
+      };
+      
+      setFormState(prev => ({
+        ...prev,
+        name: item.name,
+        type: type,
+        sets: [defaultSet]
+      }));
+    } else {
+      setFormState(prev => ({
+        ...prev,
+        name: item.name,
+        type: type
+      }));
+    }
     
     if (type === 'meal') {
       setActiveForm('meal');
@@ -556,6 +773,48 @@ const DateTimeSelector = () => {
     } else if (type === 'exercise') {
       setActiveForm('exercise');
       setShowExerciseInput(true);
+    }
+  };
+
+  // Handle quick add management
+  const handleOpenQuickAddManager = (type) => {
+    setQuickAddType(type);
+    setShowQuickAddManager(true);
+  };
+
+  // Handle settings update
+  const updateSetting = (key, value) => {
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
+    localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
+  };
+
+  const toggleQuickAddItem = async (item, type) => {
+    try {
+      const currentFrequentItems = frequentItems[type];
+      const isCurrentlyFrequent = currentFrequentItems.some(frequentItem => frequentItem.id === item.id);
+      
+      if (isCurrentlyFrequent) {
+        // Remove from frequent items
+        const updatedFrequentItems = currentFrequentItems.filter(frequentItem => frequentItem.id !== item.id);
+        setFrequentItems(prev => ({
+          ...prev,
+          [type]: updatedFrequentItems
+        }));
+      } else {
+        // Add to frequent items (limit to 5 items)
+        if (currentFrequentItems.length < 5) {
+          const updatedFrequentItems = [...currentFrequentItems, item];
+          setFrequentItems(prev => ({
+            ...prev,
+            [type]: updatedFrequentItems
+          }));
+        } else {
+          alert(`You can only have up to 5 quick add items. Please remove one first.`);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling quick add item:', error);
     }
   };
 
@@ -649,8 +908,20 @@ const DateTimeSelector = () => {
       </div>
 
       {/* Inline FAQ / Features Accordion below calendar */}
-      <div className="w-full max-w-2xl mx-auto mt-6 px-2 sm:px-4">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Frequent Questions</h2>
+      {showFAQ && (
+        <div className="w-full max-w-2xl mx-auto mt-6 px-2 sm:px-4">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Frequent Questions</h2>
+            <button
+              onClick={() => setShowFAQ(false)}
+              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+              title="Close FAQ"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm">
           <details className="group p-3 sm:p-4" open>
             <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
@@ -735,7 +1006,8 @@ const DateTimeSelector = () => {
             </div>
           </details>
         </div>
-      </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center">
@@ -761,54 +1033,165 @@ const DateTimeSelector = () => {
                     </div>
                   </div>
                   
-                  {/* Export dropdown */}
-                  <div className="relative group self-start sm:self-auto">
+                  {/* Menu button */}
+                  <div className="relative menu-container self-start sm:self-auto">
                     <button
-                      className="inline-flex items-center px-3 sm:px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md"
-                      title="Export all meal entries data"
+                      onClick={() => setShowMenu(!showMenu)}
+                      className="inline-flex items-center px-3 sm:px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                      title="Menu"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                       </svg>
-                      <span className="hidden sm:inline">Export Data</span>
-                      <span className="sm:hidden">Export</span>
-                      <svg className="ml-2 h-4 w-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <span className="hidden sm:inline">Menu</span>
+                      <span className="sm:hidden">Menu</span>
                     </button>
                     
-                    {/* Dropdown menu */}
-                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                      <div className="py-1">
-                        <button
-                          onClick={exportToJSON}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          <svg className="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Export as JSON
-                        </button>
-                        <button
-                          onClick={exportToCSV}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          <svg className="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                          </svg>
-                          Export as CSV
-                        </button>
-                        <button
-                          onClick={exportToPDF}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                          <svg className="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                          </svg>
-                          Export as PDF
-                        </button>
+                    {/* Menu dropdown */}
+                    {showMenu && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                        <div className="py-1">
+                          {/* Export submenu */}
+                          <div className="relative">
+                            <button
+                              onClick={() => setShowExportSubmenu(!showExportSubmenu)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between gap-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Export
+                              </div>
+                              <svg className={`w-4 h-4 transition-transform ${showExportSubmenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            
+                            {/* Export submenu items */}
+                            {showExportSubmenu && (
+                              <div className="ml-4 mt-1 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
+                                <button
+                                  onClick={() => {
+                                    setShowMenu(false);
+                                    setShowExportSubmenu(false);
+                                    exportToJSON();
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  Export as JSON
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setShowMenu(false);
+                                    setShowExportSubmenu(false);
+                                    exportToCSV();
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                  </svg>
+                                  Export as CSV
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setShowMenu(false);
+                                    setShowExportSubmenu(false);
+                                    exportToPDF();
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                  </svg>
+                                  Export as PDF
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          <div className="border-t border-gray-200 my-1"></div>
+                          <button
+                            onClick={() => {
+                              setShowMenu(false);
+                              setShowFAQ(!showFAQ);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            FAQ
+                          </button>
+                          {/* Quick Add Manager submenu */}
+                          <div className="relative">
+                            <button
+                              onClick={() => setShowQuickAddSubmenu(!showQuickAddSubmenu)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between gap-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Quick Add Manager
+                              </div>
+                              <svg className={`w-4 h-4 transition-transform ${showQuickAddSubmenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            
+                            {/* Quick Add submenu items */}
+                            {showQuickAddSubmenu && (
+                              <div className="ml-4 mt-1 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
+                                <button
+                                  onClick={() => {
+                                    setShowMenu(false);
+                                    setShowQuickAddSubmenu(false);
+                                    handleOpenQuickAddManager('food');
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                  </svg>
+                                  Manage Quick Add Food
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setShowMenu(false);
+                                    setShowQuickAddSubmenu(false);
+                                    handleOpenQuickAddManager('exercise');
+                                  }}
+                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                  </svg>
+                                  Manage Quick Add Exercise
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          <div className="border-t border-gray-200 my-1"></div>
+                          <button
+                            onClick={() => {
+                              setShowMenu(false);
+                              setShowSettings(true);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Settings
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -821,7 +1204,7 @@ const DateTimeSelector = () => {
                   {formState.id == null ? `Add New ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry` : `Edit ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry`}
                 </h3>
                 
-                <form className="space-y-4" onSubmit={handleSubmit}>
+                <form className="space-y-4">
                   <div className="grid grid-cols-1 gap-3 sm:gap-4">
                     <div>
                       <TimePicker onChange={setTime} />
@@ -829,89 +1212,75 @@ const DateTimeSelector = () => {
                   </div>
 
                   <div className="flex flex-wrap gap-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveForm('meal');
-                        setShowMealInput(true);
-                      }}
-                      className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                        activeForm === 'meal'
-                          ? 'bg-blue-600 text-white shadow-md'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      🍽️ Add Meal
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveForm('exercise');
-                        setShowExerciseInput(true);
-                      }}
-                      className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                        activeForm === 'exercise'
-                          ? 'bg-green-600 text-white shadow-md'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      💪 Add Exercise
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveForm('sleep');
-                        setShowSleepInput(true);
-                      }}
-                      className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                        activeForm === 'sleep'
-                          ? 'bg-purple-600 text-white shadow-md'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      😴 Add Sleep
-                    </button>
+                    {settings.enableMeals && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveForm('meal');
+                          setShowMealInput(true);
+                        }}
+                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                          activeForm === 'meal'
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        🍽️ Add Meal
+                      </button>
+                    )}
+                    {settings.enableExercise && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveForm('exercise');
+                          setShowExerciseInput(true);
+                        }}
+                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                          activeForm === 'exercise'
+                            ? 'bg-green-600 text-white shadow-md'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        💪 Add Exercise
+                      </button>
+                    )}
+                    {settings.enableSleep && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveForm('sleep');
+                          setShowSleepInput(true);
+                        }}
+                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                          activeForm === 'sleep'
+                            ? 'bg-purple-600 text-white shadow-md'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        😴 Add Sleep
+                      </button>
+                    )}
+                    {settings.enableMeasurements && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveForm('measurements');
+                          setShowMeasurementsInput(true);
+                        }}
+                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                          activeForm === 'measurements'
+                            ? 'bg-orange-600 text-white shadow-md'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        📏 Add Measurements
+                      </button>
+                    )}
                   </div>
 
-                  {/* Quick Add Buttons */}
-                  {frequentItems.food.length > 0 && (
-                    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Add Food:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {frequentItems.food.map((item) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => handleQuickAdd(item, 'meal')}
-                            className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full hover:bg-blue-200 transition-colors"
-                          >
-                            {item.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {frequentItems.exercise.length > 0 && (
-                    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Add Exercise:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {frequentItems.exercise.map((item) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => handleQuickAdd(item, 'exercise')}
-                            className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full hover:bg-green-200 transition-colors"
-                          >
-                            {item.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Meal Form Fields */}
-                  {activeForm === 'meal' && showMealInput && (
+                  {settings.enableMeals && activeForm === 'meal' && showMealInput && (
                     <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                       <div className="space-y-4">
                     <div>
@@ -940,6 +1309,30 @@ const DateTimeSelector = () => {
                       </div>
                   </div>
 
+                        {/* Quick Add Food Buttons */}
+                        {frequentItems.food.length > 0 && (
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Quick Add Food:</label>
+                            <div className="flex flex-wrap gap-2">
+                              {frequentItems.food.map((item) => (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    e.nativeEvent.stopImmediatePropagation();
+                                    handleQuickAdd(item, 'meal');
+                                  }}
+                                  className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full hover:bg-blue-200 transition-colors"
+                                >
+                                  {item.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-amount">
                             Amount
@@ -951,6 +1344,7 @@ const DateTimeSelector = () => {
                             placeholder="e.g., 1 cup, 500 grams, 2 slices"
                             value={formState.amount}
                             onChange={(e) => setFormState((s) => ({ ...s, amount: e.target.value }))}
+                            onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                           />
                         </div>
 
@@ -967,6 +1361,7 @@ const DateTimeSelector = () => {
                               placeholder="e.g., 250"
                               value={formState.calories}
                               onChange={(e) => setFormState((s) => ({ ...s, calories: e.target.value }))}
+                              onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                             />
                           </div>
                           <div>
@@ -980,6 +1375,7 @@ const DateTimeSelector = () => {
                               placeholder="e.g., 20"
                               value={formState.protein}
                               onChange={(e) => setFormState((s) => ({ ...s, protein: e.target.value }))}
+                              onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                             />
                           </div>
                           <div>
@@ -993,6 +1389,7 @@ const DateTimeSelector = () => {
                               placeholder="e.g., 30"
                               value={formState.carbs}
                               onChange={(e) => setFormState((s) => ({ ...s, carbs: e.target.value }))}
+                              onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                             />
                           </div>
                           <div>
@@ -1006,13 +1403,15 @@ const DateTimeSelector = () => {
                               placeholder="e.g., 10"
                               value={formState.fats}
                               onChange={(e) => setFormState((s) => ({ ...s, fats: e.target.value }))}
+                              onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                             />
                           </div>
                         </div>
 
                         <div className="flex items-center gap-3">
                     <button
-                      type="submit"
+                      type="button"
+                      onClick={handleSubmit}
                       className="inline-flex items-center px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1039,7 +1438,7 @@ const DateTimeSelector = () => {
                   )}
 
                   {/* Exercise Form Fields */}
-                  {activeForm === 'exercise' && showExerciseInput && (
+                  {settings.enableExercise && activeForm === 'exercise' && showExerciseInput && (
                     <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                       <div className="space-y-4">
                         <div>
@@ -1067,6 +1466,30 @@ const DateTimeSelector = () => {
                             </button>
                           </div>
                         </div>
+
+                        {/* Quick Add Exercise Buttons */}
+                        {frequentItems.exercise.length > 0 && (
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Quick Add Exercise:</label>
+                            <div className="flex flex-wrap gap-2">
+                              {frequentItems.exercise.map((item) => (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    e.nativeEvent.stopImmediatePropagation();
+                                    handleQuickAdd(item, 'exercise');
+                                  }}
+                                  className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full hover:bg-green-200 transition-colors"
+                                >
+                                  {item.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         
                         {/* Individual Sets */}
                         <div>
@@ -1123,6 +1546,7 @@ const DateTimeSelector = () => {
                                         placeholder="10"
                                         value={set.reps}
                                         onChange={(e) => updateSet(index, 'reps', e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                                       />
                                     </div>
                                     
@@ -1136,6 +1560,7 @@ const DateTimeSelector = () => {
                                         placeholder="50kg"
                                         value={set.load}
                                         onChange={(e) => updateSet(index, 'load', e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                                       />
                                     </div>
                                   </div>
@@ -1148,7 +1573,8 @@ const DateTimeSelector = () => {
                         
                         <div className="flex items-center gap-3">
                           <button
-                            type="submit"
+                            type="button"
+                            onClick={handleSubmit}
                             className="inline-flex items-center px-6 py-3 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1162,7 +1588,7 @@ const DateTimeSelector = () => {
                             onClick={() => {
                               setShowExerciseInput(false);
                               if (formState.id == null) {
-                                setFormState((s) => ({ ...s, name: '', sets: '', reps: '', load: '' }));
+                                setFormState((s) => ({ ...s, name: '', sets: [] }));
                               }
                             }}
                         className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
@@ -1175,7 +1601,7 @@ const DateTimeSelector = () => {
                   )}
 
                   {/* Sleep Form Fields */}
-                  {activeForm === 'sleep' && showSleepInput && (
+                  {settings.enableSleep && activeForm === 'sleep' && showSleepInput && (
                     <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
                       <div className="space-y-4">
                         {/* Bedtime and Wake Time */}
@@ -1302,7 +1728,8 @@ const DateTimeSelector = () => {
                         
                         <div className="flex items-center gap-3">
                           <button
-                            type="submit"
+                            type="button"
+                            onClick={handleSubmit}
                             className="inline-flex items-center px-6 py-3 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1332,6 +1759,55 @@ const DateTimeSelector = () => {
                       </div>
                   </div>
                   )}
+
+                  {/* Measurements Form Fields */}
+                  {settings.enableMeasurements && activeForm === 'measurements' && showMeasurementsInput && (
+                    <div className="mt-4">
+                      <MeasurementsForm
+                        settings={settings}
+                        onSubmit={(data) => {
+                          // Update formState with the data from MeasurementsForm and submit
+                          setFormState(prev => {
+                            const updatedState = {
+                              ...prev,
+                              ...data
+                            };
+                            
+                            // Submit the form with the updated data
+                            setTimeout(() => {
+                              handleSubmitWithData(updatedState);
+                            }, 0);
+                            
+                            return updatedState;
+                          });
+                        }}
+                        onCancel={() => {
+                          setShowMeasurementsInput(false);
+                          if (formState.id == null) {
+                            setFormState((s) => ({ 
+                              ...s, 
+                              weight: '', 
+                              neck: '', 
+                              shoulders: '', 
+                              chest: '', 
+                              waist: '', 
+                              hips: '', 
+                              thigh: '', 
+                              arm: '',
+                              chestSkinfold: '',
+                              abdominalSkinfold: '',
+                              thighSkinfold: '',
+                              tricepSkinfold: '',
+                              subscapularSkinfold: '',
+                              suprailiacSkinfold: '',
+                              notes: '' 
+                            }));
+                          }
+                        }}
+                        initialData={formState.id ? formState : null}
+                      />
+                    </div>
+                  )}
                   
                   {formError && (
                     <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -1353,8 +1829,16 @@ const DateTimeSelector = () => {
                 </div>
                 
                 <GroupedEntries 
-                  entries={currentDateEntries}
+                  entries={currentDateEntries.filter(entry => {
+                    // Filter entries based on enabled features
+                    if (entry.type === 'meal' && !settings.enableMeals) return false;
+                    if (entry.type === 'exercise' && !settings.enableExercise) return false;
+                    if (entry.type === 'sleep' && !settings.enableSleep) return false;
+                    if (entry.type === 'measurements' && !settings.enableMeasurements) return false;
+                    return true;
+                  })}
                   formatTime={formatTime}
+                  settings={settings}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onInfoClick={handleInfoClick}
@@ -1364,6 +1848,80 @@ const DateTimeSelector = () => {
                   onDrop={handleDrop}
                 />
               </div>
+
+              {/* FAQ Section in Modal */}
+              {showFAQ && (
+                <div className="mt-8 bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Frequent Questions</h3>
+                    <button
+                      onClick={() => setShowFAQ(false)}
+                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Close FAQ"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm">
+                    <details className="group p-3 sm:p-4" open>
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
+                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I log a meal with nutrition info?</span>
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                      </summary>
+                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
+                        Click a date on the calendar, select "Add Meal", then fill in the meal name and amount (e.g., "1 cup"). You can optionally add nutrition details like calories, protein, carbs, and fats, but these aren't required. Use the autocomplete to quickly select from your food library.
+                      </div>
+                    </details>
+                    <details className="group p-3 sm:p-4">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
+                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I log exercises with multiple sets?</span>
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                      </summary>
+                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
+                        Select "Add Exercise", enter the exercise name, then click "Add Set" for each set. You can optionally enter reps and load (e.g., "50kg") for each set - these details aren't required. Add as many sets as needed.
+                      </div>
+                    </details>
+                    <details className="group p-3 sm:p-4">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
+                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">What is the food and exercise library?</span>
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                      </summary>
+                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
+                        Your personal database of frequently used foods and exercises. Click "Manage Library" to add, edit, or delete items. The autocomplete will suggest items from your library as you type, making data entry much faster.
+                      </div>
+                    </details>
+                    <details className="group p-3 sm:p-4">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
+                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I add notes to entries?</span>
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                      </summary>
+                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
+                        Click the information (i) button next to any entry to add notes or additional details. This is useful for tracking how you felt, intensity levels, or any other observations.
+                      </div>
+                    </details>
+                    <details className="group p-3 sm:p-4">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
+                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">Where is my data stored?</span>
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                      </summary>
+                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
+                        All data is stored locally in your browser using IndexedDB, which is more reliable than regular storage. Your data stays private and is not sent to any servers. Use the Export feature to backup your data.
+                      </div>
+                    </details>
+                    <details className="group p-3 sm:p-4">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
+                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I export my data?</span>
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                      </summary>
+                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
+                        Click the Menu button in the top right and choose from JSON (for data backup), CSV (for spreadsheet analysis), or PDF (for printing). This includes all your entries with nutrition and exercise details.
+                      </div>
+                    </details>
+                  </div>
+                </div>
+              )}
 
               {/* Close modal */}
               <div className="mt-8 sm:mt-12 text-center">
@@ -1387,6 +1945,13 @@ const DateTimeSelector = () => {
         isOpen={showLibraryManager}
         onClose={() => setShowLibraryManager(false)}
         type={libraryType}
+        frequentItems={frequentItems[libraryType]}
+        onUpdateFrequentItems={(updatedItems) => {
+          setFrequentItems(prev => ({
+            ...prev,
+            [libraryType]: updatedItems
+          }));
+        }}
       />
 
       {/* Information Modal */}
@@ -1440,6 +2005,248 @@ const DateTimeSelector = () => {
                   className="flex-1 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Add Manager Modal */}
+      {showQuickAddManager && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowQuickAddManager(false)} />
+          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl mx-4 max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Manage Quick Add {quickAddType === 'food' ? 'Food' : 'Exercise'}
+                </h3>
+                <button
+                  onClick={() => setShowQuickAddManager(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="mt-1 text-sm text-gray-600">
+                Select up to 5 items to appear in quick add buttons. Currently selected: {frequentItems[quickAddType].length}/5
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-4 max-h-96 overflow-y-auto">
+              <QuickAddManagerContent 
+                type={quickAddType}
+                frequentItems={frequentItems}
+                onToggleItem={toggleQuickAddItem}
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowQuickAddManager(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
+          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl mx-4 max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-4 max-h-96 overflow-y-auto">
+              <div className="space-y-6">
+                {/* Feature Toggles */}
+                <div className="border-b border-gray-200 pb-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">Feature Toggles</h4>
+                  <p className="text-sm text-gray-600 mb-4">Enable or disable specific tracking features</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label htmlFor="enableMeals" className="text-sm font-medium text-gray-700">
+                          Meals & Nutrition
+                        </label>
+                        <p className="text-xs text-gray-500">Track food intake and calories</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="enableMeals"
+                          checked={settings.enableMeals}
+                          onChange={(e) => updateSetting('enableMeals', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label htmlFor="enableExercise" className="text-sm font-medium text-gray-700">
+                          Exercise & Workouts
+                        </label>
+                        <p className="text-xs text-gray-500">Track workouts and physical activity</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="enableExercise"
+                          checked={settings.enableExercise}
+                          onChange={(e) => updateSetting('enableExercise', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label htmlFor="enableMeasurements" className="text-sm font-medium text-gray-700">
+                          Body Measurements
+                        </label>
+                        <p className="text-xs text-gray-500">Track weight, girth, and skinfold measurements</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="enableMeasurements"
+                          checked={settings.enableMeasurements}
+                          onChange={(e) => updateSetting('enableMeasurements', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label htmlFor="enableSleep" className="text-sm font-medium text-gray-700">
+                          Sleep Tracking
+                        </label>
+                        <p className="text-xs text-gray-500">Track sleep duration and patterns</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="enableSleep"
+                          checked={settings.enableSleep}
+                          onChange={(e) => updateSetting('enableSleep', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Weight & Measurements */}
+                <div className="border-b border-gray-200 pb-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">Weight & Measurements</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="weightUnit" className="block text-sm font-medium text-gray-700 mb-1">
+                        Weight Unit
+                      </label>
+                      <select
+                        id="weightUnit"
+                        value={settings.weightUnit}
+                        onChange={(e) => updateSetting('weightUnit', e.target.value)}
+                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                      >
+                        <option value="lbs">Pounds (lbs)</option>
+                        <option value="kg">Kilograms (kg)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="lengthUnit" className="block text-sm font-medium text-gray-700 mb-1">
+                        Length Unit (Girth)
+                      </label>
+                      <select
+                        id="lengthUnit"
+                        value={settings.lengthUnit}
+                        onChange={(e) => updateSetting('lengthUnit', e.target.value)}
+                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                      >
+                        <option value="in">Inches (in)</option>
+                        <option value="cm">Centimeters (cm)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date & Time */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">Date & Time</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="dateFormat" className="block text-sm font-medium text-gray-700 mb-1">
+                        Date Format
+                      </label>
+                      <select
+                        id="dateFormat"
+                        value={settings.dateFormat}
+                        onChange={(e) => updateSetting('dateFormat', e.target.value)}
+                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                      >
+                        <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                        <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="timeFormat" className="block text-sm font-medium text-gray-700 mb-1">
+                        Time Format
+                      </label>
+                      <select
+                        id="timeFormat"
+                        value={settings.timeFormat}
+                        onChange={(e) => updateSetting('timeFormat', e.target.value)}
+                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                      >
+                        <option value="12h">12-hour (AM/PM)</option>
+                        <option value="24h">24-hour</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Done
                 </button>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import healthDB from '../lib/database.js';
 
-const LibraryManager = ({ isOpen, onClose, type = 'food' }) => {
+const LibraryManager = ({ isOpen, onClose, type = 'food', frequentItems = [], onUpdateFrequentItems }) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -13,6 +13,7 @@ const LibraryManager = ({ isOpen, onClose, type = 'food' }) => {
     defaultReps: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [showQuickAddSection, setShowQuickAddSection] = useState(false);
 
   // Load items when component mounts or type changes
   useEffect(() => {
@@ -127,6 +128,32 @@ const LibraryManager = ({ isOpen, onClose, type = 'food' }) => {
     });
   };
 
+  // Quick Add Management Functions
+  const toggleQuickAddItem = (item) => {
+    if (!onUpdateFrequentItems) return;
+    
+    const isCurrentlyFrequent = frequentItems.some(frequentItem => frequentItem.id === item.id);
+    
+    if (isCurrentlyFrequent) {
+      // Remove from frequent items
+      const updatedFrequentItems = frequentItems.filter(frequentItem => frequentItem.id !== item.id);
+      onUpdateFrequentItems(updatedFrequentItems);
+    } else {
+      // Add to frequent items (limit to 5 items)
+      if (frequentItems.length < 5) {
+        const updatedFrequentItems = [...frequentItems, item];
+        onUpdateFrequentItems(updatedFrequentItems);
+      } else {
+        alert(`You can only have up to 5 quick add items. Please remove one first.`);
+      }
+    }
+  };
+
+  const isQuickAddItem = (item) => {
+    return frequentItems.some(frequentItem => frequentItem.id === item.id);
+  };
+
+
   if (!isOpen) return null;
 
   return (
@@ -172,6 +199,19 @@ const LibraryManager = ({ isOpen, onClose, type = 'food' }) => {
               </div>
             </div>
 
+            {/* Quick Add Status */}
+            <div className="px-6 py-3 bg-blue-50 border-b border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-blue-800">Quick Add Items:</span>
+                  <span className="text-sm text-blue-600">{frequentItems.length}/5 selected</span>
+                </div>
+                <div className="text-xs text-blue-600">
+                  Click "+ Quick" to add items to quick add buttons
+                </div>
+              </div>
+            </div>
+
             {/* Items List */}
             <div className="flex-1 overflow-y-auto">
               {isLoading ? (
@@ -188,7 +228,9 @@ const LibraryManager = ({ isOpen, onClose, type = 'food' }) => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900">{item.name}</div>
+                          <div className="font-medium text-gray-900">
+                            {item.name}
+                          </div>
                           {item.category && (
                             <div className="text-sm text-gray-500">{item.category}</div>
                           )}
@@ -204,6 +246,21 @@ const LibraryManager = ({ isOpen, onClose, type = 'food' }) => {
                           )}
                         </div>
                         <div className="flex items-center gap-2">
+                          {/* Quick Add Toggle Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleQuickAddItem(item);
+                            }}
+                            className={`px-2 py-1 text-xs rounded-full transition-colors ${
+                              isQuickAddItem(item)
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                            title={isQuickAddItem(item) ? 'Remove from Quick Add' : 'Add to Quick Add'}
+                          >
+                            {isQuickAddItem(item) ? '✓ Quick' : '+ Quick'}
+                          </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -332,6 +389,7 @@ const LibraryManager = ({ isOpen, onClose, type = 'food' }) => {
           </div>
         </div>
       </div>
+
     </div>
   );
 };

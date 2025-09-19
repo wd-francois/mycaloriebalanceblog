@@ -1,6 +1,7 @@
 ---
 import Layout from '@layouts/Layout.astro';
 import DateTimeSelector from '@react/DateTimeSelector.jsx';
+import { SettingsProvider } from '../contexts/SettingsContext.jsx';
 import { siteConfig } from '@config/site';
 ---
 
@@ -16,7 +17,9 @@ import { siteConfig } from '@config/site';
         <div class="text-center mb-8">
           <h2 class="text-xl font-semibold text-gray-900 mb-3">Select a date to get started</h2>
         </div>
-        <DateTimeSelector client:load />
+        <SettingsProvider client:load>
+          <DateTimeSelector client:load />
+        </SettingsProvider>
       </div>
     </section>
 
