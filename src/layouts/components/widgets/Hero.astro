@@ -37,22 +37,22 @@ const socialIcons = {
 ---
 
 <section class="relative overflow-hidden bg-white dark:bg-gray-900 rounded-lg">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6">
-    <div class="py-12 md:py-20">
-      <div class="text-center pb-10 md:pb-16">
-        <h1 class="text-5xl md:text-[3.50rem] font-bold leading-tighter tracking-tighter mb-4 font-heading text-gray-900 dark:text-white">
+  <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
+    <div class="py-8 sm:py-12 md:py-20">
+      <div class="text-center pb-6 sm:pb-10 md:pb-16">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[3.50rem] font-bold leading-tight tracking-tight mb-4 font-heading text-gray-900 dark:text-white">
           Welcome to
-          <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 sm:whitespace-nowrap"
+          <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500 block sm:inline sm:whitespace-nowrap"
             >My Calorie Balance</span
           >
         </h1>
         <div class="max-w-3xl mx-auto">
-          <p class="text-xl text-gray-600 dark:text-gray-300 mb-8">
+          <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 leading-relaxed">
             Join the community to find out more about Health & Fitness.
           </p>
         </div>
 
-        <div class="flex justify-center gap-4">
+        <div class="flex flex-wrap justify-center gap-3 sm:gap-4">
           {socialLinks.map(([platform, url]) => {
             const { icon, color } = socialIcons[platform as keyof typeof socialIcons] || { icon: 'mdi:link', color: 'bg-gray-600' };
             
@@ -61,11 +61,11 @@ const socialIcons = {
               return (
                 <a
                   href={url}
-                  class="group inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-sky-500 dark:hover:bg-sky-600 transition-all duration-300 hover:scale-110"
+                  class="group inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-sky-500 dark:hover:bg-sky-600 transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]"
                   aria-label="Bluesky"
                 >
                   <svg 
-                    class="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" 
+                    class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" 
                     viewBox="0 0 512 512"
                     fill="currentColor"
                   >
@@ -78,12 +78,12 @@ const socialIcons = {
             return (
               <a
                 href={url}
-                class={`group inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 hover:${color} dark:hover:${color} transition-all duration-300 hover:scale-110`}
+                class={`group inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gray-100 dark:bg-gray-800 hover:${color} dark:hover:${color} transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px]`}
                 aria-label={platform.charAt(0).toUpperCase() + platform.slice(1)}
               >
                 <Icon 
                   name={icon} 
-                  class="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" 
+                  class="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" 
                 />
               </a>
             );

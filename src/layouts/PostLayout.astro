@@ -52,8 +52,8 @@ breadcrumbs.push({ name: title, url: canonicalURL });
     <Breadcrumb items={breadcrumbs} className="mb-6" />
     
     <!-- Post Header -->
-    <header class="mb-8">
-      <div class="flex flex-wrap items-center text-gray-500 dark:text-gray-400 mb-4 gap-4">
+    <header class="mb-6 sm:mb-8">
+      <div class="flex flex-wrap items-center text-gray-500 dark:text-gray-400 mb-4 gap-2 sm:gap-4 text-sm sm:text-base">
         <!-- Date -->
         <div class="flex items-center">
           <Icon name="mdi:calendar" class="w-5 h-5 mr-1" />
@@ -102,20 +102,20 @@ breadcrumbs.push({ name: title, url: canonicalURL });
       </div>
       
       <!-- Title -->
-      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
         {title}
       </h1>
       
       <!-- Description -->
       {description && (
-        <p class="text-lg text-gray-700 dark:text-gray-300 mb-6">
+        <p class="text-base sm:text-lg text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
           {description}
         </p>
       )}
       
       <!-- Featured Image -->
       {image && (
-        <div class="rounded-lg overflow-hidden mb-8 aspect-video">
+        <div class="rounded-lg overflow-hidden mb-6 sm:mb-8 aspect-video">
           <Image 
             src={image} 
             alt={title} 
@@ -152,7 +152,7 @@ breadcrumbs.push({ name: title, url: canonicalURL });
     
     <!-- Table of Contents -->
     {headings && headings.length > 0 && (
-      <div class="mb-8 p-4 bg-gray-50 rounded-lg">
+      <div class="mb-6 sm:mb-8 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <PostHeadings headings={headings} />
       </div>
     )}

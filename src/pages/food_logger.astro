@@ -10,12 +10,12 @@ import { siteConfig } from '@config/site';
   description="Track your daily meals and nutrition with our interactive food logger - " + siteConfig.title
   wideContent={true}
 >
-  <main class="w-full py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+  <main class="w-full py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
     <!-- Date + Time Selector (Calculator) -->
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-      <div class="bg-white rounded-2xl shadow-xl shadow-gray-100/50 p-8">
-        <div class="text-center mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-3">Select a date to get started</h2>
+    <section class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 mb-8 sm:mb-16">
+      <div class="bg-white rounded-2xl shadow-xl shadow-gray-100/50 p-4 sm:p-6 lg:p-8">
+        <div class="text-center mb-6 sm:mb-8">
+          <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Select a date to get started</h2>
         </div>
         <SettingsProvider client:load>
           <DateTimeSelector client:load />
@@ -24,10 +24,10 @@ import { siteConfig } from '@config/site';
     </section>
 
     <!-- Navigation Back -->
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <section class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 text-center">
       <a 
         href="/" 
-        class="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        class="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 min-h-[44px]"
       >
         Back to Home
       </a>

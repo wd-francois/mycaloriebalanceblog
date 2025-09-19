@@ -9,18 +9,18 @@ import logoSVG from "@assets/favicons/mycaloriebalance_blue.svg";
 const mainMenu = menu.main;
 ---
 
-<header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm w-full">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-    <div class="flex justify-between items-center h-16">
+<header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm w-full relative">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 w-full">
+    <div class="flex justify-between items-center h-14 sm:h-16">
       <!-- Logo -->
       <div class="flex-shrink-0 flex items-center">
         <a href="/" class="flex items-center group">
           <Image 
             src={logoSVG} 
             alt={siteConfig.title + ' Logo'} 
-            width={110} 
-            height={100}
-            class="mr-2 transition-all duration-300 group-hover:scale-105 dark:drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]"
+            width={90} 
+            height={82}
+            class="mr-1 sm:mr-2 transition-all duration-300 group-hover:scale-105 dark:drop-shadow-[0_0_8px_rgba(59,130,246,0.3)] sm:w-[110px] sm:h-[100px]"
           />
         </a>
       </div>
@@ -30,7 +30,7 @@ const mainMenu = menu.main;
         <button 
           type="button" 
           id="mobile-menu-button"
-          class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white p-2 rounded-md"
+          class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white p-2 rounded-md min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-controls="mobile-menu" 
           aria-expanded="false"
         >
@@ -63,12 +63,12 @@ const mainMenu = menu.main;
       </div>
 
       <!-- Desktop menu -->
-      <nav class="hidden md:flex space-x-4 items-center">
+      <nav class="hidden md:flex space-x-2 lg:space-x-4 items-center">
         {
           mainMenu.map((item) => (
             <a
               href={item.url}
-              class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
             >
               {item.name}
             </a>
@@ -86,21 +86,21 @@ const mainMenu = menu.main;
   </div>
 
   <!-- Mobile menu, show/hide based on menu state -->
-  <div class="hidden md:hidden" id="mobile-menu">
-    <div class="px-2 pt-2 pb-3 space-y-1 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+  <div class="hidden md:hidden absolute left-0 right-0 top-full z-50" id="mobile-menu">
+    <div class="px-3 pt-2 pb-3 space-y-1 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg">
       {
         mainMenu.map((item) => (
           <a
             href={item.url}
-            class="block px-3 py-2 rounded-md text-base font-medium text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200"
+            class="block px-3 py-3 rounded-md text-base font-medium text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200 min-h-[44px] flex items-center"
           >
             {item.name}
           </a>
         ))
       }
-      <div class="px-3 py-3 flex justify-center gap-4">
+      <div class="px-3 py-3 flex justify-center gap-4 border-t border-gray-200 dark:border-gray-700 mt-2">
         <!-- Search Icon (Mobile) -->
-        <a href="/search/" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 p-2 rounded-md transition-colors duration-200" aria-label="Search">
+        <a href="/search/" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 p-2 rounded-md transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Search">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>

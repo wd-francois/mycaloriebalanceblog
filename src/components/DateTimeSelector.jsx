@@ -1034,7 +1034,7 @@ const DateTimeSelector = () => {
                   </div>
                   
                   {/* Menu button */}
-                  <div className="relative menu-container self-start sm:self-auto">
+                  <div className="relative menu-container self-start sm:self-auto z-50">
                     <button
                       onClick={() => setShowMenu(!showMenu)}
                       className="inline-flex items-center px-3 sm:px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -1049,7 +1049,7 @@ const DateTimeSelector = () => {
                     
                     {/* Menu dropdown */}
                     {showMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                      <div className="absolute right-0 sm:right-0 left-0 sm:left-auto mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                         <div className="py-1">
                           {/* Export submenu */}
                           <div className="relative">
@@ -1070,7 +1070,7 @@ const DateTimeSelector = () => {
                             
                             {/* Export submenu items */}
                             {showExportSubmenu && (
-                              <div className="ml-4 mt-1 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
+                              <div className="ml-2 sm:ml-4 mt-1 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
                                 <button
                                   onClick={() => {
                                     setShowMenu(false);
@@ -1145,7 +1145,7 @@ const DateTimeSelector = () => {
                             
                             {/* Quick Add submenu items */}
                             {showQuickAddSubmenu && (
-                              <div className="ml-4 mt-1 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
+                              <div className="ml-2 sm:ml-4 mt-1 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
                                 <button
                                   onClick={() => {
                                     setShowMenu(false);

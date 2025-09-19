@@ -106,13 +106,13 @@ const Settings = ({ onClose = null }) => {
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-900">Settings</h3>
+    <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-4">
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Settings</h3>
           <div className="flex items-center gap-2">
             <a
               href="/food_logger/"
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors min-h-[44px] flex items-center px-2"
             >
               Back to Food Logger
             </a>
@@ -125,10 +125,10 @@ const Settings = ({ onClose = null }) => {
                   window.history.back();
                 }
               }}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
               title="Close"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -141,18 +141,18 @@ const Settings = ({ onClose = null }) => {
             <h4 className="text-lg font-medium text-gray-900 mb-4">{group.title}</h4>
             <div className="space-y-4">
               {group.settings.map((setting) => (
-                <div key={setting.key} className="flex items-center justify-between">
+                <div key={setting.key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700">
                       {setting.label}
                     </label>
                     <p className="text-sm text-gray-500">{setting.description}</p>
                   </div>
-                  <div className="ml-4">
+                  <div className="sm:ml-4">
                     <select
                       value={settings[setting.key]}
                       onChange={(e) => updateSetting(setting.key, e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-full sm:w-auto"
                     >
                       {unitOptions[setting.key].map((option) => (
                         <option key={option.value} value={option.value}>

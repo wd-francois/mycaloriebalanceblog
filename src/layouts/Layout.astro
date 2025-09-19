@@ -59,7 +59,7 @@ const {
   </script>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> {/* Updated path */}
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> {/* Added apple-touch-icon */}
@@ -137,6 +137,27 @@ const {
           padding-left: 1.5rem;
           padding-right: 1.5rem;
         }
+      }
+      @media (min-width: 1024px) {
+        .max-w-5xl {
+          padding-left: 2rem;
+          padding-right: 2rem;
+        }
+      }
+      /* Mobile-specific improvements */
+      @media (max-width: 640px) {
+        .max-w-5xl {
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
+        }
+        /* Prevent horizontal scroll on mobile */
+        body {
+          overflow-x: hidden;
+        }
+        /* Better text sizing on mobile */
+        h1 { font-size: 1.875rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.25rem; }
       }
     </style>
     

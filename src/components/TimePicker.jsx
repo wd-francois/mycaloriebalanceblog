@@ -79,7 +79,7 @@ const TimePicker = ({
         <label className="text-xs font-medium text-gray-600 mb-1 hidden sm:block">Period</label>
         <select
           aria-label="AM/PM"
-          className="w-14 sm:w-20 px-2 sm:px-3 py-1.5 sm:py-2 text-left sm:text-center border border-gray-300 rounded-md bg-white text-gray-900 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+          className="w-16 sm:w-20 px-1 sm:px-3 py-1.5 sm:py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
           value={period}
           onChange={handlePeriodChange}
         >

@@ -16,21 +16,21 @@ const slug = post.data.canonical
 const isPartOfSeries = series && Array.isArray(series) && series.length === 2;
 ---
 
-<article class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-400 hover:transform hover:scale-[1.02]" >
+<article class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-400 hover:transform hover:scale-[1.02] h-full flex flex-col" >
   <!-- Post Image -->
   {image && (
     <a href={`/${slug}/`} class="block overflow-hidden aspect-video">
       <Image 
         src={image} 
         alt={title} 
-        class="w-full h-full object-cover transition-transform duration-400hover:scale-105"
+        class="w-full h-full object-cover transition-transform duration-400 hover:scale-105"
         width={640}
         height={360}
       />
     </a>
   )}
   
-  <div class="p-5">
+  <div class="p-4 sm:p-5 flex-1 flex flex-col">
     <div class="flex flex-wrap gap-2 mb-2 items-center justify-between">
       <!-- Categories -->
       {categories && categories.length > 0 && (
@@ -57,7 +57,7 @@ const isPartOfSeries = series && Array.isArray(series) && series.length === 2;
     </div>
     
     <!-- Title -->
-    <h2 class="text-xl font-bold mb-2 text-gray-900 dark:text-white line-clamp-2" >
+    <h2 class="text-lg sm:text-xl font-bold mb-2 text-gray-900 dark:text-white line-clamp-2 flex-1" >
       <a href={`/${slug}/`} class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
         {title}
       </a>
@@ -65,12 +65,12 @@ const isPartOfSeries = series && Array.isArray(series) && series.length === 2;
     
     <!-- Description -->
     {description && (
-      <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+      <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 line-clamp-3 flex-1">
         {description}
       </p>
     )}
     
-    <div class="flex items-center justify-between mt-4 text-sm text-gray-500 dark:text-gray-400">
+    <div class="flex items-center justify-between mt-auto text-xs sm:text-sm text-gray-500 dark:text-gray-400">
       <!-- Author -->
       {authors && authors.length > 0 && (
         <div class="flex items-center">
