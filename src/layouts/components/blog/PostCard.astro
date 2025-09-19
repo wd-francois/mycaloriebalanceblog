@@ -38,7 +38,7 @@ const isPartOfSeries = series && Array.isArray(series) && series.length === 2;
           {categories.map((category: string) => (
             <a 
               href={`/categories/${category.toLowerCase()}/`} 
-              class="text-xs font-medium px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+              class="text-sm sm:text-xs font-medium px-3 py-1.5 sm:px-2 sm:py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors tracking-wide sm:tracking-normal flex items-center justify-center"
             >
               {category}
             </a>
