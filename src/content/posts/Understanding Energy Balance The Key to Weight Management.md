@@ -17,20 +17,15 @@ While the law of "calories in, calories out" **(CICO)** is undeniable, not all d
 
 ## **Understanding “Calories in and Calorie Out”**
 
-“Calories in” is simply the energy you consume from food and drink  “Calories out,” or Total Daily Energy Expenditure **(TDEE)**, however is a bit more complex and made up of four parts:
+“Calories in” is simply the energy you consume from food and drink.<br>
+“Calories out,” or **Total Daily Energy Expenditure (TDEE)**, however is a bit more complex and made up of four parts:
 
 - **Basal Metabolic Rate (BMR):** About 60–70% of your daily burn comes from keeping your body alive e.g. breathing, pumping blood, repairing cells. This is the energy you use at complete rest.  
 - **Non-Exercise Activity (NEAT):** All the little movements you do without thinking, like walking, fidgeting, or typing. NEAT can rise when you eat more and drop when you’re in a calorie deficit.  
 - **Exercise Activity (EA):** The calories you burn through intentional workouts like running, lifting, or cycling.  
 - **Thermic Effect of Food (TEF):** The energy needed to digest and process what you eat. Protein burns the most, followed by carbs, then fats.  
 
-Your Total Daily Energy Expenditure **(TDEE)** is the total of these factors and can change daily based on activity and food intake, but the basic energy balance equation always applies. Diets with the same number of calories can lead to different results because they affect Total Daily Energy Expenditure **(TDEE)** or appetite. For example:
-
-- High-protein diets raise the Thermic Effect of Food **(TEF)** since protein takes more energy to digest, slightly increasing “calories out.”  
-- Filling diets (like those high in fiber or protein) can curb hunger, which may naturally reduce “calories in.”  
-- Energizing diets can boost Non-Exercise Activity **(NEAT)** (daily movement) or *Exercise Activity **(EA)**: by making you feel more active.
-
-These effects operate within the energy balance framework, not outside it, explaining why one diet may feel more effective for an individual.
+Your Total Daily Energy Expenditure **(TDEE)** is the total of these factors and can change daily based on activity and food intake, but the basic energy balance equation always applies. Diets with the same number of calories can lead to different results because they affect Total Daily Energy Expenditure **(TDEE)** or appetite. For example:  High-protein diets raise the Thermic Effect of Food **(TEF)** since protein takes more energy to digest, slightly increasing “calories out.” Filling diets (like those high in fiber or protein) can curb hunger, which may naturally reduce “calories in.” Energizing diets can boost Non-Exercise Activity **(NEAT)** (daily movement) or *Exercise Activity **(EA)**: by making you feel more active.  These effects operate within the energy balance framework, not outside it, explaining why one diet may feel more effective for an individual.
 
 ## **Practical Takeaways for Effective Weight Management**
 
