@@ -38,4 +38,12 @@ Understanding energy balance empowers you to make smarter choices. To put this i
 
 ## **Conclusion**
 
-Energy balance is the unyielding foundation of weight management. By understanding and leveraging the components of TDEE—BMR, NEAT, EA, and TEF—you can see through dietary fads and build a personalized, effective approach to achieving your weight goals. Whether you prefer keto, low-fat, carnivore, vegan or any another diet, success hinges on managing the balance between calories in and calories out.
+Energy balance is the unyielding foundation of weight management. By understanding and leveraging the components of TDEE, BMR, NEAT, EA, and TEF you can see through dietary fads and build a personalized, effective approach to achieving your weight goals. Whether you prefer keto, low-fat, carnivore, vegan or any another diet, success hinges on managing the balance between calories in and calories out.
+
+## **More Resources**
+
+[Research Study: Calorie for calorie, dietary fat restriction results in more body fat loss than carbohydrate restriction in people with obesity by Kevin Hall](https://www.cell.com/cell-metabolism/fulltext/S1550-4131(15)00350-2)
+
+[Calories IN Calories OUT: What's all the confusion about?! by Dr. Layne Norton](https://www.youtube.com/watch?v=GWm9_S_3Tlo)
+
+[The science behind calories in calories out. Dr. Mike Israetel](https://www.youtube.com/watch?v=ZkxWbvPJK1M)
