@@ -4,8 +4,8 @@ import { useSettings } from '../contexts/SettingsContext.jsx';
 const Settings = ({ onClose = null }) => {
   const [isClient, setIsClient] = useState(false);
   const [localSettings, setLocalSettings] = useState({
-    weightUnit: 'lbs',
-    lengthUnit: 'in',
+    weightUnit: 'kg',
+    lengthUnit: 'cm',
     dateFormat: 'MM/DD/YYYY',
     timeFormat: '12h'
   });
@@ -149,10 +149,28 @@ const Settings = ({ onClose = null }) => {
                     <p className="text-sm text-gray-500">{setting.description}</p>
                   </div>
                   <div className="sm:ml-4">
+                    {/* Mobile: Checkboxes */}
+                    <div className="flex flex-wrap gap-2 sm:hidden">
+                      {unitOptions[setting.key].map((option) => (
+                        <label key={option.value} className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name={setting.key}
+                            value={option.value}
+                            checked={settings[setting.key] === option.value}
+                            onChange={(e) => updateSetting(setting.key, e.target.value)}
+                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    
+                    {/* Desktop: Select dropdown */}
                     <select
                       value={settings[setting.key]}
                       onChange={(e) => updateSetting(setting.key, e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-full sm:w-auto"
+                      className="hidden sm:block px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm"
                     >
                       {unitOptions[setting.key].map((option) => (
                         <option key={option.value} value={option.value}>

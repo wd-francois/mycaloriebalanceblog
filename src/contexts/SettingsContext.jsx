@@ -12,8 +12,8 @@ export const useSettings = () => {
 
 export const SettingsProvider = ({ children }) => {
   const [settings, setSettings] = useState({
-    weightUnit: 'lbs', // 'lbs' or 'kg'
-    lengthUnit: 'in', // 'in' or 'cm'
+    weightUnit: 'kg', // 'lbs' or 'kg'
+    lengthUnit: 'cm', // 'in' or 'cm'
     dateFormat: 'MM/DD/YYYY', // 'MM/DD/YYYY' or 'DD/MM/YYYY'
     timeFormat: '12h' // '12h' or '24h'
   });

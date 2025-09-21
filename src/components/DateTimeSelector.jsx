@@ -2,10 +2,10 @@ import React, { useMemo, useState, useEffect } from 'react';
 import Calendar from '@react/Calendar.jsx';
 import TimePicker from '@react/TimePicker.jsx';
 import AutocompleteInput from './AutocompleteInput.jsx';
-import LibraryManager from './LibraryManager.jsx';
 import GroupedEntries from './GroupedEntries.jsx';
 import MeasurementsForm from './MeasurementsForm.jsx';
 import healthDB from '../lib/database.js';
+import { useSettings } from '../contexts/SettingsContext.jsx';
 
 // Quick Add Manager Content Component
 const QuickAddManagerContent = ({ type, frequentItems, onToggleItem }) => {
@@ -128,8 +128,6 @@ const DateTimeSelector = () => {
   const [showExerciseInput, setShowExerciseInput] = useState(false);
   const [showSleepInput, setShowSleepInput] = useState(false);
   const [showMeasurementsInput, setShowMeasurementsInput] = useState(false);
-  const [showLibraryManager, setShowLibraryManager] = useState(false);
-  const [libraryType, setLibraryType] = useState('food');
   const [isDBInitialized, setIsDBInitialized] = useState(false);
   const [frequentItems, setFrequentItems] = useState({ food: [], exercise: [] });
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -144,15 +142,19 @@ const DateTimeSelector = () => {
   const [showQuickAddManager, setShowQuickAddManager] = useState(false);
   const [quickAddType, setQuickAddType] = useState('food');
   const [showSettings, setShowSettings] = useState(false);
+  const [showFeaturesModal, setShowFeaturesModal] = useState(false);
   const [settings, setSettings] = useState({
-    weightUnit: 'lbs',
-    lengthUnit: 'in',
+    weightUnit: 'kg',
+    lengthUnit: 'cm',
     dateFormat: 'MM/DD/YYYY',
     timeFormat: '12h',
     // Feature toggles
     enableMeasurements: true,
     enableExercise: true,
     enableSleep: true,
+    // Quick add toggles
+    enableQuickAddFood: true,
+    enableQuickAddExercise: true,
     enableMeals: true
   });
 
@@ -716,11 +718,6 @@ const DateTimeSelector = () => {
     }
   };
 
-  // Handle library management
-  const handleOpenLibraryManager = (type) => {
-    setLibraryType(type);
-    setShowLibraryManager(true);
-  };
 
   // Load frequent items
   const loadFrequentItems = async () => {
@@ -1015,36 +1012,23 @@ const DateTimeSelector = () => {
           <div className="relative w-full h-full max-h-screen overflow-auto bg-white">
             {/* Header */}
             <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900">
-                      {headerText}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                    <div className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full w-fit flex items-center justify-center">
-                      {currentDateEntries.length} entries
-                      </div>
-                      {totalSleepDuration && (
-                        <div className="px-3 py-1 bg-purple-100 text-purple-800 text-sm font-medium rounded-full w-fit flex items-center justify-center">
-                          😴 {totalSleepDuration} sleep
-                        </div>
-                      )}
-                    </div>
+              <div className="max-w-4xl mx-auto px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-lg font-bold text-gray-900 truncate pr-2">
+                    {headerText}
                   </div>
                   
                   {/* Menu button */}
-                  <div className="relative menu-container self-start sm:self-auto z-50">
+                  <div className="relative menu-container z-50">
                     <button
                       onClick={() => setShowMenu(!showMenu)}
-                      className="inline-flex items-center px-3 sm:px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="inline-flex items-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 active:bg-gray-800 transition-all duration-200 shadow-sm min-h-[44px]"
                       title="Menu"
                     >
-                      <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                       </svg>
                       <span className="hidden sm:inline">Menu</span>
-                      <span className="sm:hidden">Menu</span>
                     </button>
                     
                     {/* Menu dropdown */}
@@ -1283,34 +1267,37 @@ const DateTimeSelector = () => {
                   {settings.enableMeals && activeForm === 'meal' && showMealInput && (
                     <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                       <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-name">
-                        Meal Name
-                      </label>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <AutocompleteInput
-                            type="food"
-                            value={formState.name}
-                            onChange={(value) => setFormState((s) => ({ ...s, name: value }))}
-                            onSelect={handleAutocompleteSelect}
-                            placeholder="e.g., Breakfast, Lunch, Dinner, Snack"
-                            autoFocus
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenLibraryManager('food')}
-                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                          title="Manage Food Library"
-                        >
-                          📚
-                        </button>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-name">
+                            Meal Name
+                          </label>
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <AutocompleteInput
+                                type="food"
+                                value={formState.name}
+                                onChange={(value) => setFormState((s) => ({ ...s, name: value }))}
+                                onSelect={handleAutocompleteSelect}
+                                placeholder="e.g., Breakfast, Lunch, Dinner, Snack"
+                                autoFocus
+                              />
+                            </div>
+                            <div className="flex items-center">
+                              <label className="flex items-center gap-2 text-sm text-gray-600">
+                                <input
+                                  type="checkbox"
+                                  checked={settings.enableQuickAddFood}
+                                  onChange={(e) => updateSetting('enableQuickAddFood', e.target.checked)}
+                                  className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 sm:focus:ring-2"
+                                />
+                                Quick Add
+                              </label>
+                            </div>
+                          </div>
                       </div>
-                  </div>
 
                         {/* Quick Add Food Buttons */}
-                        {frequentItems.food.length > 0 && (
+                        {settings.enableQuickAddFood && frequentItems.food.length > 0 && (
                           <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Quick Add Food:</label>
                             <div className="flex flex-wrap gap-2">
@@ -1324,7 +1311,7 @@ const DateTimeSelector = () => {
                                     e.nativeEvent.stopImmediatePropagation();
                                     handleQuickAdd(item, 'meal');
                                   }}
-                                  className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full hover:bg-blue-200 transition-colors flex items-center justify-center"
+                                  className="px-0.5 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full hover:bg-blue-200 transition-colors flex items-center justify-center sm:px-3 sm:py-1 sm:text-sm max-w-[80px] sm:max-w-none"
                                 >
                                   {item.name}
                                 </button>
@@ -1456,19 +1443,22 @@ const DateTimeSelector = () => {
                                 autoFocus
                               />
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenLibraryManager('exercise')}
-                              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                              title="Manage Exercise Library"
-                            >
-                              📚
-                            </button>
+                            <div className="flex items-center">
+                              <label className="flex items-center gap-2 text-sm text-gray-600">
+                                <input
+                                  type="checkbox"
+                                  checked={settings.enableQuickAddExercise}
+                                  onChange={(e) => updateSetting('enableQuickAddExercise', e.target.checked)}
+                                  className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-1 sm:focus:ring-2"
+                                />
+                                Quick Add
+                              </label>
+                            </div>
                           </div>
                         </div>
 
                         {/* Quick Add Exercise Buttons */}
-                        {frequentItems.exercise.length > 0 && (
+                        {settings.enableQuickAddExercise && frequentItems.exercise.length > 0 && (
                           <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Quick Add Exercise:</label>
                             <div className="flex flex-wrap gap-2">
@@ -1482,7 +1472,7 @@ const DateTimeSelector = () => {
                                     e.nativeEvent.stopImmediatePropagation();
                                     handleQuickAdd(item, 'exercise');
                                   }}
-                                  className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full hover:bg-green-200 transition-colors flex items-center justify-center"
+                                  className="px-0.5 py-0.5 bg-green-100 text-green-800 text-xs rounded-full hover:bg-green-200 transition-colors flex items-center justify-center sm:px-3 sm:py-1 sm:text-sm max-w-[80px] sm:max-w-none"
                                 >
                                   {item.name}
                                 </button>
@@ -1940,19 +1930,6 @@ const DateTimeSelector = () => {
         </div>
       )}
 
-      {/* Library Manager Modal */}
-      <LibraryManager
-        isOpen={showLibraryManager}
-        onClose={() => setShowLibraryManager(false)}
-        type={libraryType}
-        frequentItems={frequentItems[libraryType]}
-        onUpdateFrequentItems={(updatedItems) => {
-          setFrequentItems(prev => ({
-            ...prev,
-            [libraryType]: updatedItems
-          }));
-        }}
-      />
 
       {/* Information Modal */}
       {showInfoModal && selectedEntry && (
@@ -2084,88 +2061,6 @@ const DateTimeSelector = () => {
             {/* Content */}
             <div className="px-6 py-4 max-h-96 overflow-y-auto">
               <div className="space-y-6">
-                {/* Feature Toggles */}
-                <div className="border-b border-gray-200 pb-4">
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">Feature Toggles</h4>
-                  <p className="text-sm text-gray-600 mb-4">Enable or disable specific tracking features</p>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <label htmlFor="enableMeals" className="text-sm font-medium text-gray-700">
-                          Meals & Nutrition
-                        </label>
-                        <p className="text-xs text-gray-500">Track food intake and calories</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          id="enableMeals"
-                          checked={settings.enableMeals}
-                          onChange={(e) => updateSetting('enableMeals', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <label htmlFor="enableExercise" className="text-sm font-medium text-gray-700">
-                          Exercise & Workouts
-                        </label>
-                        <p className="text-xs text-gray-500">Track workouts and physical activity</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          id="enableExercise"
-                          checked={settings.enableExercise}
-                          onChange={(e) => updateSetting('enableExercise', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <label htmlFor="enableMeasurements" className="text-sm font-medium text-gray-700">
-                          Body Measurements
-                        </label>
-                        <p className="text-xs text-gray-500">Track weight, girth, and skinfold measurements</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          id="enableMeasurements"
-                          checked={settings.enableMeasurements}
-                          onChange={(e) => updateSetting('enableMeasurements', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <label htmlFor="enableSleep" className="text-sm font-medium text-gray-700">
-                          Sleep Tracking
-                        </label>
-                        <p className="text-xs text-gray-500">Track sleep duration and patterns</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          id="enableSleep"
-                          checked={settings.enableSleep}
-                          onChange={(e) => updateSetting('enableSleep', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Weight & Measurements */}
                 <div className="border-b border-gray-200 pb-4">
@@ -2175,11 +2070,39 @@ const DateTimeSelector = () => {
                       <label htmlFor="weightUnit" className="block text-sm font-medium text-gray-700 mb-1">
                         Weight Unit
                       </label>
+                      
+                      {/* Mobile: Radio buttons */}
+                      <div className="flex gap-3 sm:hidden">
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="weightUnit"
+                            value="lbs"
+                            checked={settings.weightUnit === 'lbs'}
+                            onChange={(e) => updateSetting('weightUnit', e.target.value)}
+                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">Pounds (lbs)</span>
+                        </label>
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="weightUnit"
+                            value="kg"
+                            checked={settings.weightUnit === 'kg'}
+                            onChange={(e) => updateSetting('weightUnit', e.target.value)}
+                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">Kilograms (kg)</span>
+                        </label>
+                      </div>
+                      
+                      {/* Desktop: Select dropdown */}
                       <select
                         id="weightUnit"
                         value={settings.weightUnit}
                         onChange={(e) => updateSetting('weightUnit', e.target.value)}
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                        className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                       >
                         <option value="lbs">Pounds (lbs)</option>
                         <option value="kg">Kilograms (kg)</option>
@@ -2189,11 +2112,39 @@ const DateTimeSelector = () => {
                       <label htmlFor="lengthUnit" className="block text-sm font-medium text-gray-700 mb-1">
                         Length Unit (Girth)
                       </label>
+                      
+                      {/* Mobile: Radio buttons */}
+                      <div className="flex gap-3 sm:hidden">
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="lengthUnit"
+                            value="in"
+                            checked={settings.lengthUnit === 'in'}
+                            onChange={(e) => updateSetting('lengthUnit', e.target.value)}
+                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">Inches (in)</span>
+                        </label>
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="lengthUnit"
+                            value="cm"
+                            checked={settings.lengthUnit === 'cm'}
+                            onChange={(e) => updateSetting('lengthUnit', e.target.value)}
+                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">Centimeters (cm)</span>
+                        </label>
+                      </div>
+                      
+                      {/* Desktop: Select dropdown */}
                       <select
                         id="lengthUnit"
                         value={settings.lengthUnit}
                         onChange={(e) => updateSetting('lengthUnit', e.target.value)}
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                        className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                       >
                         <option value="in">Inches (in)</option>
                         <option value="cm">Centimeters (cm)</option>
@@ -2210,11 +2161,39 @@ const DateTimeSelector = () => {
                       <label htmlFor="dateFormat" className="block text-sm font-medium text-gray-700 mb-1">
                         Date Format
                       </label>
+                      
+                      {/* Mobile: Radio buttons */}
+                      <div className="flex gap-3 sm:hidden">
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="dateFormat"
+                            value="MM/DD/YYYY"
+                            checked={settings.dateFormat === 'MM/DD/YYYY'}
+                            onChange={(e) => updateSetting('dateFormat', e.target.value)}
+                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">MM/DD/YYYY</span>
+                        </label>
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="dateFormat"
+                            value="DD/MM/YYYY"
+                            checked={settings.dateFormat === 'DD/MM/YYYY'}
+                            onChange={(e) => updateSetting('dateFormat', e.target.value)}
+                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">DD/MM/YYYY</span>
+                        </label>
+                      </div>
+                      
+                      {/* Desktop: Select dropdown */}
                       <select
                         id="dateFormat"
                         value={settings.dateFormat}
                         onChange={(e) => updateSetting('dateFormat', e.target.value)}
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                        className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                       >
                         <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                         <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -2224,11 +2203,39 @@ const DateTimeSelector = () => {
                       <label htmlFor="timeFormat" className="block text-sm font-medium text-gray-700 mb-1">
                         Time Format
                       </label>
+                      
+                      {/* Mobile: Radio buttons */}
+                      <div className="flex gap-3 sm:hidden">
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="timeFormat"
+                            value="12h"
+                            checked={settings.timeFormat === '12h'}
+                            onChange={(e) => updateSetting('timeFormat', e.target.value)}
+                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">12h (AM/PM)</span>
+                        </label>
+                        <label className="flex items-center gap-1 text-sm">
+                          <input
+                            type="radio"
+                            name="timeFormat"
+                            value="24h"
+                            checked={settings.timeFormat === '24h'}
+                            onChange={(e) => updateSetting('timeFormat', e.target.value)}
+                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">24h</span>
+                        </label>
+                      </div>
+                      
+                      {/* Desktop: Select dropdown */}
                       <select
                         id="timeFormat"
                         value={settings.timeFormat}
                         onChange={(e) => updateSetting('timeFormat', e.target.value)}
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                        className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                       >
                         <option value="12h">12-hour (AM/PM)</option>
                         <option value="24h">24-hour</option>
@@ -2253,6 +2260,143 @@ const DateTimeSelector = () => {
           </div>
         </div>
       )}
+
+      {/* Features Modal */}
+      {showFeaturesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowFeaturesModal(false)} />
+          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl mx-4 max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Toggle Features</h3>
+                <button
+                  onClick={() => setShowFeaturesModal(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-4 max-h-96 overflow-y-auto">
+              <div className="space-y-6">
+                {/* Feature Toggles */}
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">Feature Toggles</h4>
+                  <p className="text-sm text-gray-600 mb-4">Enable or disable specific tracking features</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label htmlFor="modal-enableMeals" className="text-sm font-medium text-gray-700">
+                          🍽️ Meals & Nutrition
+                        </label>
+                        <p className="text-xs text-gray-500">Track food intake and calories</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="modal-enableMeals"
+                          checked={settings.enableMeals}
+                          onChange={(e) => updateSetting('enableMeals', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label htmlFor="modal-enableExercise" className="text-sm font-medium text-gray-700">
+                          💪 Exercise & Workouts
+                        </label>
+                        <p className="text-xs text-gray-500">Track workouts and physical activity</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="modal-enableExercise"
+                          checked={settings.enableExercise}
+                          onChange={(e) => updateSetting('enableExercise', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label htmlFor="modal-enableSleep" className="text-sm font-medium text-gray-700">
+                          😴 Sleep Tracking
+                        </label>
+                        <p className="text-xs text-gray-500">Track sleep duration and patterns</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="modal-enableSleep"
+                          checked={settings.enableSleep}
+                          onChange={(e) => updateSetting('enableSleep', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label htmlFor="modal-enableMeasurements" className="text-sm font-medium text-gray-700">
+                          📏 Body Measurements
+                        </label>
+                        <p className="text-xs text-gray-500">Track weight, girth, and skinfold measurements</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="modal-enableMeasurements"
+                          checked={settings.enableMeasurements}
+                          onChange={(e) => updateSetting('enableMeasurements', e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowFeaturesModal(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toggle Features Button */}
+      <div className="mt-8 flex justify-center">
+        <button
+          onClick={() => setShowFeaturesModal(true)}
+          className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-200 border border-gray-300"
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Toggle Features
+        </button>
+      </div>
 
     </div>
   );

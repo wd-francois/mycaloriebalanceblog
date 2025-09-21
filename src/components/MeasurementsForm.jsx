@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = { weightUnit: 'lbs', lengthUnit: 'in' } }) => {
+const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = { weightUnit: 'kg', lengthUnit: 'cm' } }) => {
   const [formData, setFormData] = useState({
     weight: initialData?.weight || '',
     neck: initialData?.neck || '',
