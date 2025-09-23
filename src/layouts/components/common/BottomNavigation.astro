@@ -1,0 +1,199 @@
+---
+// Bottom navigation component for mobile and desktop
+import { Icon } from 'astro-icon/components';
+
+// Get current URL to determine active state
+const currentUrl = Astro.url.pathname;
+---
+
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex justify-around items-center py-2">
+      <!-- Home -->
+      <a 
+        href="/" 
+        class={`flex flex-col items-center justify-center py-3 px-2 mb-4 transition-all duration-200 group ${
+          currentUrl === '/' 
+            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
+            : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
+        }`}
+        aria-label="Home"
+      >
+        <svg 
+          class={`w-6 h-6 mb-1 transition-all duration-200 ${
+            currentUrl === '/' 
+              ? 'scale-110' 
+              : 'group-hover:scale-110'
+          }`}
+          fill={currentUrl === '/' ? 'currentColor' : 'none'} 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" 
+          />
+        </svg>
+        <span class={`text-xs font-medium ${currentUrl === '/' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Home</span>
+      </a>
+
+      <!-- Food Logger -->
+      <a 
+        href="/food_logger" 
+        class={`flex flex-col items-center justify-center py-2 px-3 min-h-[60px] min-w-[60px] transition-all duration-200 group ${
+          currentUrl === '/food_logger' 
+            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
+            : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
+        }`}
+        aria-label="Food Logger"
+      >
+        <svg 
+          class={`w-6 h-6 mb-1 transition-all duration-200 ${
+            currentUrl === '/food_logger' 
+              ? 'scale-110' 
+              : 'group-hover:scale-110'
+          }`}
+          fill={currentUrl === '/food_logger' ? 'currentColor' : 'none'} 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
+          />
+        </svg>
+        <span class={`text-xs font-medium ${currentUrl === '/food_logger' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Logger</span>
+      </a>
+
+      <!-- Settings -->
+      <a 
+        href="/settings" 
+        class={`flex flex-col items-center justify-center py-3 px-2 mb-4 transition-all duration-200 group ${
+          currentUrl === '/settings' 
+            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
+            : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
+        }`}
+        aria-label="Settings"
+      >
+        <svg 
+          class={`w-6 h-6 mb-1 transition-all duration-200 ${
+            currentUrl === '/settings' 
+              ? 'scale-110' 
+              : 'group-hover:scale-110'
+          }`}
+          fill={currentUrl === '/settings' ? 'currentColor' : 'none'} 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
+          />
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+          />
+        </svg>
+        <span class={`text-xs font-medium ${currentUrl === '/settings' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Settings</span>
+      </a>
+
+      <!-- Library -->
+      <a 
+        href="/library" 
+        class={`flex flex-col items-center justify-center py-2 px-3 min-h-[60px] min-w-[60px] transition-all duration-200 group ${
+          currentUrl === '/library' 
+            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
+            : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
+        }`}
+        aria-label="Library"
+      >
+        <svg 
+          class={`w-6 h-6 mb-1 transition-all duration-200 ${
+            currentUrl === '/library' 
+              ? 'scale-110' 
+              : 'group-hover:scale-110'
+          }`}
+          fill={currentUrl === '/library' ? 'currentColor' : 'none'} 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" 
+          />
+        </svg>
+        <span class={`text-xs font-medium ${currentUrl === '/library' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Library</span>
+      </a>
+
+      <!-- Export -->
+      <a 
+        href="/export" 
+        class={`flex flex-col items-center justify-center py-2 px-3 min-h-[60px] min-w-[60px] transition-all duration-200 group ${
+          currentUrl === '/export' 
+            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
+            : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
+        }`}
+        aria-label="Export"
+      >
+        <svg 
+          class={`w-6 h-6 mb-1 transition-all duration-200 ${
+            currentUrl === '/export' 
+              ? 'scale-110' 
+              : 'group-hover:scale-110'
+          }`}
+          fill={currentUrl === '/export' ? 'currentColor' : 'none'} 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+          />
+        </svg>
+        <span class={`text-xs font-medium ${currentUrl === '/export' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Export</span>
+      </a>
+
+
+    </div>
+  </div>
+</nav>
+
+
+<!-- Add padding to prevent content from being hidden behind the fixed bottom nav -->
+<style>
+  /* Add padding to the page when bottom nav is present */
+  :global(body:has(.bottom-nav-present)) {
+    padding-bottom: 80px;
+  }
+  
+  /* Alternative approach for browsers that don't support :has() */
+  :global(.bottom-nav-present) {
+    padding-bottom: 80px;
+  }
+  
+  /* Hide bottom navigation on very small screens if needed */
+  @media (max-width: 320px) {
+    .fixed.bottom-0 {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+  
+  /* Ensure proper spacing for mobile devices */
+  @media (max-width: 768px) {
+    :global(body:has(.bottom-nav-present) main) {
+      margin-bottom: 80px;
+    }
+  }
+</style>

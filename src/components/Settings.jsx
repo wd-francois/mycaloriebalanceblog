@@ -7,7 +7,14 @@ const Settings = ({ onClose = null }) => {
     weightUnit: 'kg',
     lengthUnit: 'cm',
     dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h'
+    timeFormat: '12h',
+    // Feature toggles
+    enableMeals: true,
+    enableExercise: true,
+    enableSleep: true,
+    enableMeasurements: true,
+    // Theme
+    theme: 'light'
   });
   
   useEffect(() => {
@@ -15,12 +22,27 @@ const Settings = ({ onClose = null }) => {
     
     // Load settings from localStorage on mount
     const savedSettings = localStorage.getItem('healthTrackerSettings');
+    const healthEntries = localStorage.getItem('healthEntries');
+    
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
         setLocalSettings(prev => ({ ...prev, ...parsed }));
       } catch (error) {
         console.error('Error loading settings:', error);
+      }
+    }
+    
+    // Load feature toggles from healthEntries if available
+    if (healthEntries) {
+      try {
+        const parsed = JSON.parse(healthEntries);
+        if (parsed.enableMeals !== undefined || parsed.enableExercise !== undefined || 
+            parsed.enableSleep !== undefined || parsed.enableMeasurements !== undefined) {
+          setLocalSettings(prev => ({ ...prev, ...parsed }));
+        }
+      } catch (error) {
+        console.error('Error loading health entries:', error);
       }
     }
   }, []);
@@ -40,6 +62,14 @@ const Settings = ({ onClose = null }) => {
       setLocalSettings(prev => {
         const newSettings = { ...prev, [key]: value };
         localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
+        
+        // Also save feature toggles to healthEntries for compatibility
+        if (['enableMeals', 'enableExercise', 'enableSleep', 'enableMeasurements'].includes(key)) {
+          const existingHealthEntries = JSON.parse(localStorage.getItem('healthEntries') || '{}');
+          const updatedHealthEntries = { ...existingHealthEntries, [key]: value };
+          localStorage.setItem('healthEntries', JSON.stringify(updatedHealthEntries));
+        }
+        
         return newSettings;
       });
     };
@@ -52,6 +82,14 @@ const Settings = ({ onClose = null }) => {
       setLocalSettings(prev => {
         const newSettings = { ...prev, [key]: value };
         localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
+        
+        // Also save feature toggles to healthEntries for compatibility
+        if (['enableMeals', 'enableExercise', 'enableSleep', 'enableMeasurements'].includes(key)) {
+          const existingHealthEntries = JSON.parse(localStorage.getItem('healthEntries') || '{}');
+          const updatedHealthEntries = { ...existingHealthEntries, [key]: value };
+          localStorage.setItem('healthEntries', JSON.stringify(updatedHealthEntries));
+        }
+        
         return newSettings;
       });
     };
@@ -89,6 +127,15 @@ const Settings = ({ onClose = null }) => {
   };
 
   const settingGroups = [
+    {
+      title: 'Feature Toggles',
+      settings: [
+        { key: 'enableMeals', label: '🍽️ Meals & Nutrition', description: 'Track food intake and calories', type: 'toggle' },
+        { key: 'enableExercise', label: '💪 Exercise', description: 'Track workouts and physical activity', type: 'toggle' },
+        { key: 'enableSleep', label: '😴 Sleep', description: 'Track sleep duration and quality', type: 'toggle' },
+        { key: 'enableMeasurements', label: '📏 Body Measurements', description: 'Track weight, girth, and skinfold measurements', type: 'toggle' }
+      ]
+    },
     {
       title: 'Weight & Measurements',
       settings: [
@@ -149,35 +196,50 @@ const Settings = ({ onClose = null }) => {
                     <p className="text-sm text-gray-500">{setting.description}</p>
                   </div>
                   <div className="sm:ml-4">
-                    {/* Mobile: Checkboxes */}
-                    <div className="flex flex-wrap gap-2 sm:hidden">
-                      {unitOptions[setting.key].map((option) => (
-                        <label key={option.value} className="flex items-center gap-1 text-sm">
-                          <input
-                            type="radio"
-                            name={setting.key}
-                            value={option.value}
-                            checked={settings[setting.key] === option.value}
-                            onChange={(e) => updateSetting(setting.key, e.target.value)}
-                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
-                          />
-                          <span className="text-xs">{option.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                    
-                    {/* Desktop: Select dropdown */}
-                    <select
-                      value={settings[setting.key]}
-                      onChange={(e) => updateSetting(setting.key, e.target.value)}
-                      className="hidden sm:block px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm"
-                    >
-                      {unitOptions[setting.key].map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    {setting.type === 'toggle' ? (
+                      /* Toggle Switch */
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings[setting.key]}
+                          onChange={(e) => updateSetting(setting.key, e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    ) : (
+                      <>
+                        {/* Mobile: Checkboxes */}
+                        <div className="flex flex-wrap gap-2 sm:hidden">
+                          {unitOptions[setting.key].map((option) => (
+                            <label key={option.value} className="flex items-center gap-1 text-sm">
+                              <input
+                                type="radio"
+                                name={setting.key}
+                                value={option.value}
+                                checked={settings[setting.key] === option.value}
+                                onChange={(e) => updateSetting(setting.key, e.target.value)}
+                                className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                              />
+                              <span className="text-xs">{option.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                        
+                        {/* Desktop: Select dropdown */}
+                        <select
+                          value={settings[setting.key]}
+                          onChange={(e) => updateSetting(setting.key, e.target.value)}
+                          className="hidden sm:block px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm"
+                        >
+                          {unitOptions[setting.key].map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

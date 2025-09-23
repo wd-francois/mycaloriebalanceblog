@@ -2,6 +2,7 @@
 import "@styles/global.css";
 import Header from "@components/common/Header.astro";
 import Footer from "@components/common/Footer.astro";
+import BottomNavigation from "@components/common/BottomNavigation.astro";
 import SEO from "@components/common/SEO.astro";
 // import faviconSVG from "@assets/favicons/favicon.svg"; // Removed import
 import { siteConfig } from '@config/site';
@@ -23,6 +24,7 @@ interface Props {
   };
   tags?: string[];
   categories?: string[];
+  showBottomNav?: boolean;
 }
 
 const { 
@@ -35,7 +37,7 @@ const {
   canonical,
   publishDate,
   modifiedDate,
-  
+  showBottomNav = false,
   author,
   tags,
   categories
@@ -180,7 +182,7 @@ const {
   
     
   </head>
-  <body class="loading bg-white dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col">
+  <body class={`loading bg-white dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col ${showBottomNav ? 'bottom-nav-present' : ''}`}>
     <!-- Script to prevent FOUC -->
     <script is:inline>
       // Remove loading class when CSS is loaded
@@ -244,5 +246,8 @@ const {
     
     <!-- Full-width footer -->
     <Footer />
+    
+    <!-- Bottom Navigation - only show when showBottomNav is true -->
+    {showBottomNav && <BottomNavigation />}
   </body>
 </html>

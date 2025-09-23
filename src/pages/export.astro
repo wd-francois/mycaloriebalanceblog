@@ -1,0 +1,47 @@
+---
+import Layout from "@layouts/Layout.astro";
+---
+
+<Layout title="Export Data" description="Export your calorie tracking data">
+  <div class="py-8">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Export Data</h1>
+      
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Export Options</h2>
+        
+        <div class="space-y-4">
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">CSV Export</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
+              Export your food logs and measurements as a CSV file for use in spreadsheet applications.
+            </p>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+              Download CSV
+            </button>
+          </div>
+          
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">JSON Export</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
+              Export your complete data as a JSON file for backup or migration purposes.
+            </p>
+            <button class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+              Download JSON
+            </button>
+          </div>
+          
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">PDF Report</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
+              Generate a comprehensive PDF report of your progress and statistics.
+            </p>
+            <button class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+              Generate PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

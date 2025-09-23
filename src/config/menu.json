@@ -13,6 +13,14 @@
       "url": "/blog/"
     },
     {
+      "name": "Food Logger",
+      "url": "/food_logger/"
+    },
+    {
+      "name": "Library",
+      "url": "/library/"
+    },
+    {
       "name": "Contact",
       "url": "/contact/"
     }
