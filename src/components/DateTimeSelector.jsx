@@ -69,9 +69,6 @@ const DateTimeSelector = () => {
   const [infoFormData, setInfoFormData] = useState({ notes: '' });
   const [draggedEntry, setDraggedEntry] = useState(null);
   const [collapsedTimes, setCollapsedTimes] = useState(new Set());
-  const [showMenu, setShowMenu] = useState(false);
-  const [showExportSubmenu, setShowExportSubmenu] = useState(false);
-  const [showFAQ, setShowFAQ] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState({
     weightUnit: 'kg',
@@ -88,21 +85,6 @@ const DateTimeSelector = () => {
     enableMeals: true
   });
 
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showMenu && !event.target.closest('.menu-container')) {
-        setShowMenu(false);
-        setShowExportSubmenu(false);
-        setShowQuickAddSubmenu(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showMenu]);
 
   // Local storage functions
   const saveToLocalStorage = (data) => {
@@ -916,21 +898,11 @@ const DateTimeSelector = () => {
         </div>
       </div>
 
-      {/* Inline FAQ / Features Accordion below calendar */}
-      {showFAQ && (
-        <div className="w-full max-w-2xl mx-auto mt-6 px-2 sm:px-4">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Frequent Questions</h2>
-            <button
-              onClick={() => setShowFAQ(false)}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-              title="Close FAQ"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+      {/* FAQ / Features Accordion below calendar */}
+      <div className="w-full max-w-2xl mx-auto mt-6 px-2 sm:px-4">
+        <div className="mb-3">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Frequent Questions</h2>
+        </div>
         <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm">
           <details className="group p-3 sm:p-4" open>
             <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
@@ -1011,12 +983,11 @@ const DateTimeSelector = () => {
               <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              In the daily panel header, click "Export" and choose from JSON (for data backup), CSV (for spreadsheet analysis), or PDF (for printing). This includes all your entries with nutrition and exercise details.
+              Use the export functionality to backup your data in JSON, CSV, or PDF formats. This includes all your entries with nutrition and exercise details.
             </div>
           </details>
         </div>
-        </div>
-      )}
+      </div>
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center">
@@ -1030,115 +1001,7 @@ const DateTimeSelector = () => {
                     {headerText}
                   </div>
                   
-                  {/* Menu button */}
-                  <div className="relative menu-container z-50">
-                    <button
-                      onClick={() => setShowMenu(!showMenu)}
-                      className="inline-flex items-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 active:bg-gray-800 transition-all duration-200 shadow-sm min-h-[44px]"
-                      title="Menu"
-                    >
-                      <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                      <span className="hidden sm:inline">Menu</span>
-                    </button>
                     
-                    {/* Menu dropdown */}
-                    {showMenu && (
-                      <div className="absolute right-0 sm:right-0 left-0 sm:left-auto mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                        <div className="py-1">
-                          {/* Export submenu */}
-                          <div className="relative">
-                            <button
-                              onClick={() => setShowExportSubmenu(!showExportSubmenu)}
-                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between gap-2"
-                            >
-                              <div className="flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                Export
-                              </div>
-                              <svg className={`w-4 h-4 transition-transform ${showExportSubmenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </button>
-                            
-                            {/* Export submenu items */}
-                            {showExportSubmenu && (
-                              <div className="ml-2 sm:ml-4 mt-1 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
-                                <button
-                                  onClick={() => {
-                                    setShowMenu(false);
-                                    setShowExportSubmenu(false);
-                                    exportToJSON();
-                                  }}
-                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                  </svg>
-                                  Export as JSON
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setShowMenu(false);
-                                    setShowExportSubmenu(false);
-                                    exportToCSV();
-                                  }}
-                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                  </svg>
-                                  Export as CSV
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setShowMenu(false);
-                                    setShowExportSubmenu(false);
-                                    exportToPDF();
-                                  }}
-                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                  </svg>
-                                  Export as PDF
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                          <div className="border-t border-gray-200 my-1"></div>
-                          <button
-                            onClick={() => {
-                              setShowMenu(false);
-                              setShowFAQ(!showFAQ);
-                            }}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            FAQ
-                          </button>
-                          <button
-                            onClick={() => {
-                              setShowMenu(false);
-                              setShowSettings(true);
-                            }}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Settings
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
@@ -1742,79 +1605,6 @@ const DateTimeSelector = () => {
                 />
               </div>
 
-              {/* FAQ Section in Modal */}
-              {showFAQ && (
-                <div className="mt-8 bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Frequent Questions</h3>
-                    <button
-                      onClick={() => setShowFAQ(false)}
-                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="Close FAQ"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm">
-                    <details className="group p-3 sm:p-4" open>
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I log a meal with nutrition info?</span>
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-                      </summary>
-                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-                        Click a date on the calendar, select "Add Meal", then fill in the meal name and amount (e.g., "1 cup"). You can optionally add nutrition details like calories, protein, carbs, and fats, but these aren't required. Use the autocomplete to quickly select from your food library.
-                      </div>
-                    </details>
-                    <details className="group p-3 sm:p-4">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I log exercises with multiple sets?</span>
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-                      </summary>
-                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-                        Select "Add Exercise", enter the exercise name, then click "Add Set" for each set. You can optionally enter reps and load (e.g., "50kg") for each set - these details aren't required. Add as many sets as needed.
-                      </div>
-                    </details>
-                    <details className="group p-3 sm:p-4">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">What is the food and exercise library?</span>
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-                      </summary>
-                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-                        Your personal database of frequently used foods and exercises. Click "Manage Library" to add, edit, or delete items. The autocomplete will suggest items from your library as you type, making data entry much faster.
-                      </div>
-                    </details>
-                    <details className="group p-3 sm:p-4">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I add notes to entries?</span>
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-                      </summary>
-                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-                        Click the information (i) button next to any entry to add notes or additional details. This is useful for tracking how you felt, intensity levels, or any other observations.
-                      </div>
-                    </details>
-                    <details className="group p-3 sm:p-4">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">Where is my data stored?</span>
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-                      </summary>
-                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-                        All data is stored locally in your browser using IndexedDB, which is more reliable than regular storage. Your data stays private and is not sent to any servers. Use the Export feature to backup your data.
-                      </div>
-                    </details>
-                    <details className="group p-3 sm:p-4">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I export my data?</span>
-                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-                      </summary>
-                      <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-                        Click the Menu button in the top right and choose from JSON (for data backup), CSV (for spreadsheet analysis), or PDF (for printing). This includes all your entries with nutrition and exercise details.
-                      </div>
-                    </details>
-                  </div>
-                </div>
-              )}
 
               {/* Close modal */}
               <div className="mt-8 sm:mt-12 text-center">

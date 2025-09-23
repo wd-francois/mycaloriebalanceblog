@@ -25,6 +25,8 @@ interface Props {
   tags?: string[];
   categories?: string[];
   showBottomNav?: boolean;
+  showFooter?: boolean;
+  showHeader?: boolean;
 }
 
 const { 
@@ -38,6 +40,8 @@ const {
   publishDate,
   modifiedDate,
   showBottomNav = false,
+  showFooter = true,
+  showHeader = true,
   author,
   tags,
   categories
@@ -234,8 +238,8 @@ const {
         window.addEventListener('load', revealContent);
       }
     </script>
-    <!-- Full-width header -->
-    <Header />
+    <!-- Full-width header - only show when showHeader is true -->
+    {showHeader && <Header />}
     
     <!-- Main content area with conditional width -->
     <main class="flex-grow w-full">
@@ -244,8 +248,8 @@ const {
       </div>
     </main>
     
-    <!-- Full-width footer -->
-    <Footer />
+    <!-- Full-width footer - only show when showFooter is true -->
+    {showFooter && <Footer />}
     
     <!-- Bottom Navigation - only show when showBottomNav is true -->
     {showBottomNav && <BottomNavigation />}

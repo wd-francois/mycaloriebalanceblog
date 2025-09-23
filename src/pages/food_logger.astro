@@ -10,6 +10,8 @@ import { siteConfig } from '@config/site';
   description="Track your daily meals and nutrition with our interactive food logger - " + siteConfig.title
   wideContent={true}
   showBottomNav={true}
+  showFooter={false}
+  showHeader={false}
 >
   <main class="w-full py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
     <!-- Date + Time Selector (Calculator) -->
@@ -25,28 +27,5 @@ import { siteConfig } from '@config/site';
     </section>
 
 
-    <!-- Navigation -->
-    <section class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 text-center">
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a 
-          href="/library" 
-          class="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 min-h-[44px]"
-        >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-          Manage Library
-        </a>
-        <a 
-          href="/" 
-          class="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 min-h-[44px]"
-        >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          Back to Home
-        </a>
-      </div>
-    </section>
   </main>
 </Layout>

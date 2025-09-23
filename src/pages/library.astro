@@ -9,6 +9,8 @@ import { siteConfig } from '@config/site';
   description="Manage your personal meal and exercise database - " + siteConfig.title
   wideContent={true}
   showBottomNav={true}
+  showFooter={false}
+  showHeader={false}
 >
   <main class="w-full py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
     <!-- Header Section -->
@@ -72,29 +74,6 @@ import { siteConfig } from '@config/site';
       </div>
     </section>
 
-    <!-- Navigation -->
-    <section class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 text-center">
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a 
-          href="/food_logger" 
-          class="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 min-h-[44px]"
-        >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          Go to Food Logger
-        </a>
-        <a 
-          href="/" 
-          class="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gray-600 text-white font-medium rounded-xl hover:bg-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 min-h-[44px]"
-        >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          Back to Home
-        </a>
-      </div>
-    </section>
   </main>
 </Layout>
 
