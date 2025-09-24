@@ -119,3 +119,4 @@ The bottom navigation includes:
 - Consistent styling with the rest of the app
 
 **No action required** - the bottom navigation is already properly implemented on the food_logger page! 🎉
+

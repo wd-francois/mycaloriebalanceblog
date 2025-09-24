@@ -1091,6 +1091,22 @@ const DateTimeSelector = () => {
                   {/* Meal Form Fields */}
                   {settings.enableMeals && activeForm === 'meal' && showMealInput && (
                     <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900">Add Meal</h4>
+                        <button
+                          onClick={() => {
+                            setShowMealInput(false);
+                            if (formState.id == null) {
+                              setFormState((s) => ({ ...s, name: '', amount: '' }));
+                            }
+                          }}
+                          className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        >
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-name">
@@ -1218,6 +1234,22 @@ const DateTimeSelector = () => {
                   {/* Exercise Form Fields */}
                   {settings.enableExercise && activeForm === 'exercise' && showExerciseInput && (
                     <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900">Add Exercise</h4>
+                        <button
+                          onClick={() => {
+                            setShowExerciseInput(false);
+                            if (formState.id == null) {
+                              setFormState((s) => ({ ...s, name: '', sets: [] }));
+                            }
+                          }}
+                          className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        >
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="exercise-name">
@@ -1350,6 +1382,27 @@ const DateTimeSelector = () => {
                   {/* Sleep Form Fields */}
                   {settings.enableSleep && activeForm === 'sleep' && showSleepInput && (
                     <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900">Add Sleep</h4>
+                        <button
+                          onClick={() => {
+                            setShowSleepInput(false);
+                            if (formState.id == null) {
+                              setFormState((s) => ({ 
+                                ...s, 
+                                name: '', 
+                                bedtime: { hour: 10, minute: 0, period: 'PM' }, 
+                                waketime: { hour: 6, minute: 0, period: 'AM' } 
+                              }));
+                            }
+                          }}
+                          className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        >
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
                       <div className="space-y-4">
                         {/* Bedtime and Wake Time */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -168,3 +168,4 @@ Users can now easily navigate:
 - **Mobile-friendly** - Touch-optimized navigation on all devices
 
 The Export Data and Settings pages now provide easy navigation access while maintaining their clean, focused interfaces! 🎉
+

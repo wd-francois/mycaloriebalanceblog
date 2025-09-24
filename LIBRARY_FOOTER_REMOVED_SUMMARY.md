@@ -123,3 +123,4 @@ The footer has been successfully removed from the library page:
 - **All other pages** - `showFooter={true}` (default)
 
 The library page now has a cleaner interface without the footer, providing more space for the library management functionality and maintaining consistency with the food_logger page! 🎉
+

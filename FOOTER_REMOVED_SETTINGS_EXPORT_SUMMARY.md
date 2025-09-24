@@ -161,3 +161,4 @@ Both pages now provide:
 - **Professional, clean interface**
 
 The Settings and Export Data pages now provide completely clean, full-screen interfaces with maximum space utilization for their core functionality! 🎉
+
