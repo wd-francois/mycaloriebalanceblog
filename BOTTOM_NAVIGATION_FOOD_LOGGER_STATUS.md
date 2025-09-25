@@ -120,3 +120,7 @@ The bottom navigation includes:
 
 **No action required** - the bottom navigation is already properly implemented on the food_logger page! 🎉
 
+
+
+
+
