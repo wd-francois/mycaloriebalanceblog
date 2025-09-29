@@ -1,8 +1,8 @@
 ---
 title: "The Perfect Pre-Workout Meal Timing, Fuel, and Performance"
-meta_title: "The pre-workout meal: its purpose, timing, composition"
-description: "The Perfect Pre-Workout Meal Timing, Fuel, and Performance"
-date: 2025-09-07
+meta_title: "Discover how to time your pre-workout meals, what to eat, and how to fuel your body for peak performance."
+description: "Learn the best foods, timing, and fuel strategies for the perfect pre-workout meal to boost energy and maximize performance."
+date: 2025-09-29
 image: "../../assets/images/06.jpg"
 categories: ["Nutrition"]
 tags: ["Nutrition"]
