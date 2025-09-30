@@ -62,6 +62,19 @@ const {
         document.documentElement.classList.remove('dark');
       }
     })();
+    
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
   </script>
   <head>
     <meta charset="UTF-8" />
@@ -69,6 +82,13 @@ const {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> {/* Updated path */}
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> {/* Added apple-touch-icon */}
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="CalorieBalance" />
    
     <meta name="generator" content={Astro.generator} />
     

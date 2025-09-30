@@ -1,0 +1,26 @@
+{
+  "name": "My Calorie Balance Blog",
+  "short_name": "CalorieBalance",
+  "description": "Track your daily meals, exercise, and nutrition with our comprehensive health tracking app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["health", "fitness", "lifestyle"],
+  "lang": "en",
+  "scope": "/",
+  "id": "my-calorie-balance-blog"
+}
