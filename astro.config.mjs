@@ -1,6 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import tailwindcss from '@tailwindcss/vite';
+import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import icon from 'astro-icon';
 import sitemap from '@astrojs/sitemap';
@@ -29,9 +29,7 @@ export default defineConfig({
         '@assets': path.resolve('./src/assets'),
       },
     },
-    plugins: [
-      tailwindcss() // Reverted to simpler form, configPath removed
-    ],
+    plugins: [],
     server: {
       fs: {
         allow: [
@@ -49,5 +47,5 @@ export default defineConfig({
   },
   
   // Configure Astro integrations
-  integrations: [mdx(), icon(), sitemap(), react()]
+  integrations: [tailwind(), mdx(), icon(), sitemap(), react()]
 });
