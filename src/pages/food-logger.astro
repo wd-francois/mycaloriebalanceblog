@@ -1,6 +1,7 @@
 ---
 import Layout from '@layouts/Layout.astro';
 import DateTimeSelector from '@react/DateTimeSelector.jsx';
+import TestComponent from '@react/TestComponent.jsx';
 import { siteConfig } from '@config/site';
 import PWAInstallPrompt from '@react/PWAInstallPrompt';
 import OfflineIndicator from '@react/OfflineIndicator';
@@ -21,6 +22,7 @@ import OfflineIndicator from '@react/OfflineIndicator';
         <div class="text-center mb-6 sm:mb-8">
           <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Select a date to get started</h2>
         </div>
+        <TestComponent client:load />
         <DateTimeSelector client:load />
       </div>
     </section>
