@@ -1,10 +1,6 @@
 ---
 import Layout from '@layouts/Layout.astro';
-import DateTimeSelector from '@react/DateTimeSelector.jsx';
-import TestComponent from '@react/TestComponent.jsx';
 import { siteConfig } from '@config/site';
-import PWAInstallPrompt from '@react/PWAInstallPrompt';
-import OfflineIndicator from '@react/OfflineIndicator';
 ---
 
 <Layout
@@ -22,15 +18,77 @@ import OfflineIndicator from '@react/OfflineIndicator';
         <div class="text-center mb-6 sm:mb-8">
           <h2 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3">Select a date to get started</h2>
         </div>
-        <TestComponent client:load />
-        <DateTimeSelector client:load />
+        <div class="text-center">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Food Logger</h3>
+          <p class="text-gray-600 mb-6">Basic food logger interface - working without React components</p>
+          
+          <!-- Simple HTML form without React -->
+          <div class="max-w-md mx-auto space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
+              <input 
+                type="date" 
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="dateInput"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Select Time</label>
+              <input 
+                type="time" 
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="timeInput"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Meal Name</label>
+              <input 
+                type="text" 
+                placeholder="Enter meal name"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="mealInput"
+              />
+            </div>
+            
+            <button 
+              class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onclick="logMeal()"
+            >
+              Log Meal
+            </button>
+          </div>
+          
+          <div class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <p class="text-green-800 font-medium">✅ Food Logger Working!</p>
+            <p class="text-green-600 text-sm mt-1">No React components - pure HTML/JavaScript</p>
+          </div>
+        </div>
+        
+        <script>
+          function logMeal() {
+            const dateInput = document.getElementById('dateInput') as HTMLInputElement;
+            const timeInput = document.getElementById('timeInput') as HTMLInputElement;
+            const mealInput = document.getElementById('mealInput') as HTMLInputElement;
+            
+            if (dateInput && timeInput && mealInput) {
+              const date = dateInput.value;
+              const time = timeInput.value;
+              const meal = mealInput.value;
+              
+              if (date && time && meal) {
+                alert(`Meal logged: ${meal} on ${date} at ${time}`);
+                // Here you could save to localStorage or send to a server
+              } else {
+                alert('Please fill in all fields');
+              }
+            }
+          }
+        </script>
       </div>
     </section>
 
   </main>
-  
-  <!-- PWA Components -->
-  <PWAInstallPrompt client:load />
-  <OfflineIndicator client:load />
 </Layout>
 
