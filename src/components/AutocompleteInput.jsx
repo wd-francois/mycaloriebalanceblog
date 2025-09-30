@@ -107,6 +107,9 @@ const AutocompleteInput = ({
 
   // Handle click outside
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
           inputRef.current && !inputRef.current.contains(event.target)) {
@@ -121,6 +124,9 @@ const AutocompleteInput = ({
 
   // Update search term when value prop changes
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     setSearchTerm(value || '');
   }, [value]);
 

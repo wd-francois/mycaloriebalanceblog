@@ -305,6 +305,9 @@ class HealthDatabase {
 
   // Migration from localStorage
   async migrateFromLocalStorage() {
+    // Only run on client side
+    if (typeof window === 'undefined') return false;
+    
     try {
       const existingData = localStorage.getItem('healthEntries');
       if (existingData) {
