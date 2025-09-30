@@ -1,0 +1,15 @@
+[build]
+  # Build command for Astro
+  command = "npm run build"
+  # Directory to publish (the built files)
+  publish = "dist"
+
+[build.environment]
+  # Node.js version
+  NODE_VERSION = "18"
+
+# Redirect rules for SPA-like behavior
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
