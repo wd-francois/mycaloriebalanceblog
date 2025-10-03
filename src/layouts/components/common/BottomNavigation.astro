@@ -41,9 +41,9 @@ const currentUrl = Astro.url.pathname;
 
       <!-- Food Logger -->
       <a 
-        href="/food-logger" 
+        href="/food-logger/" 
         class={`flex flex-col items-center justify-center py-2 px-3 min-h-[60px] min-w-[60px] transition-all duration-200 group ${
-          currentUrl === '/food-logger' 
+          currentUrl === '/food-logger/' 
             ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
             : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
         }`}
@@ -51,11 +51,11 @@ const currentUrl = Astro.url.pathname;
       >
         <svg 
           class={`w-6 h-6 mb-1 transition-all duration-200 ${
-            currentUrl === '/food-logger' 
+            currentUrl === '/food-logger/' 
               ? 'scale-110' 
               : 'group-hover:scale-110'
           }`}
-          fill={currentUrl === '/food-logger' ? 'currentColor' : 'none'} 
+          fill={currentUrl === '/food-logger/' ? 'currentColor' : 'none'} 
           stroke="currentColor" 
           viewBox="0 0 24 24"
         >
@@ -66,14 +66,14 @@ const currentUrl = Astro.url.pathname;
             d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" 
           />
         </svg>
-        <span class={`text-xs font-medium ${currentUrl === '/food-logger' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Logger</span>
+        <span class={`text-xs font-medium ${currentUrl === '/food-logger/' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Logger</span>
       </a>
 
       <!-- Settings -->
       <a 
-        href="/settings" 
+        href="/settings/" 
         class={`flex flex-col items-center justify-center py-2 px-3 min-h-[60px] min-w-[60px] transition-all duration-200 group ${
-          currentUrl === '/settings' 
+          currentUrl === '/settings/' 
             ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
             : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
         }`}
@@ -81,11 +81,11 @@ const currentUrl = Astro.url.pathname;
       >
         <svg 
           class={`w-6 h-6 mb-1 transition-all duration-200 ${
-            currentUrl === '/settings' 
+            currentUrl === '/settings/' 
               ? 'scale-110' 
               : 'group-hover:scale-110'
           }`}
-          fill={currentUrl === '/settings' ? 'currentColor' : 'none'} 
+          fill={currentUrl === '/settings/' ? 'currentColor' : 'none'} 
           stroke="currentColor" 
           viewBox="0 0 24 24"
         >
@@ -102,14 +102,14 @@ const currentUrl = Astro.url.pathname;
             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
           />
         </svg>
-        <span class={`text-xs font-medium ${currentUrl === '/settings' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Settings</span>
+        <span class={`text-xs font-medium ${currentUrl === '/settings/' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Settings</span>
       </a>
 
       <!-- Library -->
       <a 
-        href="/library" 
+        href="/library/" 
         class={`flex flex-col items-center justify-center py-2 px-3 min-h-[60px] min-w-[60px] transition-all duration-200 group ${
-          currentUrl === '/library' 
+          currentUrl === '/library/' 
             ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
             : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
         }`}
@@ -117,11 +117,11 @@ const currentUrl = Astro.url.pathname;
       >
         <svg 
           class={`w-6 h-6 mb-1 transition-all duration-200 ${
-            currentUrl === '/library' 
+            currentUrl === '/library/' 
               ? 'scale-110' 
               : 'group-hover:scale-110'
           }`}
-          fill={currentUrl === '/library' ? 'currentColor' : 'none'} 
+          fill={currentUrl === '/library/' ? 'currentColor' : 'none'} 
           stroke="currentColor" 
           viewBox="0 0 24 24"
         >
@@ -132,14 +132,14 @@ const currentUrl = Astro.url.pathname;
             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" 
           />
         </svg>
-        <span class={`text-xs font-medium ${currentUrl === '/library' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Library</span>
+        <span class={`text-xs font-medium ${currentUrl === '/library/' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Library</span>
       </a>
 
       <!-- Export -->
       <a 
-        href="/export" 
+        href="/export/" 
         class={`flex flex-col items-center justify-center py-2 px-3 min-h-[60px] min-w-[60px] transition-all duration-200 group ${
-          currentUrl === '/export' 
+          currentUrl === '/export/' 
             ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
             : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
         }`}
@@ -147,11 +147,11 @@ const currentUrl = Astro.url.pathname;
       >
         <svg 
           class={`w-6 h-6 mb-1 transition-all duration-200 ${
-            currentUrl === '/export' 
+            currentUrl === '/export/' 
               ? 'scale-110' 
               : 'group-hover:scale-110'
           }`}
-          fill={currentUrl === '/export' ? 'currentColor' : 'none'} 
+          fill={currentUrl === '/export/' ? 'currentColor' : 'none'} 
           stroke="currentColor" 
           viewBox="0 0 24 24"
         >
@@ -162,7 +162,7 @@ const currentUrl = Astro.url.pathname;
             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
           />
         </svg>
-        <span class={`text-xs font-medium ${currentUrl === '/export' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Export</span>
+        <span class={`text-xs font-medium ${currentUrl === '/export/' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Export</span>
       </a>
 
 
