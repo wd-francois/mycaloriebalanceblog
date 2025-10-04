@@ -194,11 +194,57 @@ const DateTimeSelector = () => {
         // Load existing data from localStorage as fallback
         const savedEntries = loadFromLocalStorage();
         setEntries(savedEntries);
+        
+        // Load form state from localStorage
+        const savedFormState = localStorage.getItem('healthFormState');
+        if (savedFormState) {
+          try {
+            const parsedFormState = JSON.parse(savedFormState);
+            setFormState(parsedFormState);
+            setActiveForm(parsedFormState.type || 'meal');
+            
+            // Show the appropriate form if there's data
+            if (parsedFormState.name || parsedFormState.amount || parsedFormState.bedtime) {
+              if (parsedFormState.type === 'meal') {
+                setShowMealInput(true);
+              } else if (parsedFormState.type === 'sleep') {
+                setShowSleepInput(true);
+              }
+            }
+            
+            console.log('Loaded form state from localStorage:', parsedFormState);
+          } catch (error) {
+            console.error('Error loading form state from localStorage:', error);
+          }
+        }
       } catch (error) {
         console.error('Error initializing database:', error);
         // Fallback to localStorage only
         const savedEntries = loadFromLocalStorage();
         setEntries(savedEntries);
+        
+        // Load form state from localStorage
+        const savedFormState = localStorage.getItem('healthFormState');
+        if (savedFormState) {
+          try {
+            const parsedFormState = JSON.parse(savedFormState);
+            setFormState(parsedFormState);
+            setActiveForm(parsedFormState.type || 'meal');
+            
+            // Show the appropriate form if there's data
+            if (parsedFormState.name || parsedFormState.amount || parsedFormState.bedtime) {
+              if (parsedFormState.type === 'meal') {
+                setShowMealInput(true);
+              } else if (parsedFormState.type === 'sleep') {
+                setShowSleepInput(true);
+              }
+            }
+            
+            console.log('Loaded form state from localStorage (fallback):', parsedFormState);
+          } catch (error) {
+            console.error('Error loading form state from localStorage (fallback):', error);
+          }
+        }
       }
     };
     
@@ -212,6 +258,20 @@ const DateTimeSelector = () => {
     
     saveToLocalStorage(entries);
   }, [entries]);
+
+  // Save form state to localStorage whenever it changes
+  useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
+    try {
+      console.log('Saving form state to localStorage:', formState);
+      localStorage.setItem('healthFormState', JSON.stringify(formState));
+      console.log('Successfully saved form state to localStorage');
+    } catch (error) {
+      console.error('Error saving form state to localStorage:', error);
+    }
+  }, [formState]);
 
 
   // Export data functions
