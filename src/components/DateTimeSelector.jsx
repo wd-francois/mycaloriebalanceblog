@@ -131,7 +131,9 @@ const DateTimeSelector = () => {
     if (typeof window === 'undefined') return;
     
     try {
+      console.log('Saving to localStorage:', data);
       localStorage.setItem('healthEntries', JSON.stringify(data));
+      console.log('Successfully saved to localStorage');
     } catch (error) {
       console.error('Error saving to localStorage:', error);
     }
@@ -147,17 +149,20 @@ const DateTimeSelector = () => {
       if (!saved) {
         saved = localStorage.getItem('mealEntries');
       }
+      console.log('Loading from localStorage:', saved);
       if (saved) {
         const parsed = JSON.parse(saved);
+        console.log('Parsed data:', parsed);
         // Convert date strings back to Date objects
         const converted = {};
         Object.keys(parsed).forEach(dateKey => {
           converted[dateKey] = parsed[dateKey].map(entry => ({
             ...entry,
-            date: new Date(entry.date),
+            date: entry.date ? new Date(entry.date) : new Date(),
             type: entry.type || 'meal' // Default to meal for backward compatibility
           }));
         });
+        console.log('Converted data:', converted);
         return converted;
       }
     } catch (error) {
@@ -446,6 +451,7 @@ const DateTimeSelector = () => {
   }
 
   function handleSubmitWithData(data) {
+    console.log('handleSubmitWithData called with:', data);
     setFormError('');
 
     const name = activeForm === 'measurements' ? 'Body Measurements' : data.name.trim();
@@ -505,10 +511,14 @@ const DateTimeSelector = () => {
           notes: data.notes
         })
       };
-      setEntries((prev) => ({
-        ...prev,
-        [dateKey]: [...(prev[dateKey] || []), newEntry]
-      }));
+      setEntries((prev) => {
+        const newEntries = {
+          ...prev,
+          [dateKey]: [...(prev[dateKey] || []), newEntry]
+        };
+        console.log('Updating entries:', newEntries);
+        return newEntries;
+      });
 
       // Auto-add to library for new meals and exercises
       if (activeForm === 'meal' || activeForm === 'exercise') {
