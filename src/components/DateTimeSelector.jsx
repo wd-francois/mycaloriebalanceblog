@@ -454,13 +454,17 @@ const DateTimeSelector = () => {
     console.log('handleSubmitWithData called with:', data);
     setFormError('');
 
-    const name = activeForm === 'measurements' ? 'Body Measurements' : data.name.trim();
+    const name = activeForm === 'measurements' ? 'Body Measurements' : 
+                 activeForm === 'sleep' ? 'Sleep' : data.name.trim();
 
-    // Add validation back for exercise and meal entries (not sleep or measurements)
-    if (!name && activeForm !== 'sleep' && activeForm !== 'measurements') {
-      setFormError(`${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} name is required.`);
+    // Add validation back for meal entries (not sleep or measurements)
+    if (!name && activeForm === 'meal') {
+      console.log('Validation failed: Meal name is required');
+      setFormError('Meal name is required.');
       return;
     }
+    
+    console.log('Validation passed, proceeding with entry creation');
 
     // Validate measurements
     if (activeForm === 'measurements') {
