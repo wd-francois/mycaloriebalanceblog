@@ -498,9 +498,19 @@ const DateTimeSelector = () => {
   }
 
   function resetForm() {
-    setFormState({ id: null, name: '', type: activeForm, sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' });
+    // Only reset the ID, keep other form data for next entry
+    setFormState(prev => ({ 
+      ...prev, 
+      id: null 
+    }));
     setFormError('');
     // Don't close input forms - let user continue adding entries
+  }
+
+  function clearForm() {
+    // Completely clear the form
+    setFormState({ id: null, name: '', type: activeForm, sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' });
+    setFormError('');
   }
 
   function handleSubmit(e) {
@@ -1295,6 +1305,14 @@ const DateTimeSelector = () => {
                           >
                             {formState.id == null ? 'Cancel' : 'Cancel Edit'}
                           </button>
+                          
+                          <button
+                            type="button"
+                            onClick={clearForm}
+                            className="inline-flex items-center px-6 py-3 bg-orange-200 text-orange-900 text-sm font-medium rounded-lg hover:bg-orange-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                          >
+                            Clear Form
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1460,6 +1478,14 @@ const DateTimeSelector = () => {
                             className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                           >
                             {formState.id == null ? 'Cancel' : 'Cancel Edit'}
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={clearForm}
+                            className="inline-flex items-center px-6 py-3 bg-orange-200 text-orange-900 text-sm font-medium rounded-lg hover:bg-orange-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                          >
+                            Clear Form
                           </button>
                         </div>
                       </div>
