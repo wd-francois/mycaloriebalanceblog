@@ -9,9 +9,9 @@ const Settings = ({ onClose = null }) => {
     dateFormat: 'MM/DD/YYYY',
     timeFormat: '12h',
     enableMeals: true,
-    enableExercise: true,
+    enableExercise: false, // Temporarily disabled
     enableSleep: true,
-    enableMeasurements: true,
+    enableMeasurements: false, // Temporarily disabled
     theme: 'light'
   });
   
@@ -116,15 +116,6 @@ const Settings = ({ onClose = null }) => {
   };
 
   const settingGroups = [
-    {
-      title: 'Feature Toggles',
-      settings: [
-        { key: 'enableMeals', label: '🍽️ Meals & Nutrition', description: 'Track food intake and calories', type: 'toggle' },
-        { key: 'enableExercise', label: '💪 Exercise', description: 'Track workouts and physical activity', type: 'toggle' },
-        { key: 'enableSleep', label: '😴 Sleep', description: 'Track sleep duration and quality', type: 'toggle' },
-        { key: 'enableMeasurements', label: '📏 Body Measurements', description: 'Track weight, girth, and skinfold measurements', type: 'toggle' }
-      ]
-    },
     {
       title: 'Weight & Measurements',
       settings: [

@@ -1070,22 +1070,6 @@ const DateTimeSelector = () => {
                         🍽️ Add Meal
                       </button>
                     )}
-                    {settings.enableExercise && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveForm('exercise');
-                          setShowExerciseInput(true);
-                        }}
-                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                          activeForm === 'exercise'
-                            ? 'bg-green-600 text-white shadow-md'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        💪 Add Exercise
-                      </button>
-                    )}
                     {settings.enableSleep && (
                       <button
                         type="button"
@@ -1100,22 +1084,6 @@ const DateTimeSelector = () => {
                         }`}
                       >
                         😴 Add Sleep
-                      </button>
-                    )}
-                    {settings.enableMeasurements && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveForm('measurements');
-                          setShowMeasurementsInput(true);
-                        }}
-                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                          activeForm === 'measurements'
-                            ? 'bg-orange-600 text-white shadow-md'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        📏 Add Measurements
                       </button>
                     )}
                   </div>
@@ -1264,153 +1232,6 @@ const DateTimeSelector = () => {
                     </div>
                   )}
 
-                  {/* Exercise Form Fields */}
-                  {settings.enableExercise && activeForm === 'exercise' && showExerciseInput && (
-                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-gray-900">Add Exercise</h4>
-                        <button
-                          onClick={() => {
-                            setShowExerciseInput(false);
-                            if (formState.id == null) {
-                              setFormState((s) => ({ ...s, name: '', sets: [] }));
-                            }
-                          }}
-                          className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                        >
-                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="exercise-name">
-                            Exercise Name
-                          </label>
-                          <div className="flex gap-2">
-                            <div className="flex-1">
-                              <AutocompleteInput
-                                type="exercise"
-                                value={formState.name}
-                                onChange={(value) => setFormState((s) => ({ ...s, name: value }))}
-                                onSelect={handleAutocompleteSelect}
-                                placeholder="e.g., Push-ups, Squats, Bench Press"
-                                autoFocus
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        
-                        {/* Individual Sets */}
-                        <div>
-                          <div className="flex items-center justify-between mb-4">
-                            <label className="block text-sm font-medium text-gray-700">
-                              Sets ({formState.sets.length})
-                            </label>
-                            <button
-                              type="button"
-                              onClick={addSet}
-                              className="inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                            >
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                              Add Set
-                            </button>
-                          </div>
-                          
-                          {formState.sets.length === 0 ? (
-                            <div className="text-center py-8 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-                              <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                              <p className="text-sm text-gray-500">No sets added yet. Click "Add Set" to get started.</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                              {formState.sets.map((set, index) => (
-                                <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <h4 className="text-sm font-medium text-gray-700">Set {index + 1}</h4>
-                                    <button
-                                      type="button"
-                                      onClick={() => removeSet(index)}
-                                      className="text-red-500 hover:text-red-700 transition-colors"
-                                      title="Remove set"
-                                    >
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                      </svg>
-                                    </button>
-                                  </div>
-                                  
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                                        Reps
-                                      </label>
-                                      <input
-                                        type="number"
-                                        min="1"
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-sm"
-                                        placeholder="10"
-                                        value={set.reps}
-                                        onChange={(e) => updateSet(index, 'reps', e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                                      />
-                                    </div>
-                                    
-                                    <div>
-                                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                                        Load
-                                      </label>
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-sm"
-                                        placeholder="50kg"
-                                        value={set.load}
-                                        onChange={(e) => updateSet(index, 'load', e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                                      />
-                                    </div>
-                                  </div>
-                                  
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={handleSubmit}
-                            className="inline-flex items-center px-6 py-3 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                          >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            {formState.id == null ? 'Add Exercise Entry' : 'Save Changes'}
-                    </button>
-                    
-                      <button
-                        type="button"
-                            onClick={() => {
-                              setShowExerciseInput(false);
-                              if (formState.id == null) {
-                                setFormState((s) => ({ ...s, name: '', sets: [] }));
-                              }
-                            }}
-                        className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                      >
-                            {formState.id == null ? 'Cancel' : 'Cancel Edit'}
-                      </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Sleep Form Fields */}
                   {settings.enableSleep && activeForm === 'sleep' && showSleepInput && (
@@ -1593,54 +1414,6 @@ const DateTimeSelector = () => {
                   </div>
                   )}
 
-                  {/* Measurements Form Fields */}
-                  {settings.enableMeasurements && activeForm === 'measurements' && showMeasurementsInput && (
-                    <div className="mt-4">
-                      <MeasurementsForm
-                        settings={settings}
-                        onSubmit={(data) => {
-                          // Update formState with the data from MeasurementsForm and submit
-                          setFormState(prev => {
-                            const updatedState = {
-                              ...prev,
-                              ...data
-                            };
-                            
-                            // Submit the form with the updated data
-                            setTimeout(() => {
-                              handleSubmitWithData(updatedState);
-                            }, 0);
-                            
-                            return updatedState;
-                          });
-                        }}
-                        onCancel={() => {
-                          setShowMeasurementsInput(false);
-                          if (formState.id == null) {
-                            setFormState((s) => ({ 
-                              ...s, 
-                              weight: '', 
-                              neck: '', 
-                              shoulders: '', 
-                              chest: '', 
-                              waist: '', 
-                              hips: '', 
-                              thigh: '', 
-                              arm: '',
-                              chestSkinfold: '',
-                              abdominalSkinfold: '',
-                              thighSkinfold: '',
-                              tricepSkinfold: '',
-                              subscapularSkinfold: '',
-                              suprailiacSkinfold: '',
-                              notes: '' 
-                            }));
-                          }
-                        }}
-                        initialData={formState.id ? formState : null}
-                      />
-                    </div>
-                  )}
                   
                   {formError && (
                     <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">

@@ -18,9 +18,9 @@ export const SettingsProvider = ({ children }) => {
     timeFormat: '12h', // '12h' or '24h'
     // Feature toggles
     enableMeals: true,
-    enableExercise: true,
+    enableExercise: false, // Temporarily disabled
     enableSleep: true,
-    enableMeasurements: true,
+    enableMeasurements: false, // Temporarily disabled
     // Theme
     theme: 'light'
   });
