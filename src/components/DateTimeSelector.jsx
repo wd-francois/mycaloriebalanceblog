@@ -53,14 +53,75 @@ const DateTimeSelector = () => {
 
   // Entries state - store entries per date (meals, exercises, sleep)
   const [entries, setEntries] = useState({});
-  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' });
+  // Initialize form state from localStorage if available
+  const getInitialFormState = () => {
+    if (typeof window === 'undefined') {
+      return { id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' };
+    }
+    
+    try {
+      const savedFormState = localStorage.getItem('healthFormState');
+      if (savedFormState) {
+        const parsed = JSON.parse(savedFormState);
+        console.log('Initializing form state from localStorage:', parsed);
+        return parsed;
+      }
+    } catch (error) {
+      console.error('Error loading form state from localStorage:', error);
+    }
+    
+    return { id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' };
+  };
+
+  const [formState, setFormState] = useState(getInitialFormState);
   const [formError, setFormError] = useState('');
   const [librarySuccessMessage, setLibrarySuccessMessage] = useState('');
-  const [activeForm, setActiveForm] = useState('meal'); // 'meal', 'exercise', 'sleep'
-  const [showMealInput, setShowMealInput] = useState(false);
-  const [showExerciseInput, setShowExerciseInput] = useState(false);
-  const [showSleepInput, setShowSleepInput] = useState(false);
-  const [showMeasurementsInput, setShowMeasurementsInput] = useState(false);
+  // Initialize active form and visibility from saved form state
+  const getInitialActiveForm = () => {
+    if (typeof window === 'undefined') return 'meal';
+    
+    try {
+      const savedFormState = localStorage.getItem('healthFormState');
+      if (savedFormState) {
+        const parsed = JSON.parse(savedFormState);
+        return parsed.type || 'meal';
+      }
+    } catch (error) {
+      console.error('Error loading active form from localStorage:', error);
+    }
+    
+    return 'meal';
+  };
+
+  const getInitialFormVisibility = () => {
+    if (typeof window === 'undefined') return { meal: false, exercise: false, sleep: false, measurements: false };
+    
+    try {
+      const savedFormState = localStorage.getItem('healthFormState');
+      if (savedFormState) {
+        const parsed = JSON.parse(savedFormState);
+        // Show the appropriate form if there's data
+        if (parsed.name || parsed.amount || parsed.bedtime) {
+          if (parsed.type === 'meal') {
+            return { meal: true, exercise: false, sleep: false, measurements: false };
+          } else if (parsed.type === 'sleep') {
+            return { meal: false, exercise: false, sleep: true, measurements: false };
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading form visibility from localStorage:', error);
+    }
+    
+    return { meal: false, exercise: false, sleep: false, measurements: false };
+  };
+
+  const [activeForm, setActiveForm] = useState(getInitialActiveForm);
+  const initialVisibility = getInitialFormVisibility();
+  const [showMealInput, setShowMealInput] = useState(initialVisibility.meal);
+  const [showExerciseInput, setShowExerciseInput] = useState(initialVisibility.exercise);
+  const [showSleepInput, setShowSleepInput] = useState(initialVisibility.sleep);
+  const [showMeasurementsInput, setShowMeasurementsInput] = useState(initialVisibility.measurements);
   const [isDBInitialized, setIsDBInitialized] = useState(false);
   const [frequentItems, setFrequentItems] = useState({ food: [], exercise: [] });
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -195,56 +256,14 @@ const DateTimeSelector = () => {
         const savedEntries = loadFromLocalStorage();
         setEntries(savedEntries);
         
-        // Load form state from localStorage
-        const savedFormState = localStorage.getItem('healthFormState');
-        if (savedFormState) {
-          try {
-            const parsedFormState = JSON.parse(savedFormState);
-            setFormState(parsedFormState);
-            setActiveForm(parsedFormState.type || 'meal');
-            
-            // Show the appropriate form if there's data
-            if (parsedFormState.name || parsedFormState.amount || parsedFormState.bedtime) {
-              if (parsedFormState.type === 'meal') {
-                setShowMealInput(true);
-              } else if (parsedFormState.type === 'sleep') {
-                setShowSleepInput(true);
-              }
-            }
-            
-            console.log('Loaded form state from localStorage:', parsedFormState);
-          } catch (error) {
-            console.error('Error loading form state from localStorage:', error);
-          }
-        }
+        // Form state is now loaded in initial state, no need to load here
       } catch (error) {
         console.error('Error initializing database:', error);
         // Fallback to localStorage only
         const savedEntries = loadFromLocalStorage();
         setEntries(savedEntries);
         
-        // Load form state from localStorage
-        const savedFormState = localStorage.getItem('healthFormState');
-        if (savedFormState) {
-          try {
-            const parsedFormState = JSON.parse(savedFormState);
-            setFormState(parsedFormState);
-            setActiveForm(parsedFormState.type || 'meal');
-            
-            // Show the appropriate form if there's data
-            if (parsedFormState.name || parsedFormState.amount || parsedFormState.bedtime) {
-              if (parsedFormState.type === 'meal') {
-                setShowMealInput(true);
-              } else if (parsedFormState.type === 'sleep') {
-                setShowSleepInput(true);
-              }
-            }
-            
-            console.log('Loaded form state from localStorage (fallback):', parsedFormState);
-          } catch (error) {
-            console.error('Error loading form state from localStorage (fallback):', error);
-          }
-        }
+        // Form state is now loaded in initial state, no need to load here
       }
     };
     
