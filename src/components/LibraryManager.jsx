@@ -3,7 +3,6 @@ import healthDB from '../lib/database.js';
 
 const LibraryManager = () => {
   const [activeTab, setActiveTab] = useState('meals');
-  const [exercises, setExercises] = useState([]);
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -50,33 +49,18 @@ const LibraryManager = () => {
         }
 
         // Load data from IndexedDB
-        const exerciseData = await healthDB.getExerciseItems('', 100);
         const mealData = await healthDB.getFoodItems('', 100);
         
         // Set state directly
-        setExercises([...exerciseData]);
         setMeals([...mealData]);
         
-        console.log('Loaded from IndexedDB:', exerciseData.length, 'exercises,', mealData.length, 'meals');
+        console.log('Loaded from IndexedDB:', mealData.length, 'meals');
         setLoading(false);
         return; // Exit early on success
       } catch (indexedDBError) {
         console.warn('IndexedDB failed, falling back to localStorage:', indexedDBError);
         // Call the localStorage function directly
-        const exerciseData = [];
         const mealData = [];
-        
-        try {
-          const exerciseDataStr = localStorage.getItem('exerciseLibrary');
-          if (exerciseDataStr) {
-            const parsed = JSON.parse(exerciseDataStr);
-            if (Array.isArray(parsed)) {
-              exerciseData.push(...parsed);
-            }
-          }
-        } catch (error) {
-          console.error('Error loading exercises from localStorage:', error);
-        }
         
         try {
           const mealDataStr = localStorage.getItem('mealLibrary');
@@ -90,43 +74,7 @@ const LibraryManager = () => {
           console.error('Error loading meals from localStorage:', error);
         }
         
-        // Add sample data if libraries are empty
-        if (exerciseData.length === 0) {
-          const sampleExercises = [
-            {
-              id: 1,
-              name: 'Push-ups',
-              description: 'Upper body exercise',
-              category: 'Bodyweight',
-              defaultSets: 3,
-              defaultReps: 10,
-              muscleGroups: 'Chest, Triceps, Shoulders',
-              difficulty: 'Beginner'
-            },
-            {
-              id: 2,
-              name: 'Squats',
-              description: 'Lower body exercise',
-              category: 'Bodyweight',
-              defaultSets: 3,
-              defaultReps: 15,
-              muscleGroups: 'Quadriceps, Glutes, Hamstrings',
-              difficulty: 'Beginner'
-            },
-            {
-              id: 3,
-              name: 'Bench Press',
-              description: 'Chest exercise with weights',
-              category: 'Weight Training',
-              defaultSets: 3,
-              defaultReps: 8,
-              muscleGroups: 'Chest, Triceps, Shoulders',
-              difficulty: 'Intermediate'
-            }
-          ];
-          exerciseData.push(...sampleExercises);
-          localStorage.setItem('exerciseLibrary', JSON.stringify(sampleExercises));
-        }
+        // Add sample data if library is empty
         
         if (mealData.length === 0) {
           const sampleMeals = [
@@ -168,10 +116,9 @@ const LibraryManager = () => {
           localStorage.setItem('mealLibrary', JSON.stringify(sampleMeals));
         }
         
-        setExercises([...exerciseData]);
         setMeals([...mealData]);
         
-        console.log('Loaded from localStorage:', exerciseData.length, 'exercises,', mealData.length, 'meals');
+        console.log('Loaded from localStorage:', mealData.length, 'meals');
         setLoading(false);
         return; // Exit early on success
       }
@@ -179,7 +126,6 @@ const LibraryManager = () => {
     } catch (error) {
       console.error('Error loading library data:', error);
       // Final fallback - set empty arrays
-      setExercises([]);
       setMeals([]);
       setLoading(false);
     }
@@ -233,32 +179,27 @@ const LibraryManager = () => {
 
       const itemData = {
         name: formData.name.trim(),
-        ...(activeTab === 'exercises' ? {
-          category: formData.category || 'General',
-          notes: formData.notes || ''
-        } : {
-          amount: formData.amount.trim(),
-          calories: formData.calories ? parseInt(formData.calories) : null,
-          protein: formData.protein ? parseInt(formData.protein) : null,
-          carbs: formData.carbs ? parseInt(formData.carbs) : null,
-          fats: formData.fats ? parseInt(formData.fats) : null,
-          notes: formData.notes || ''
-        })
+        amount: formData.amount.trim(),
+        calories: formData.calories ? parseInt(formData.calories) : null,
+        protein: formData.protein ? parseInt(formData.protein) : null,
+        carbs: formData.carbs ? parseInt(formData.carbs) : null,
+        fats: formData.fats ? parseInt(formData.fats) : null,
+        notes: formData.notes || ''
       };
 
       // Try IndexedDB first, fallback to localStorage
       try {
         if (editingItem) {
           // Update existing item
-          await healthDB.updateItem(activeTab === 'exercises' ? 'exercise' : 'food', editingItem.id, itemData);
+          await healthDB.updateItem('food', editingItem.id, itemData);
         } else {
           // Add new item
-          await healthDB.addItem(activeTab === 'exercises' ? 'exercise' : 'food', itemData);
+          await healthDB.addItem('food', itemData);
         }
       } catch (indexedDBError) {
         console.warn('IndexedDB save failed, using localStorage:', indexedDBError);
         // Fallback to localStorage
-        const storageKey = activeTab === 'exercises' ? 'exerciseLibrary' : 'mealLibrary';
+        const storageKey = 'mealLibrary';
         const currentItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
 
         if (editingItem) {
@@ -317,7 +258,7 @@ const LibraryManager = () => {
     setShowInfoModal(true);
   };
 
-  const currentItems = activeTab === 'exercises' ? exercises : meals;
+  const currentItems = meals;
   
   if (loading) {
     return (
@@ -347,19 +288,6 @@ const LibraryManager = () => {
                 Meals ({meals.length})
               </div>
             </button>
-            <button
-              onClick={() => setActiveTab('exercises')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'exercises'
-                  ? 'border-green-500 text-green-600 dark:text-green-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-lg">💪</span>
-                Exercises ({exercises.length})
-              </div>
-            </button>
           </nav>
         </div>
       </div>
@@ -367,16 +295,12 @@ const LibraryManager = () => {
       {/* Add Buttons */}
       <div className="mb-6 flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          {activeTab === 'exercises' ? 'Exercise' : 'Meal'} Library
+          Meal Library
         </h2>
         <div className="flex gap-3">
           <button
             onClick={handleAddItem}
-            className={`px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 flex items-center gap-2 ${
-              activeTab === 'exercises'
-                ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+            className="px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -445,19 +369,15 @@ const LibraryManager = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No {activeTab} found</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No meals found</h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Get started by adding your first {activeTab === 'exercises' ? 'exercise' : 'meal'}.
+            Get started by adding your first meal.
           </p>
           <button
             onClick={handleAddItem}
-            className={`px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 ${
-              activeTab === 'exercises'
-                ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+            className="px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 bg-blue-600 hover:bg-blue-700"
           >
-            Add {activeTab === 'exercises' ? 'Exercise' : 'Meal'}
+            Add Meal
           </button>
         </div>
       )}
@@ -469,154 +389,102 @@ const LibraryManager = () => {
           <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl mx-4 z-10">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {editingItem ? 'Edit' : 'Add'} {activeTab === 'exercises' ? 'Exercise' : 'Meal'}
+                {editingItem ? 'Edit' : 'Add'} Meal
               </h3>
             </div>
             
             <div className="px-6 py-4 space-y-4">
-              {activeTab === 'exercises' ? (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Exercise Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Enter exercise name"
-                      autoFocus
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Category
-                    </label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    >
-                      <option value="">Select category</option>
-                      <option value="Bodyweight">Bodyweight</option>
-                      <option value="Weight Training">Weight Training</option>
-                      <option value="Cardio">Cardio</option>
-                      <option value="Core">Core</option>
-                      <option value="Flexibility">Flexibility</option>
-                      <option value="Functional">Functional</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Notes
-                    </label>
-                    <textarea
-                      value={formData.notes || ''}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Add any notes about this exercise..."
-                      rows={3}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Meal Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="e.g., Breakfast, Lunch, Dinner, Snack"
-                      autoFocus
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Amount
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.amount}
-                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="e.g., 1 cup, 500 grams, 2 slices"
-                    />
-                  </div>
-                  
-                  {/* Nutrition Information */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Calories
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.calories}
-                        onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="e.g., 250"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Protein (g)
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.protein}
-                        onChange={(e) => setFormData({ ...formData, protein: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="e.g., 20"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Carbs (g)
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.carbs}
-                        onChange={(e) => setFormData({ ...formData, carbs: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="e.g., 30"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Fats (g)
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.fats}
-                        onChange={(e) => setFormData({ ...formData, fats: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="e.g., 10"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Notes
-                    </label>
-                    <textarea
-                      value={formData.notes || ''}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Add any notes about this meal..."
-                      rows={3}
-                    />
-                  </div>
-                </>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Meal Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="e.g., Breakfast, Lunch, Dinner, Snack"
+                  autoFocus
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Amount
+                </label>
+                <input
+                  type="text"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="e.g., 1 cup, 500 grams, 2 slices"
+                />
+              </div>
+              
+              {/* Nutrition Information */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Calories
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.calories}
+                    onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="e.g., 250"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Protein (g)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.protein}
+                    onChange={(e) => setFormData({ ...formData, protein: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="e.g., 20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Carbs (g)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.carbs}
+                    onChange={(e) => setFormData({ ...formData, carbs: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="e.g., 30"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Fats (g)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.fats}
+                    onChange={(e) => setFormData({ ...formData, fats: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="e.g., 10"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Notes
+                </label>
+                <textarea
+                  value={formData.notes || ''}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Add any notes about this meal..."
+                  rows={3}
+                />
+              </div>
             </div>
             
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
@@ -650,7 +518,7 @@ const LibraryManager = () => {
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {activeTab === 'exercises' ? 'Exercise' : 'Meal'} Information: {selectedItem.name}
+                  Meal Information: {selectedItem.name}
                 </h3>
                 <button
                   onClick={() => setShowInfoModal(false)}
@@ -665,29 +533,7 @@ const LibraryManager = () => {
 
             <div className="px-6 py-4 max-h-96 overflow-y-auto">
               <div className="space-y-4">
-                  {activeTab === 'exercises' ? (
-                    <>
-                      {selectedItem.category && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Category
-                          </label>
-                          <p className="text-gray-900 dark:text-white">{selectedItem.category}</p>
-                        </div>
-                      )}
-                      
-                      {selectedItem.notes && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Notes
-                          </label>
-                          <p className="text-gray-900 dark:text-white whitespace-pre-wrap">{selectedItem.notes}</p>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      {selectedItem.amount && (
+                {selectedItem.amount && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Amount
@@ -742,8 +588,6 @@ const LibraryManager = () => {
                           <p className="text-gray-900 dark:text-white whitespace-pre-wrap">{selectedItem.notes}</p>
                         </div>
                       )}
-                    </>
-                  )}
               </div>
             </div>
 

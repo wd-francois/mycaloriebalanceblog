@@ -949,20 +949,20 @@ const DateTimeSelector = () => {
           </details>
           <details className="group p-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I log exercises?</span>
+              <span className="text-base font-semibold text-gray-900">How do I log sleep?</span>
               <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Select "Add Exercise", enter the exercise name, then click "Add Set" for each set. You can optionally enter reps and load (e.g., "50kg") for each set - these details aren't required. Add as many sets as needed.
+              Click a date on the calendar, select "Add Sleep", then set your bedtime and wake time. The app will automatically calculate your sleep duration. You can add notes about sleep quality if desired.
             </div>
           </details>
           <details className="group p-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">What is the food and exercise library?</span>
+              <span className="text-base font-semibold text-gray-900">What is the food library?</span>
               <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Your personal database of frequently used foods and exercises. Click "Manage Library" to add, edit, or delete items. The autocomplete will suggest items from your library as you type, making data entry much faster.
+              Your personal database of frequently used foods and meals. Click "Manage Library" to add, edit, or delete items. The autocomplete will suggest items from your library as you type, making data entry much faster.
             </div>
           </details>
           <details className="group p-4">
@@ -980,16 +980,16 @@ const DateTimeSelector = () => {
               <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              All entries for the same time (e.g., 8:00 AM) are automatically grouped together under a single time header. This keeps your log organized and makes it easy to see what you did at specific times. Click the time header to collapse or expand each group. You can have multiple meals, exercises, or sleep entries at the same time.
+              All entries for the same time (e.g., 8:00 AM) are automatically grouped together under a single time header. This keeps your log organized and makes it easy to see what you did at specific times. Click the time header to collapse or expand each group. You can have multiple meals or sleep entries at the same time.
             </div>
           </details>
           <details className="group p-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">What are the quick-add buttons?</span>
+              <span className="text-base font-semibold text-gray-900">How do I manage my data?</span>
               <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              These show your most recently used food and exercise items. Click any button to instantly add that item to your log with pre-filled details, saving you time on data entry.
+              Use the Library to manage your food items, Settings to customize units and preferences, and Export to backup your data. All your entries are automatically saved and can be edited or deleted as needed.
             </div>
           </details>
           <details className="group p-4">
@@ -1016,7 +1016,7 @@ const DateTimeSelector = () => {
               <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Use the export functionality to backup your data in JSON, CSV, or PDF formats. This includes all your entries with nutrition and exercise details.
+              Use the export functionality to backup your data in JSON, CSV, or PDF formats. This includes all your entries with nutrition and sleep details.
             </div>
           </details>
         </div>
