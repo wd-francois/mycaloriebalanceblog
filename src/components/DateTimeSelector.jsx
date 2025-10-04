@@ -1097,9 +1097,6 @@ const DateTimeSelector = () => {
                         <button
                           onClick={() => {
                             setShowMealInput(false);
-                            if (formState.id == null) {
-                              setFormState((s) => ({ ...s, name: '', amount: '' }));
-                            }
                           }}
                           className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
                         >
@@ -1219,9 +1216,6 @@ const DateTimeSelector = () => {
                             type="button"
                             onClick={() => {
                               setShowMealInput(false);
-                              if (formState.id == null) {
-                                setFormState((s) => ({ ...s, name: '', amount: '' }));
-                              }
                             }}
                             className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                           >
@@ -1241,14 +1235,6 @@ const DateTimeSelector = () => {
                         <button
                           onClick={() => {
                             setShowSleepInput(false);
-                            if (formState.id == null) {
-                              setFormState((s) => ({ 
-                                ...s, 
-                                name: '', 
-                                bedtime: { hour: 10, minute: 0, period: 'PM' }, 
-                                waketime: { hour: 6, minute: 0, period: 'AM' } 
-                              }));
-                            }
                           }}
                           className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
                         >
@@ -1396,14 +1382,6 @@ const DateTimeSelector = () => {
                             type="button"
                             onClick={() => {
                               setShowSleepInput(false);
-                              if (formState.id == null) {
-                                setFormState((s) => ({ 
-                                  ...s, 
-                                  name: '', 
-                                  bedtime: { hour: 10, minute: 0, period: 'PM' }, 
-                                  waketime: { hour: 6, minute: 0, period: 'AM' } 
-                                }));
-                              }
                             }}
                             className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                           >
