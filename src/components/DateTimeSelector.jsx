@@ -252,9 +252,28 @@ const DateTimeSelector = () => {
         // Load frequent items
         await loadFrequentItems();
         
-        // Load existing data from localStorage as fallback
-        const savedEntries = loadFromLocalStorage();
-        setEntries(savedEntries);
+        // Load existing data from IndexedDB first, then localStorage as fallback
+        try {
+          const dbEntries = await healthDB.getUserEntries();
+          console.log('Loaded entries from IndexedDB:', dbEntries);
+          
+          // Convert IndexedDB entries to the format expected by the component
+          const formattedEntries = {};
+          dbEntries.forEach(entry => {
+            const dateKey = entry.date.toDateString();
+            if (!formattedEntries[dateKey]) {
+              formattedEntries[dateKey] = [];
+            }
+            formattedEntries[dateKey].push(entry);
+          });
+          
+          setEntries(formattedEntries);
+        } catch (error) {
+          console.error('Error loading entries from IndexedDB:', error);
+          // Fallback to localStorage
+          const savedEntries = loadFromLocalStorage();
+          setEntries(savedEntries);
+        }
         
         // Form state is now loaded in initial state, no need to load here
       } catch (error) {
@@ -539,7 +558,7 @@ const DateTimeSelector = () => {
     handleSubmitWithData(formState);
   }
 
-  function handleSubmitWithData(data) {
+  async function handleSubmitWithData(data) {
     console.log('handleSubmitWithData called with:', data);
     setFormError('');
 
@@ -613,6 +632,16 @@ const DateTimeSelector = () => {
         return newEntries;
       });
 
+      // Save to IndexedDB
+      try {
+        if (isDBInitialized) {
+          await healthDB.saveUserEntry(newEntry);
+          console.log('Entry saved to IndexedDB:', newEntry);
+        }
+      } catch (error) {
+        console.error('Error saving entry to IndexedDB:', error);
+      }
+
       // Auto-add to library for new meals and exercises
       if (activeForm === 'meal' || activeForm === 'exercise') {
         addToLibrary(newEntry);
@@ -626,44 +655,56 @@ const DateTimeSelector = () => {
       // Don't close the input forms after adding entries - let user continue adding
     } else {
       // Update existing
+      const updatedEntry = {
+        id: data.id,
+        name, 
+        type: activeForm,
+        date: selectedDate, 
+        time,
+        ...(activeForm === 'exercise' && { sets: data.sets }),
+        ...(activeForm === 'meal' && { 
+          amount: data.amount,
+          calories: data.calories,
+          protein: data.protein,
+          carbs: data.carbs,
+          fats: data.fats
+        }),
+        ...(activeForm === 'sleep' && { bedtime: data.bedtime, waketime: data.waketime, duration: calculateSleepDuration(data.bedtime, data.waketime) }),
+        ...(activeForm === 'measurements' && { 
+          weight: parseFloat(data.weight),
+          neck: data.neck ? parseFloat(data.neck) : null,
+          shoulders: data.shoulders ? parseFloat(data.shoulders) : null,
+          chest: data.chest ? parseFloat(data.chest) : null,
+          waist: data.waist ? parseFloat(data.waist) : null,
+          hips: data.hips ? parseFloat(data.hips) : null,
+          thigh: data.thigh ? parseFloat(data.thigh) : null,
+          arm: data.arm ? parseFloat(data.arm) : null,
+          chestSkinfold: data.chestSkinfold ? parseFloat(data.chestSkinfold) : null,
+          abdominalSkinfold: data.abdominalSkinfold ? parseFloat(data.abdominalSkinfold) : null,
+          thighSkinfold: data.thighSkinfold ? parseFloat(data.thighSkinfold) : null,
+          tricepSkinfold: data.tricepSkinfold ? parseFloat(data.tricepSkinfold) : null,
+          subscapularSkinfold: data.subscapularSkinfold ? parseFloat(data.subscapularSkinfold) : null,
+          suprailiacSkinfold: data.suprailiacSkinfold ? parseFloat(data.suprailiacSkinfold) : null,
+          notes: data.notes
+        })
+      };
+
       setEntries((prev) => ({
         ...prev,
         [dateKey]: (prev[dateKey] || []).map((e) => 
-          e.id === data.id ? { 
-            ...e, 
-            name, 
-            type: activeForm,
-            date: selectedDate, 
-            time,
-            ...(activeForm === 'exercise' && { sets: data.sets }),
-            ...(activeForm === 'meal' && { 
-              amount: data.amount,
-              calories: data.calories,
-              protein: data.protein,
-              carbs: data.carbs,
-              fats: data.fats
-            }),
-            ...(activeForm === 'sleep' && { bedtime: data.bedtime, waketime: data.waketime, duration: calculateSleepDuration(data.bedtime, data.waketime) }),
-            ...(activeForm === 'measurements' && { 
-              weight: parseFloat(data.weight),
-              neck: data.neck ? parseFloat(data.neck) : null,
-              shoulders: data.shoulders ? parseFloat(data.shoulders) : null,
-              chest: data.chest ? parseFloat(data.chest) : null,
-              waist: data.waist ? parseFloat(data.waist) : null,
-              hips: data.hips ? parseFloat(data.hips) : null,
-              thigh: data.thigh ? parseFloat(data.thigh) : null,
-              arm: data.arm ? parseFloat(data.arm) : null,
-              chestSkinfold: data.chestSkinfold ? parseFloat(data.chestSkinfold) : null,
-              abdominalSkinfold: data.abdominalSkinfold ? parseFloat(data.abdominalSkinfold) : null,
-              thighSkinfold: data.thighSkinfold ? parseFloat(data.thighSkinfold) : null,
-              tricepSkinfold: data.tricepSkinfold ? parseFloat(data.tricepSkinfold) : null,
-              subscapularSkinfold: data.subscapularSkinfold ? parseFloat(data.subscapularSkinfold) : null,
-              suprailiacSkinfold: data.suprailiacSkinfold ? parseFloat(data.suprailiacSkinfold) : null,
-              notes: data.notes
-            })
-          } : e
+          e.id === data.id ? updatedEntry : e
         )
       }));
+
+      // Save to IndexedDB
+      try {
+        if (isDBInitialized) {
+          await healthDB.saveUserEntry(updatedEntry);
+          console.log('Entry updated in IndexedDB:', updatedEntry);
+        }
+      } catch (error) {
+        console.error('Error updating entry in IndexedDB:', error);
+      }
       resetForm();
       // Close measurements form after successful edit
       if (activeForm === 'measurements') {
