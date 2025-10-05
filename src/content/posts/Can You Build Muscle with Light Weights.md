@@ -5,7 +5,7 @@ description: "Discover how light weights can fuel muscle growth and strength, wi
 date: 2025-10-05
 image: "../../assets/images/07.jpg"
 categories: ["Exercise", "Fitness"]
-tags: ["Muscle Growth", "Strength Training", "Light Weights"]
+tags: ["Muscle Growth", "Strength Training",]
 ---
 
 ## Can You Build Muscle with Light Weights?
