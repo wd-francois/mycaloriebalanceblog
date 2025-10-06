@@ -125,22 +125,8 @@ const PWAInstallPrompt = () => {
     localStorage.setItem('pwa-prompt-dismissed-until', Date.now() + (7 * 24 * 60 * 60 * 1000));
   };
 
-  // TEMPORARILY DISABLED FOR DEBUGGING
+  // TEMPORARILY DISABLED FOR DEBUGGING - Return early to disable component
   return null;
-  
-  // Don't render on server side
-  if (!isClient) {
-    return null;
-  }
-
-  // Check if user dismissed for 7 days
-  const dismissedUntil = localStorage.getItem('pwa-prompt-dismissed-until');
-  const isDismissedLongTerm = dismissedUntil && Date.now() < parseInt(dismissedUntil);
-  
-  // Don't show if already installed, dismissed this session, or dismissed for 7 days
-  if (isInstalled || !showInstallPrompt || sessionStorage.getItem('pwa-prompt-dismissed') || isDismissedLongTerm) {
-    return null;
-  }
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-[60] md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
