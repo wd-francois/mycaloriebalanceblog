@@ -5,12 +5,33 @@ const PWAInstallPrompt = () => {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [userEngaged, setUserEngaged] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
     
     // Only run on client side
     if (typeof window === 'undefined') return;
+    
+    // Track user engagement - only show prompt to engaged users
+    let engagementTimer;
+    let pageViews = 0;
+    let timeOnSite = 0;
+    
+    const trackEngagement = () => {
+      pageViews++;
+      timeOnSite += 30; // Track in 30-second intervals
+      
+      // Show prompt only if user has been engaged for at least 2 minutes
+      // or has visited multiple pages
+      if (timeOnSite >= 120 || pageViews >= 3) {
+        setUserEngaged(true);
+        clearInterval(engagementTimer);
+      }
+    };
+    
+    // Start tracking engagement
+    engagementTimer = setInterval(trackEngagement, 30000); // Check every 30 seconds
     
     // Check if the app is already installed
     const checkIfInstalled = () => {
@@ -36,7 +57,11 @@ const PWAInstallPrompt = () => {
       console.log('PWA: beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallPrompt(true);
+      
+      // Only show prompt if user is engaged
+      if (userEngaged) {
+        setShowInstallPrompt(true);
+      }
     };
 
     // Listen for the appinstalled event
@@ -63,6 +88,9 @@ const PWAInstallPrompt = () => {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      if (engagementTimer) {
+        clearInterval(engagementTimer);
+      }
     };
   }, []);
 
@@ -88,6 +116,8 @@ const PWAInstallPrompt = () => {
     setShowInstallPrompt(false);
     // Don't show again for this session
     sessionStorage.setItem('pwa-prompt-dismissed', 'true');
+    // Also don't show for 7 days
+    localStorage.setItem('pwa-prompt-dismissed-until', Date.now() + (7 * 24 * 60 * 60 * 1000));
   };
 
   // Don't render on server side
@@ -95,8 +125,12 @@ const PWAInstallPrompt = () => {
     return null;
   }
 
-  // Don't show if already installed or dismissed this session
-  if (isInstalled || !showInstallPrompt || sessionStorage.getItem('pwa-prompt-dismissed')) {
+  // Check if user dismissed for 7 days
+  const dismissedUntil = localStorage.getItem('pwa-prompt-dismissed-until');
+  const isDismissedLongTerm = dismissedUntil && Date.now() < parseInt(dismissedUntil);
+  
+  // Don't show if already installed, dismissed this session, or dismissed for 7 days
+  if (isInstalled || !showInstallPrompt || sessionStorage.getItem('pwa-prompt-dismissed') || isDismissedLongTerm) {
     return null;
   }
 
@@ -114,10 +148,10 @@ const PWAInstallPrompt = () => {
           
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Install My Calorie Balance
+              Add to Home Screen
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Install this app on your device for quick access and offline functionality.
+              Get quick access to your calorie tracking with offline support.
             </p>
             
             <div className="flex space-x-2 mt-3">
@@ -125,13 +159,13 @@ const PWAInstallPrompt = () => {
                 onClick={handleInstallClick}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200"
               >
-                Install
+                Add
               </button>
               <button
                 onClick={handleDismiss}
                 className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200"
               >
-                Not now
+                Maybe later
               </button>
             </div>
           </div>
