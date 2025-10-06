@@ -1,5 +1,5 @@
 // Service Worker for My Calorie Balance Blog
-const CACHE_NAME = 'calorie-balance-v2';
+const CACHE_NAME = 'calorie-balance-v3';
 const urlsToCache = [
   '/',
   '/food-logger',
@@ -27,6 +27,11 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
   
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+  
   // Always fetch CSS files fresh to avoid styling issues
   if (request.destination === 'style' || url.pathname.endsWith('.css')) {
     event.respondWith(
@@ -38,12 +43,22 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // For other resources, use cache-first strategy
+  // For other resources, use network-first strategy for better live updates
   event.respondWith(
-    caches.match(request)
+    fetch(request)
       .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(request);
+        // If successful, cache the response
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // If network fails, try cache as fallback
+        return caches.match(request);
       })
   );
 });
