@@ -92,6 +92,11 @@ const {
    
     <meta name="generator" content={Astro.generator} />
     
+    <!-- Cache busting for CSS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
     <!-- Critical CSS to prevent FOUC -->
     <style is:inline>
       /* Critical styles to prevent layout shifts */
@@ -218,11 +223,11 @@ const {
         let cssLoaded = false;
         
         for (let i = 0; i < styleSheets.length; i++) {
-          // Check if the stylesheet is our global.css
-          if (styleSheets[i].href && styleSheets[i].href.includes('global.css')) {
+          // Check if the stylesheet is our global.css or any CSS file
+          if (styleSheets[i].href && (styleSheets[i].href.includes('global.css') || styleSheets[i].href.includes('.css'))) {
             try {
               // If we can access rules, the stylesheet is loaded
-              if (styleSheets[i].cssRules.length > 0) {
+              if (styleSheets[i].cssRules && styleSheets[i].cssRules.length > 0) {
                 cssLoaded = true;
                 break;
               }
@@ -240,23 +245,35 @@ const {
         document.body.classList.remove('loading');
       }
       
-      // Check if stylesheets are already loaded
-      if (checkStylesheetsLoaded()) {
-        revealContent();
-      } else {
-        // If not loaded yet, wait for DOMContentLoaded and check again
-        document.addEventListener('DOMContentLoaded', function() {
-          if (checkStylesheetsLoaded()) {
-            revealContent();
-          } else {
-            // If still not loaded, set a timeout as fallback
-            setTimeout(revealContent, 100);
-          }
-        });
-        
-        // Fallback in case other methods fail
-        window.addEventListener('load', revealContent);
+      // Multiple strategies to ensure CSS is loaded
+      function tryRevealContent() {
+        if (checkStylesheetsLoaded()) {
+          revealContent();
+          return true;
+        }
+        return false;
       }
+      
+      // Strategy 1: Check immediately
+      if (tryRevealContent()) return;
+      
+      // Strategy 2: Check on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', function() {
+        if (tryRevealContent()) return;
+        
+        // Strategy 3: Check after a short delay
+        setTimeout(() => {
+          if (tryRevealContent()) return;
+          
+          // Strategy 4: Force reveal after longer delay as fallback
+          setTimeout(revealContent, 200);
+        }, 50);
+      });
+      
+      // Strategy 5: Fallback on window load
+      window.addEventListener('load', function() {
+        setTimeout(revealContent, 10);
+      });
     </script>
     <!-- Full-width header - only show when showHeader is true -->
     {showHeader && <Header />}
