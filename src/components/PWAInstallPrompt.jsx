@@ -58,10 +58,8 @@ const PWAInstallPrompt = () => {
       e.preventDefault();
       setDeferredPrompt(e);
       
-      // Only show prompt if user is engaged
-      if (userEngaged) {
-        setShowInstallPrompt(true);
-      }
+      // Store the prompt for later use when user becomes engaged
+      // Don't show immediately - wait for engagement
     };
 
     // Listen for the appinstalled event
@@ -93,6 +91,13 @@ const PWAInstallPrompt = () => {
       }
     };
   }, []);
+
+  // Show prompt when user becomes engaged
+  useEffect(() => {
+    if (userEngaged && deferredPrompt && !isInstalled) {
+      setShowInstallPrompt(true);
+    }
+  }, [userEngaged, deferredPrompt, isInstalled]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
