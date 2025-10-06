@@ -125,6 +125,9 @@ const PWAInstallPrompt = () => {
     localStorage.setItem('pwa-prompt-dismissed-until', Date.now() + (7 * 24 * 60 * 60 * 1000));
   };
 
+  // TEMPORARILY DISABLED FOR DEBUGGING
+  return null;
+  
   // Don't render on server side
   if (!isClient) {
     return null;
