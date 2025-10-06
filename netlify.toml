@@ -6,4 +6,6 @@
 
 [build.environment]
   # Node.js version
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
+  # Ensure npm ci is used for faster, reliable builds
+  NPM_FLAGS = "--prefer-offline --no-audit"
