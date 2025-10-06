@@ -1,11 +1,11 @@
 // Service Worker for My Calorie Balance Blog
-const CACHE_NAME = 'calorie-balance-v3';
+const CACHE_NAME = 'calorie-balance-v4';
 const urlsToCache = [
   '/',
-  '/food-logger',
-  '/library',
-  '/settings',
-  '/export',
+  '/food-logger/',
+  '/library/',
+  '/settings/',
+  '/export/',
   '/favicon.ico',
   '/favicon.svg',
   '/manifest.json'
@@ -39,6 +39,28 @@ self.addEventListener('fetch', (event) => {
         // If network fails, try cache as fallback
         return caches.match(request);
       })
+    );
+    return;
+  }
+  
+  // For HTML pages, always try network first to ensure fresh content
+  if (request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // If successful, cache the response
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // If network fails, try cache as fallback
+          return caches.match(request);
+        })
     );
     return;
   }
