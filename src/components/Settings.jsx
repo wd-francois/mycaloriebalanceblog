@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useSettings } from '../contexts/SettingsContext.jsx';
 
 const Settings = ({ onClose = null }) => {
   const [isClient, setIsClient] = useState(false);
@@ -15,20 +14,6 @@ const Settings = ({ onClose = null }) => {
     theme: 'light'
   });
   
-  // Try to use context if available, otherwise use local state
-  let contextSettings, updateSetting;
-  
-  try {
-    if (isClient) {
-      const context = useSettings();
-      contextSettings = context.settings;
-      updateSetting = context.updateSetting;
-    }
-  } catch (error) {
-    console.log('Settings context not available, using local state');
-    contextSettings = null;
-  }
-  
   useEffect(() => {
     setIsClient(true);
     
@@ -37,8 +22,6 @@ const Settings = ({ onClose = null }) => {
     
     // Load settings from localStorage on mount
     const savedSettings = localStorage.getItem('healthTrackerSettings');
-    const healthEntries = localStorage.getItem('healthEntries');
-    
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
@@ -47,42 +30,20 @@ const Settings = ({ onClose = null }) => {
         console.error('Error loading settings:', error);
       }
     }
-    
-    // Load feature toggles from healthEntries if available
-    if (healthEntries) {
-      try {
-        const parsed = JSON.parse(healthEntries);
-        if (parsed.enableMeals !== undefined || parsed.enableExercise !== undefined || 
-            parsed.enableSleep !== undefined || parsed.enableMeasurements !== undefined) {
-          setSettings(prev => ({ ...prev, ...parsed }));
-        }
-      } catch (error) {
-        console.error('Error loading health entries:', error);
-      }
-    }
   }, []);
 
-  // Use context settings if available, otherwise use local state
-  const currentSettings = contextSettings || settings;
-  const currentUpdateSetting = updateSetting || ((key, value) => {
+  const updateSetting = (key, value) => {
     setSettings(prev => {
       const newSettings = { ...prev, [key]: value };
       
       // Only run on client side
       if (typeof window !== 'undefined') {
         localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
-        
-        // Also save feature toggles to healthEntries for compatibility
-        if (['enableMeals', 'enableExercise', 'enableSleep', 'enableMeasurements'].includes(key)) {
-          const existingHealthEntries = JSON.parse(localStorage.getItem('healthEntries') || '{}');
-          const updatedHealthEntries = { ...existingHealthEntries, [key]: value };
-          localStorage.setItem('healthEntries', JSON.stringify(updatedHealthEntries));
-        }
       }
       
       return newSettings;
     });
-  });
+  };
 
   // Show loading state if not on client side yet
   if (!isClient) {
@@ -197,8 +158,8 @@ const Settings = ({ onClose = null }) => {
                                 type="radio"
                                 name={setting.key}
                                 value={option.value}
-                                checked={currentSettings[setting.key] === option.value}
-                                onChange={(e) => currentUpdateSetting(setting.key, e.target.value)}
+                                checked={settings[setting.key] === option.value}
+                                onChange={(e) => updateSetting(setting.key, e.target.value)}
                                 className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
                               />
                               <span className="text-xs">{option.label}</span>
@@ -208,8 +169,8 @@ const Settings = ({ onClose = null }) => {
                         
                         {/* Desktop: Select dropdown */}
                         <select
-                          value={currentSettings[setting.key]}
-                          onChange={(e) => currentUpdateSetting(setting.key, e.target.value)}
+                          value={settings[setting.key]}
+                          onChange={(e) => updateSetting(setting.key, e.target.value)}
                           className="hidden sm:block px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm"
                         >
                           {unitOptions[setting.key].map((option) => (
@@ -250,5 +211,6 @@ const Settings = ({ onClose = null }) => {
     </div>
   );
 };
+
 
 export default Settings;

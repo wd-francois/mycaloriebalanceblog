@@ -42,7 +42,8 @@ const ExportManager = () => {
     
     try {
       const { healthEntries } = data;
-      const entries = healthEntries.entries || [];
+      // Convert the date-keyed object to a flat array of entries
+      const entries = Object.values(healthEntries).flat();
       
       if (entries.length === 0) {
         alert('No food entries found to export');
@@ -55,14 +56,14 @@ const ExportManager = () => {
       
       // Create CSV rows
       const csvRows = entries.map(entry => [
-        entry.date || '',
+        entry.date ? (entry.date instanceof Date ? entry.date.toLocaleDateString() : entry.date) : '',
         entry.time || '',
         entry.type || 'meal',
         entry.name || '',
         entry.calories || 0,
         entry.protein || 0,
         entry.carbs || 0,
-        entry.fat || 0,
+        entry.fats || 0, // Note: using 'fats' instead of 'fat' to match the data structure
         entry.notes || ''
       ]);
 
@@ -132,7 +133,8 @@ const ExportManager = () => {
     
     try {
       const { healthEntries } = data;
-      const entries = healthEntries.entries || [];
+      // Convert the date-keyed object to a flat array of entries
+      const entries = Object.values(healthEntries).flat();
       
       if (entries.length === 0) {
         alert('No food entries found to export');
@@ -178,13 +180,13 @@ const ExportManager = () => {
             </tr>
             ${entries.map(entry => `
               <tr>
-                <td>${entry.date || ''}</td>
+                <td>${entry.date ? (entry.date instanceof Date ? entry.date.toLocaleDateString() : entry.date) : ''}</td>
                 <td>${entry.time || ''}</td>
                 <td>${entry.name || ''}</td>
                 <td>${entry.calories || 0}</td>
                 <td>${entry.protein || 0}</td>
                 <td>${entry.carbs || 0}</td>
-                <td>${entry.fat || 0}</td>
+                <td>${entry.fats || 0}</td>
               </tr>
             `).join('')}
           </table>

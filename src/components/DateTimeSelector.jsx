@@ -1153,6 +1153,37 @@ const DateTimeSelector = () => {
               Use the export functionality to backup your data in JSON, CSV, or PDF formats. This includes all your entries with nutrition and sleep details.
             </div>
           </details>
+          <details className="group p-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+              <span className="text-base font-semibold text-gray-900">How do I add this app to my home screen?</span>
+              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
+              <div className="space-y-3">
+                <div>
+                  <strong>📱 For Android devices:</strong>
+                  <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
+                    <li>Open this website in Chrome browser</li>
+                    <li>Tap the menu button (three dots) in the top right</li>
+                    <li>Select "Add to Home screen" or "Install app"</li>
+                    <li>Tap "Add" to confirm</li>
+                  </ol>
+                </div>
+                <div>
+                  <strong>🍎 For iOS devices (iPhone/iPad):</strong>
+                  <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
+                    <li>Open this website in Safari browser</li>
+                    <li>Tap the Share button (square with arrow up)</li>
+                    <li>Scroll down and tap "Add to Home Screen"</li>
+                    <li>Tap "Add" to confirm</li>
+                  </ol>
+                </div>
+                <div className="text-xs text-gray-500 mt-2">
+                  💡 Once installed, the app will work like a native app with its own icon on your home screen!
+                </div>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
 
