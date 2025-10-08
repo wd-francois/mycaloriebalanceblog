@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = { weightUnit: 'kg', lengthUnit: 'cm' } }) => {
   const [formData, setFormData] = useState({
@@ -27,6 +27,28 @@ const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = {
     skinfolds: false
   });
 
+  // Update form data when initialData changes (for editing)
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        weight: initialData.weight || '',
+        neck: initialData.neck || '',
+        shoulders: initialData.shoulders || '',
+        chest: initialData.chest || '',
+        waist: initialData.waist || '',
+        hips: initialData.hips || '',
+        thigh: initialData.thigh || '',
+        arm: initialData.arm || '',
+        chestSkinfold: initialData.chestSkinfold || '',
+        abdominalSkinfold: initialData.abdominalSkinfold || '',
+        thighSkinfold: initialData.thighSkinfold || '',
+        tricepSkinfold: initialData.tricepSkinfold || '',
+        subscapularSkinfold: initialData.subscapularSkinfold || '',
+        suprailiacSkinfold: initialData.suprailiacSkinfold || '',
+        notes: initialData.notes || ''
+      });
+    }
+  }, [initialData]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -126,11 +148,12 @@ const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = {
 
   const renderField = (field) => (
     <div key={field.key}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={field.key} className="block text-sm font-medium text-gray-700 mb-1">
         {field.label} {field.required && <span className="text-red-500">*</span>}
       </label>
       <div className="relative">
         <input
+          id={field.key}
           type="number"
           step="0.1"
           min="0"

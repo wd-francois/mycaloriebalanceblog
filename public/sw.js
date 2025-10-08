@@ -1,5 +1,5 @@
 // Service Worker for My Calorie Balance Blog
-const CACHE_NAME = 'calorie-balance-v4';
+const CACHE_NAME = 'calorie-balance-v5';
 const urlsToCache = [
   '/',
   '/food-logger/',
@@ -10,6 +10,13 @@ const urlsToCache = [
   '/favicon.svg',
   '/manifest.json'
 ];
+
+// Check if a request is cacheable (exclude unsupported schemes)
+function isCacheableRequest(request) {
+  const url = new URL(request.url);
+  // Only cache http/https requests, exclude chrome-extension, moz-extension, etc.
+  return url.protocol === 'http:' || url.protocol === 'https:';
+}
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
@@ -69,8 +76,8 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // If successful, cache the response
-        if (response.status === 200) {
+        // If successful, cache the response (only for supported schemes)
+        if (response.status === 200 && isCacheableRequest(request)) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, responseClone);

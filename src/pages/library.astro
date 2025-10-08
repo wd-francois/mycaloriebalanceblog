@@ -1,9 +1,9 @@
 ---
 import Layout from '@layouts/Layout.astro';
-import LibraryManager from '@react/LibraryManager';
+import LibraryManager from '../components/LibraryManager.jsx';
 import { siteConfig } from '@config/site';
-import PWAInstallPrompt from '@react/PWAInstallPrompt';
-import OfflineIndicator from '@react/OfflineIndicator';
+import PWAInstallPrompt from '../components/PWAInstallPrompt.jsx';
+import OfflineIndicator from '../components/OfflineIndicator.jsx';
 ---
 
 <Layout
@@ -29,10 +29,7 @@ import OfflineIndicator from '@react/OfflineIndicator';
     <!-- Library Section -->
     <section class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 mb-8 sm:mb-16">
       <div class="bg-white rounded-2xl shadow-xl shadow-gray-100/50 p-4 sm:p-6 lg:p-8">
-        <!-- LibraryManager temporarily disabled for debugging -->
-        <div class="text-center py-8">
-          <p class="text-gray-600 dark:text-gray-400">Library functionality temporarily disabled for debugging</p>
-        </div>
+        <LibraryManager client:load />
       </div>
     </section>
 

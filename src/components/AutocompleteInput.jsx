@@ -8,7 +8,8 @@ const AutocompleteInput = ({
   placeholder = 'Type to search...',
   onSelect,
   className = '',
-  autoFocus = false
+  autoFocus = false,
+  id = null
 }) => {
   const [searchTerm, setSearchTerm] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
@@ -134,6 +135,7 @@ const AutocompleteInput = ({
     <div className="relative">
       <input
         ref={inputRef}
+        id={id}
         type="text"
         value={searchTerm}
         onChange={handleInputChange}

@@ -11,7 +11,7 @@ const Settings = ({ onClose = null }) => {
     enableMeals: true,
     enableExercise: false, // Temporarily disabled
     enableSleep: true,
-    enableMeasurements: false, // Temporarily disabled
+    enableMeasurements: true,
     theme: 'light'
   });
   

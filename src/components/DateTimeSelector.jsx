@@ -3,7 +3,6 @@ import Calendar from '@react/Calendar';
 import TimePicker from '@react/TimePicker';
 import AutocompleteInput from './AutocompleteInput';
 import GroupedEntries from './GroupedEntries';
-import MeasurementsForm from './MeasurementsForm';
 import healthDB from '../lib/database.js';
 
 
@@ -50,12 +49,14 @@ const DateTimeSelector = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [time, setTime] = useState({ hour: 12, minute: 0, period: 'PM' });
   const [showModal, setShowModal] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   // Entries state - store entries per date (meals, exercises, sleep)
   const [entries, setEntries] = useState({});
-  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' });
+  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', calf: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' });
   const [formError, setFormError] = useState('');
   const [librarySuccessMessage, setLibrarySuccessMessage] = useState('');
+  const [formSuccessMessage, setFormSuccessMessage] = useState('');
   const [activeForm, setActiveForm] = useState('meal');
   const [showMealInput, setShowMealInput] = useState(false);
   const [showExerciseInput, setShowExerciseInput] = useState(false);
@@ -89,9 +90,7 @@ const DateTimeSelector = () => {
     if (typeof window === 'undefined') return;
     
     try {
-      console.log('Saving to localStorage:', data);
       localStorage.setItem('healthEntries', JSON.stringify(data));
-      console.log('Successfully saved to localStorage');
     } catch (error) {
       console.error('Error saving to localStorage:', error);
     }
@@ -107,10 +106,8 @@ const DateTimeSelector = () => {
       if (!saved) {
         saved = localStorage.getItem('mealEntries');
       }
-      console.log('Loading from localStorage:', saved);
       if (saved) {
         const parsed = JSON.parse(saved);
-        console.log('Parsed data:', parsed);
         // Convert date strings back to Date objects
         const converted = {};
         Object.keys(parsed).forEach(dateKey => {
@@ -120,7 +117,6 @@ const DateTimeSelector = () => {
             type: entry.type || 'meal' // Default to meal for backward compatibility
           }));
         });
-        console.log('Converted data:', converted);
         return converted;
       }
     } catch (error) {
@@ -131,6 +127,7 @@ const DateTimeSelector = () => {
 
   // Load form state and settings from localStorage on mount
   useEffect(() => {
+    setIsClient(true);
     if (typeof window === 'undefined') return;
     
     // Load form state
@@ -196,11 +193,17 @@ const DateTimeSelector = () => {
           // Convert IndexedDB entries to the format expected by the component
           const formattedEntries = {};
           dbEntries.forEach(entry => {
-            const dateKey = entry.date.toDateString();
+            // Ensure date is a Date object
+            const entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
+            const dateKey = entryDate.toDateString();
             if (!formattedEntries[dateKey]) {
               formattedEntries[dateKey] = [];
             }
-            formattedEntries[dateKey].push(entry);
+            // Update the entry with the proper Date object
+            formattedEntries[dateKey].push({
+              ...entry,
+              date: entryDate
+            });
           });
           
           setEntries(formattedEntries);
@@ -468,12 +471,44 @@ const DateTimeSelector = () => {
   }
 
   function resetForm() {
-    // Only reset the ID, keep other form data for next entry
-    setFormState(prev => ({ 
-      ...prev, 
-      id: null 
-    }));
+    // Reset all form data to initial state
+    setFormState({ 
+      id: null, 
+      name: '', 
+      type: 'meal', 
+      sets: [], 
+      amount: '', 
+      calories: '', 
+      protein: '', 
+      carbs: '', 
+      fats: '', 
+      bedtime: { hour: 10, minute: 0, period: 'PM' }, 
+      waketime: { hour: 6, minute: 0, period: 'AM' }, 
+      weight: '', 
+      neck: '', 
+      shoulders: '', 
+      chest: '', 
+      waist: '', 
+      hips: '', 
+      thigh: '', 
+      arm: '', 
+      calf: '', 
+      chestSkinfold: '', 
+      abdominalSkinfold: '', 
+      thighSkinfold: '', 
+      tricepSkinfold: '', 
+      subscapularSkinfold: '', 
+      suprailiacSkinfold: '', 
+      notes: '' 
+    });
     setFormError('');
+    
+    // Show success message
+    setFormSuccessMessage('Entry saved successfully! Form cleared for next entry.');
+    setTimeout(() => {
+      setFormSuccessMessage('');
+    }, 3000);
+    
     // Don't close input forms - let user continue adding entries
   }
 
@@ -541,6 +576,7 @@ const DateTimeSelector = () => {
           hips: data.hips ? parseFloat(data.hips) : null,
           thigh: data.thigh ? parseFloat(data.thigh) : null,
           arm: data.arm ? parseFloat(data.arm) : null,
+          calf: data.calf ? parseFloat(data.calf) : null,
           chestSkinfold: data.chestSkinfold ? parseFloat(data.chestSkinfold) : null,
           abdominalSkinfold: data.abdominalSkinfold ? parseFloat(data.abdominalSkinfold) : null,
           thighSkinfold: data.thighSkinfold ? parseFloat(data.thighSkinfold) : null,
@@ -551,9 +587,29 @@ const DateTimeSelector = () => {
         })
       };
       setEntries((prev) => {
+        const existingEntries = prev[dateKey] || [];
+        let updatedEntries;
+        
+        if (activeForm === 'measurements') {
+          // For measurements, insert at the top or below sleep entries
+          const sleepEntries = existingEntries.filter(entry => entry.type === 'sleep');
+          const nonSleepEntries = existingEntries.filter(entry => entry.type !== 'sleep');
+          
+          if (sleepEntries.length > 0) {
+            // Insert measurements after sleep entries
+            updatedEntries = [...sleepEntries, newEntry, ...nonSleepEntries];
+          } else {
+            // Insert measurements at the top
+            updatedEntries = [newEntry, ...nonSleepEntries];
+          }
+        } else {
+          // For other entries, add to the end
+          updatedEntries = [...existingEntries, newEntry];
+        }
+        
         const newEntries = {
           ...prev,
-          [dateKey]: [...(prev[dateKey] || []), newEntry]
+          [dateKey]: updatedEntries
         };
         console.log('Updating entries:', newEntries);
         return newEntries;
@@ -606,6 +662,7 @@ const DateTimeSelector = () => {
           hips: data.hips ? parseFloat(data.hips) : null,
           thigh: data.thigh ? parseFloat(data.thigh) : null,
           arm: data.arm ? parseFloat(data.arm) : null,
+          calf: data.calf ? parseFloat(data.calf) : null,
           chestSkinfold: data.chestSkinfold ? parseFloat(data.chestSkinfold) : null,
           abdominalSkinfold: data.abdominalSkinfold ? parseFloat(data.abdominalSkinfold) : null,
           thighSkinfold: data.thighSkinfold ? parseFloat(data.thighSkinfold) : null,
@@ -665,6 +722,7 @@ const DateTimeSelector = () => {
       hips: entry.hips || '',
       thigh: entry.thigh || '',
       arm: entry.arm || '',
+      calf: entry.calf || '',
       chestSkinfold: entry.chestSkinfold || '',
       abdominalSkinfold: entry.abdominalSkinfold || '',
       thighSkinfold: entry.thighSkinfold || '',
@@ -994,11 +1052,16 @@ const DateTimeSelector = () => {
     }));
   };
 
+  // Don't render on server side
+  if (!isClient) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="w-full">
       <div className="w-full max-w-sm mx-auto flex flex-col gap-4 px-2 sm:px-0">
         <div className="flex justify-center">
-          <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />
+          {isClient && <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />}
         </div>
       </div>
 
@@ -1120,7 +1183,7 @@ const DateTimeSelector = () => {
                 <form className="space-y-4">
                   <div className="grid grid-cols-1 gap-3 sm:gap-4">
                     <div>
-                      <TimePicker onChange={setTime} />
+                      {isClient && <TimePicker onChange={setTime} />}
                     </div>
                   </div>
 
@@ -1157,6 +1220,22 @@ const DateTimeSelector = () => {
                         😴 Add Sleep
                       </button>
                     )}
+                    {settings.enableMeasurements && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveForm('measurements');
+                          setShowMeasurementsInput(true);
+                        }}
+                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                          activeForm === 'measurements'
+                            ? 'bg-green-600 text-white shadow-md'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        📏 Add Measurements
+                      </button>
+                    )}
                   </div>
 
 
@@ -1190,6 +1269,7 @@ const DateTimeSelector = () => {
                                 onSelect={handleAutocompleteSelect}
                                 placeholder="e.g., Breakfast, Lunch, Dinner, Snack"
                                 autoFocus
+                                id="meal-name"
                               />
                             </div>
                           </div>
@@ -1463,10 +1543,250 @@ const DateTimeSelector = () => {
                   </div>
                   )}
 
+                  {/* Measurements Form Fields */}
+                  {settings.enableMeasurements && activeForm === 'measurements' && showMeasurementsInput && (
+                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          {formState.id == null ? 'Add Body Measurements' : 'Edit Body Measurements'}
+                        </h4>
+                        <button
+                          onClick={() => {
+                            setShowMeasurementsInput(false);
+                          }}
+                          className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        >
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        {/* Weight (Required) */}
+                        <div>
+                          <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">
+                            Weight <span className="text-red-500">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              id="weight"
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              value={formState.weight}
+                              onChange={(e) => setFormState(prev => ({ ...prev, weight: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter your weight"
+                            />
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <span className="text-gray-500 text-sm">{settings.weightUnit}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Body Measurements */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="neck" className="block text-sm font-medium text-gray-700 mb-1">
+                              Neck
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="neck"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={formState.neck}
+                                onChange={(e) => setFormState(prev => ({ ...prev, neck: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Neck measurement"
+                              />
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label htmlFor="chest" className="block text-sm font-medium text-gray-700 mb-1">
+                              Chest
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="chest"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={formState.chest}
+                                onChange={(e) => setFormState(prev => ({ ...prev, chest: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Chest measurement"
+                              />
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label htmlFor="arm" className="block text-sm font-medium text-gray-700 mb-1">
+                              Arm
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="arm"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={formState.arm}
+                                onChange={(e) => setFormState(prev => ({ ...prev, arm: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Arm measurement"
+                              />
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label htmlFor="waist" className="block text-sm font-medium text-gray-700 mb-1">
+                              Waist
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="waist"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={formState.waist}
+                                onChange={(e) => setFormState(prev => ({ ...prev, waist: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Waist measurement"
+                              />
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label htmlFor="thigh" className="block text-sm font-medium text-gray-700 mb-1">
+                              Thigh
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="thigh"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={formState.thigh}
+                                onChange={(e) => setFormState(prev => ({ ...prev, thigh: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Thigh measurement"
+                              />
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label htmlFor="shoulders" className="block text-sm font-medium text-gray-700 mb-1">
+                              Shoulders
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="shoulders"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={formState.shoulders}
+                                onChange={(e) => setFormState(prev => ({ ...prev, shoulders: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Shoulders measurement"
+                              />
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label htmlFor="calf" className="block text-sm font-medium text-gray-700 mb-1">
+                              Calf
+                            </label>
+                            <div className="relative">
+                              <input
+                                id="calf"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                value={formState.calf}
+                                onChange={(e) => setFormState(prev => ({ ...prev, calf: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Calf measurement"
+                              />
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Notes */}
+                        <div>
+                          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+                            Notes (Optional)
+                          </label>
+                          <textarea
+                            id="notes"
+                            value={formState.notes}
+                            onChange={(e) => setFormState(prev => ({ ...prev, notes: e.target.value }))}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Add any additional notes about your measurements..."
+                          />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={handleSubmit}
+                            className="inline-flex items-center px-6 py-3 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            {formState.id == null ? 'Add Measurements' : 'Save Changes'}
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowMeasurementsInput(false);
+                            }}
+                            className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                          >
+                            {formState.id == null ? 'Cancel' : 'Cancel Edit'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   
                   {formError && (
                     <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                       {formError}
+                    </div>
+                  )}
+                  
+                  {formSuccessMessage && (
+                    <div className="px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                      {formSuccessMessage}
                     </div>
                   )}
                   

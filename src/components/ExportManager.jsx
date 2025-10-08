@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 const ExportManager = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   // Load data from localStorage on component mount
   useEffect(() => {
+    setIsClient(true);
     if (typeof window === 'undefined') return;
     
     const loadData = () => {
@@ -209,6 +211,11 @@ const ExportManager = () => {
       setLoading(false);
     }
   };
+
+  // Don't render on server side
+  if (!isClient) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-4">

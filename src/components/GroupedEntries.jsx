@@ -4,9 +4,10 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
   const [collapsedTimes, setCollapsedTimes] = useState(new Set());
 
 
-  // Separate sleep entries from other entries
+  // Separate sleep and measurements entries from other entries
   const sleepEntries = entries.filter(entry => entry.type === 'sleep');
-  const otherEntries = entries.filter(entry => entry.type !== 'sleep');
+  const measurementsEntries = entries.filter(entry => entry.type === 'measurements');
+  const otherEntries = entries.filter(entry => entry.type !== 'sleep' && entry.type !== 'measurements');
 
   // Group other entries by time
   const groupedEntries = otherEntries.reduce((groups, entry) => {
@@ -154,6 +155,105 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Measurements entries - expanded display */}
+      {measurementsEntries.length > 0 && (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="bg-orange-50 px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="text-base sm:text-lg">📏</span>
+                <h3 className="font-semibold text-orange-800 text-sm sm:text-base">Body Measurements</h3>
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                <button
+                  onClick={() => onInfoClick(measurementsEntries[0])}
+                  className="p-2 sm:p-2 text-gray-400 hover:text-blue-600 transition-colors touch-manipulation"
+                  title="Add notes"
+                >
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onEdit(measurementsEntries[0])}
+                  className="p-2 sm:p-2 text-gray-400 hover:text-blue-600 transition-colors touch-manipulation"
+                  title="Edit entry"
+                >
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onDelete(measurementsEntries[0].id)}
+                  className="p-2 sm:p-2 text-gray-400 hover:text-red-600 transition-colors touch-manipulation"
+                  title="Delete entry"
+                >
+                  <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Expanded measurements display */}
+            {measurementsEntries[0]?.weight && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-orange-700">Weight:</span>
+                  <span className="text-sm font-semibold text-orange-800">{measurementsEntries[0].weight} {settings.weightUnit}</span>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {measurementsEntries[0]?.neck && (
+                    <div className="bg-orange-100 px-2 py-1 rounded text-xs">
+                      <span className="font-medium">Neck:</span> {measurementsEntries[0].neck}{settings.lengthUnit}
+                    </div>
+                  )}
+                  {measurementsEntries[0]?.chest && (
+                    <div className="bg-orange-100 px-2 py-1 rounded text-xs">
+                      <span className="font-medium">Chest:</span> {measurementsEntries[0].chest}{settings.lengthUnit}
+                    </div>
+                  )}
+                  {measurementsEntries[0]?.arm && (
+                    <div className="bg-orange-100 px-2 py-1 rounded text-xs">
+                      <span className="font-medium">Arm:</span> {measurementsEntries[0].arm}{settings.lengthUnit}
+                    </div>
+                  )}
+                  {measurementsEntries[0]?.waist && (
+                    <div className="bg-orange-100 px-2 py-1 rounded text-xs">
+                      <span className="font-medium">Waist:</span> {measurementsEntries[0].waist}{settings.lengthUnit}
+                    </div>
+                  )}
+                  {measurementsEntries[0]?.thigh && (
+                    <div className="bg-orange-100 px-2 py-1 rounded text-xs">
+                      <span className="font-medium">Thigh:</span> {measurementsEntries[0].thigh}{settings.lengthUnit}
+                    </div>
+                  )}
+                  {measurementsEntries[0]?.shoulders && (
+                    <div className="bg-orange-100 px-2 py-1 rounded text-xs">
+                      <span className="font-medium">Shoulders:</span> {measurementsEntries[0].shoulders}{settings.lengthUnit}
+                    </div>
+                  )}
+                  {measurementsEntries[0]?.calf && (
+                    <div className="bg-orange-100 px-2 py-1 rounded text-xs">
+                      <span className="font-medium">Calf:</span> {measurementsEntries[0].calf}{settings.lengthUnit}
+                    </div>
+                  )}
+                </div>
+                
+                {measurementsEntries[0]?.notes && (
+                  <div className="mt-2 p-2 bg-orange-100 rounded text-xs">
+                    <span className="font-medium">Notes:</span> {measurementsEntries[0].notes}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

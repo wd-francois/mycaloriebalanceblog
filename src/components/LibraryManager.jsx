@@ -5,6 +5,7 @@ const LibraryManager = () => {
   const [activeTab, setActiveTab] = useState('meals');
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
@@ -27,6 +28,7 @@ const LibraryManager = () => {
 
   // Load data on component mount
   useEffect(() => {
+    setIsClient(true);
     loadData();
   }, []);
 
@@ -267,6 +269,11 @@ const LibraryManager = () => {
         <span className="ml-2 text-gray-600">Loading library...</span>
       </div>
     );
+  }
+
+  // Don't render on server side
+  if (!isClient) {
+    return <div>Loading...</div>;
   }
 
   return (

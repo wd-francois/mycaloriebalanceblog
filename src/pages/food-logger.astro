@@ -1,6 +1,7 @@
 ---
 import Layout from '@layouts/Layout.astro';
 import { siteConfig } from '@config/site';
+import DateTimeSelector from '../components/DateTimeSelector.jsx';
 ---
 
 <Layout
@@ -15,9 +16,7 @@ import { siteConfig } from '@config/site';
     <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Food Logger</h1>
       <div class="bg-white rounded-2xl shadow-xl shadow-gray-100/50 p-4 sm:p-6 lg:p-8">
-        <p class="text-gray-600 dark:text-gray-400 text-center py-8">
-          Food logger functionality temporarily disabled for debugging
-        </p>
+        <DateTimeSelector client:load />
       </div>
     </div>
   </main>
