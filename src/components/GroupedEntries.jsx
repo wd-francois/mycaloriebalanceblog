@@ -1,7 +1,60 @@
 import React, { useState } from 'react';
+import { useSettings } from '../contexts/SettingsContext.jsx';
 
 const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, onDragStart, onDragEnd, onDragOver, onDrop, settings = { weightUnit: 'lbs', lengthUnit: 'in' } }) => {
   const [collapsedTimes, setCollapsedTimes] = useState(new Set());
+  
+  // Safely get settings with fallback
+  let generateAIPrompt, getAIServiceUrl;
+  try {
+    const settingsContext = useSettings();
+    generateAIPrompt = settingsContext.generateAIPrompt;
+    getAIServiceUrl = settingsContext.getAIServiceUrl;
+  } catch (error) {
+    console.warn('Settings context not available, using fallback AI functions');
+    // Fallback functions
+    generateAIPrompt = (mealData) => {
+      const { name, amount, calories, protein, carbs, fats } = mealData;
+      return `I have a meal entry for "${name || 'Unknown Meal'}" with amount: ${amount || 'not specified'}. 
+
+Current nutritional values:
+- Calories: ${calories || 'not specified'}
+- Protein: ${protein || 'not specified'}g
+- Carbs: ${carbs || 'not specified'}g
+- Fats: ${fats || 'not specified'}g
+
+Please provide accurate nutritional information for this meal. Include:
+1. Calories per serving
+2. Protein content in grams
+3. Carbohydrates content in grams
+4. Fats content in grams
+5. Any additional nutritional insights
+
+Please format your response clearly so I can easily update my meal entry.`;
+    };
+    getAIServiceUrl = (prompt) => {
+      const encodedPrompt = encodeURIComponent(prompt);
+      return `https://chat.openai.com/?q=${encodedPrompt}`;
+    };
+  }
+
+  const handleAIClick = (entry) => {
+    // Generate prompt using settings context
+    const prompt = generateAIPrompt({
+      name: entry.name,
+      amount: entry.amount,
+      calories: entry.calories,
+      protein: entry.protein,
+      carbs: entry.carbs,
+      fats: entry.fats
+    });
+
+    // Get the appropriate AI service URL
+    const aiUrl = getAIServiceUrl(prompt);
+    
+    // Open AI service with the prompt
+    window.open(aiUrl, '_blank');
+  };
 
 
   // Separate sleep and measurements entries from other entries
@@ -413,6 +466,17 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </button>
+                        {entry.type === 'meal' && (
+                          <button
+                            onClick={() => handleAIClick(entry)}
+                            className="p-2 sm:p-2 text-gray-400 hover:text-purple-600 transition-colors touch-manipulation"
+                            title="Get AI nutrition info"
+                          >
+                            <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                          </button>
+                        )}
                         <button
                           onClick={() => onEdit(entry)}
                           className="p-2 sm:p-2 text-gray-400 hover:text-blue-600 transition-colors touch-manipulation"

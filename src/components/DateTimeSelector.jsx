@@ -4,6 +4,7 @@ import TimePicker from '@react/TimePicker';
 import AutocompleteInput from './AutocompleteInput';
 import GroupedEntries from './GroupedEntries';
 import healthDB from '../lib/database.js';
+import { SettingsProvider } from '../contexts/SettingsContext.jsx';
 
 
 function formatDate(date) {
@@ -2170,4 +2171,13 @@ const DateTimeSelector = () => {
   );
 };
 
-export default DateTimeSelector;
+// Wrapper component with SettingsProvider
+const DateTimeSelectorWithProvider = () => {
+  return (
+    <SettingsProvider>
+      <DateTimeSelector />
+    </SettingsProvider>
+  );
+};
+
+export default DateTimeSelectorWithProvider;

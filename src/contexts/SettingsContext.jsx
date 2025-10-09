@@ -22,7 +22,29 @@ export const SettingsProvider = ({ children }) => {
     enableSleep: true,
     enableMeasurements: false, // Temporarily disabled
     // Theme
-    theme: 'light'
+    theme: 'light',
+    // AI Settings
+    aiService: 'chatgpt', // 'chatgpt', 'claude', 'gemini', 'grok', 'custom'
+    aiPromptTemplate: `I have a meal entry for "{mealName}" with amount: {amount}. 
+
+Current nutritional values:
+- Calories: {calories}
+- Protein: {protein}g
+- Carbs: {carbs}g
+- Fats: {fats}g
+
+Please provide accurate nutritional information for this meal. Include:
+1. Calories per serving
+2. Protein content in grams
+3. Carbohydrates content in grams
+4. Fats content in grams
+5. Any additional nutritional insights
+
+Please format your response clearly so I can easily update my meal entry.`,
+    aiCustomUrl: '', // For custom AI service
+    aiIncludeCurrentValues: true, // Whether to include current nutritional values in prompt
+    aiRequestFormat: 'detailed', // 'detailed', 'simple', 'custom'
+    aiLanguage: 'english' // 'english', 'spanish', 'french', etc.
   });
 
   // Load settings from localStorage on mount
@@ -124,13 +146,56 @@ export const SettingsProvider = ({ children }) => {
     return value;
   };
 
+  // AI prompt generation function
+  const generateAIPrompt = (mealData) => {
+    const { name, amount, calories, protein, carbs, fats } = mealData;
+    
+    // Replace placeholders in the template
+    let prompt = settings.aiPromptTemplate
+      .replace(/{mealName}/g, name || 'Unknown Meal')
+      .replace(/{amount}/g, amount || 'not specified')
+      .replace(/{calories}/g, calories || 'not specified')
+      .replace(/{protein}/g, protein || 'not specified')
+      .replace(/{carbs}/g, carbs || 'not specified')
+      .replace(/{fats}/g, fats || 'not specified');
+
+    // If not including current values, remove that section
+    if (!settings.aiIncludeCurrentValues) {
+      prompt = prompt.replace(/Current nutritional values:\s*- Calories: [^\n]*\n- Protein: [^\n]*\n- Carbs: [^\n]*\n- Fats: [^\n]*\n\n/g, '');
+    }
+
+    return prompt;
+  };
+
+  // Get AI service URL
+  const getAIServiceUrl = (prompt) => {
+    const encodedPrompt = encodeURIComponent(prompt);
+    
+    switch (settings.aiService) {
+      case 'chatgpt':
+        return `https://chat.openai.com/?q=${encodedPrompt}`;
+      case 'claude':
+        return `https://claude.ai/?q=${encodedPrompt}`;
+      case 'gemini':
+        return `https://gemini.google.com/?q=${encodedPrompt}`;
+      case 'grok':
+        return `https://x.com/i/grok?q=${encodedPrompt}`;
+      case 'custom':
+        return settings.aiCustomUrl ? `${settings.aiCustomUrl}${encodedPrompt}` : `https://chat.openai.com/?q=${encodedPrompt}`;
+      default:
+        return `https://chat.openai.com/?q=${encodedPrompt}`;
+    }
+  };
+
   const value = {
     settings,
     updateSetting,
     updateSettings,
     convertWeight,
     convertLength,
-    convertSkinfold
+    convertSkinfold,
+    generateAIPrompt,
+    getAIServiceUrl
   };
 
   return (

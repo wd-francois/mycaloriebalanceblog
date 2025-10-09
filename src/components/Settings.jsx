@@ -11,7 +11,29 @@ const Settings = ({ onClose = null }) => {
     enableExercise: false, // Temporarily disabled
     enableSleep: true,
     enableMeasurements: true,
-    theme: 'light'
+    theme: 'light',
+    // AI Settings
+    aiService: 'chatgpt',
+    aiPromptTemplate: `I have a meal entry for "{mealName}" with amount: {amount}. 
+
+Current nutritional values:
+- Calories: {calories}
+- Protein: {protein}g
+- Carbs: {carbs}g
+- Fats: {fats}g
+
+Please provide accurate nutritional information for this meal. Include:
+1. Calories per serving
+2. Protein content in grams
+3. Carbohydrates content in grams
+4. Fats content in grams
+5. Any additional nutritional insights
+
+Please format your response clearly so I can easily update my meal entry.`,
+    aiCustomUrl: '',
+    aiIncludeCurrentValues: true,
+    aiRequestFormat: 'detailed',
+    aiLanguage: 'english'
   });
   
   useEffect(() => {
@@ -73,6 +95,25 @@ const Settings = ({ onClose = null }) => {
     timeFormat: [
       { value: '12h', label: '12-hour (AM/PM)' },
       { value: '24h', label: '24-hour' }
+    ],
+    aiService: [
+      { value: 'chatgpt', label: 'ChatGPT' },
+      { value: 'claude', label: 'Claude AI' },
+      { value: 'gemini', label: 'Google Gemini' },
+      { value: 'grok', label: 'Grok (X)' },
+      { value: 'custom', label: 'Custom URL' }
+    ],
+    aiRequestFormat: [
+      { value: 'detailed', label: 'Detailed (Full prompt)' },
+      { value: 'simple', label: 'Simple (Basic request)' },
+      { value: 'custom', label: 'Custom Template' }
+    ],
+    aiLanguage: [
+      { value: 'english', label: 'English' },
+      { value: 'spanish', label: 'Spanish' },
+      { value: 'french', label: 'French' },
+      { value: 'german', label: 'German' },
+      { value: 'portuguese', label: 'Portuguese' }
     ]
   };
 
@@ -89,6 +130,15 @@ const Settings = ({ onClose = null }) => {
       settings: [
         { key: 'dateFormat', label: 'Date Format', description: 'How dates are displayed' },
         { key: 'timeFormat', label: 'Time Format', description: 'How times are displayed' }
+      ]
+    },
+    {
+      title: 'AI Assistant',
+      settings: [
+        { key: 'aiService', label: 'AI Service', description: 'Choose which AI service to use for nutrition queries' },
+        { key: 'aiRequestFormat', label: 'Request Format', description: 'How detailed the AI prompt should be' },
+        { key: 'aiLanguage', label: 'Language', description: 'Language for AI responses' },
+        { key: 'aiIncludeCurrentValues', label: 'Include Current Values', description: 'Include existing nutritional values in AI prompt', type: 'toggle' }
       ]
     }
   ];
@@ -142,8 +192,8 @@ const Settings = ({ onClose = null }) => {
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={currentSettings[setting.key]}
-                          onChange={(e) => currentUpdateSetting(setting.key, e.target.checked)}
+                          checked={settings[setting.key]}
+                          onChange={(e) => updateSetting(setting.key, e.target.checked)}
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -187,6 +237,62 @@ const Settings = ({ onClose = null }) => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Custom AI Settings */}
+      <div className="border-b border-gray-200 pb-6">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">Custom AI Settings</h4>
+        
+        {/* Custom URL Input */}
+        {settings.aiService === 'custom' && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Custom AI Service URL
+            </label>
+            <p className="text-sm text-gray-500 mb-3">Enter the base URL for your custom AI service. The prompt will be appended as a query parameter.</p>
+            <input
+              type="url"
+              value={settings.aiCustomUrl}
+              onChange={(e) => updateSetting('aiCustomUrl', e.target.value)}
+              placeholder="https://your-ai-service.com/?q="
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        )}
+
+        {/* Custom Prompt Template Editor */}
+        {settings.aiRequestFormat === 'custom' && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Custom Prompt Template
+            </label>
+            <p className="text-sm text-gray-500 mb-3">
+              Use placeholders: {'{mealName}'}, {'{amount}'}, {'{calories}'}, {'{protein}'}, {'{carbs}'}, {'{fats}'}
+            </p>
+            <textarea
+              value={settings.aiPromptTemplate}
+              onChange={(e) => updateSetting('aiPromptTemplate', e.target.value)}
+              rows={8}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+              placeholder="Enter your custom prompt template..."
+            />
+          </div>
+        )}
+
+        {/* Prompt Preview */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h5 className="text-sm font-medium text-gray-700 mb-2">Prompt Preview</h5>
+          <p className="text-xs text-gray-500 mb-3">This is how your AI prompt will look with sample data:</p>
+          <div className="bg-white border border-gray-200 rounded p-3 text-sm font-mono text-gray-700 whitespace-pre-wrap">
+            {settings.aiPromptTemplate
+              .replace(/{mealName}/g, 'Chicken Breast')
+              .replace(/{amount}/g, '200g')
+              .replace(/{calories}/g, 'not specified')
+              .replace(/{protein}/g, 'not specified')
+              .replace(/{carbs}/g, 'not specified')
+              .replace(/{fats}/g, 'not specified')}
+          </div>
+        </div>
       </div>
 
       <div className="mt-8 pt-6 border-t border-gray-200">
