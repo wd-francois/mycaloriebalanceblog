@@ -221,48 +221,6 @@ const ExportManager = () => {
 
   return (
     <div className="space-y-4">
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">CSV Export</h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Export your food logs and measurements as a CSV file for use in spreadsheet applications.
-        </p>
-        <button 
-          onClick={exportToCSV}
-          disabled={loading || !data}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-        >
-          {loading ? 'Exporting...' : 'Download CSV'}
-        </button>
-      </div>
-      
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">JSON Export</h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Export your complete data as a JSON file for backup or migration purposes.
-        </p>
-        <button 
-          onClick={exportToJSON}
-          disabled={loading || !data}
-          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-        >
-          {loading ? 'Exporting...' : 'Download JSON'}
-        </button>
-      </div>
-      
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">PDF Report</h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Generate a comprehensive HTML report that you can print to PDF.
-        </p>
-        <button 
-          onClick={exportToPDF}
-          disabled={loading || !data}
-          className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-        >
-          {loading ? 'Generating...' : 'Download HTML Report'}
-        </button>
-      </div>
-      
       {!data && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-800">No data found. Start logging meals to enable export options.</p>

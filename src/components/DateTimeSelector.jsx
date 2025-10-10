@@ -278,32 +278,39 @@ const DateTimeSelector = () => {
 
   const exportToCSV = () => {
     try {
+      // Get entries for the selected date only
+      const dateKey = selectedDate.toDateString();
+      const dailyEntries = entries[dateKey] || [];
+      
+      if (dailyEntries.length === 0) {
+        alert('No entries found for the selected date.');
+        return;
+      }
+      
       // Create CSV header
       let csvContent = 'Date,Time,Type,Name,Amount,Sets,Reps,Load,Duration,Notes\n';
       
-      // Add each entry
-      Object.keys(entries).forEach(dateKey => {
-        entries[dateKey].forEach(entry => {
-          const date = new Date(entry.date);
-          const formattedDate = date.toLocaleDateString();
-          const formattedTime = formatTime(entry.time);
-          const name = entry.name.replace(/"/g, '""'); // Escape quotes for CSV
-          const amount = entry.amount || '';
-          const sets = entry.sets || '';
-          const reps = entry.reps || '';
-          const load = entry.load || '';
-          const duration = entry.duration || '';
-          const notes = (entry.notes || '').replace(/"/g, '""'); // Escape quotes for CSV
-          
-          csvContent += `"${formattedDate}","${formattedTime}","${entry.type}","${name}","${amount}","${sets}","${reps}","${load}","${duration}","${notes}"\n`;
-        });
+      // Add entries for the selected date only
+      dailyEntries.forEach(entry => {
+        const date = new Date(entry.date);
+        const formattedDate = date.toLocaleDateString();
+        const formattedTime = formatTime(entry.time);
+        const name = entry.name.replace(/"/g, '""'); // Escape quotes for CSV
+        const amount = entry.amount || '';
+        const sets = entry.sets || '';
+        const reps = entry.reps || '';
+        const load = entry.load || '';
+        const duration = entry.duration || '';
+        const notes = (entry.notes || '').replace(/"/g, '""'); // Escape quotes for CSV
+        
+        csvContent += `"${formattedDate}","${formattedTime}","${entry.type}","${name}","${amount}","${sets}","${reps}","${load}","${duration}","${notes}"\n`;
       });
       
       const dataBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(dataBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `health-entries-${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `daily-entries-${selectedDate.toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1200,7 +1207,17 @@ const DateTimeSelector = () => {
                     {headerText}
                   </div>
                   
-                    
+                  {/* Export Button */}
+                  <button
+                    onClick={exportToCSV}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                    title="Export daily entries"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export
+                  </button>
                 </div>
               </div>
             </div>
