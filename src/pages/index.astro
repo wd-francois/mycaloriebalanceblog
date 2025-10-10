@@ -31,12 +31,32 @@ const latestPosts = sortedPosts.slice(0, 6);
         <section class="max-w-5xl mx-auto px-3 sm:px-4 lg:px-8 mt-12 sm:mt-16">
           <div class="text-center mb-6 sm:mb-8">
             <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Explore Content</h2>
-            <p class="text-base sm:text-lg text-gray-700 dark:text-gray-300">
+            <p class="text-base sm:text-lg text-gray-600 dark:text-gray-300">
               Browse our content by category, author, or tag
             </p>
           </div>
           
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <!-- Food Logger Card -->
+            <a 
+              href="/food-logger/" 
+              class="group flex flex-col items-center p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 text-center min-h-[120px] sm:min-h-[140px] hover:scale-105"
+            >
+              <div class="flex items-center justify-center mb-2">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  Testing Phase
+                </span>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 mb-3 sm:mb-4 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">Food Logger</h3>
+              <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">Track meals, calories & sleep</p>
+            </a>
+
             <a 
               href="/categories/" 
               class="flex flex-col items-center p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 text-center min-h-[120px] sm:min-h-[140px]"

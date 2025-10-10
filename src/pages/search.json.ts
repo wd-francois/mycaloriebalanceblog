@@ -35,15 +35,6 @@ export async function GET() {
       type: 'external-link'
     },
     {
-      slug: 'food-logger',
-      title: 'Food Logger',
-      description: 'Track your daily meals and nutrition with our interactive food logger',
-      category: 'Calorie & Nutrition Tools',
-      tags: ['food-logger', 'nutrition', 'tracking', 'meals', 'calories'],
-      url: '/food-logger/',
-      type: 'internal-link'
-    },
-    {
       slug: 'jackson-pollock-skinfold-calculator',
       title: 'Jackson-Pollock Skinfold Calculator',
       description: 'Calculate body density and body fat percentage using scientifically validated skinfold equations',
