@@ -139,14 +139,8 @@ const DateTimeSelector = () => {
         setFormState(parsed);
         setActiveForm(parsed.type || 'meal');
         
-        // Show the appropriate form if there's data
-        if (parsed.name || parsed.amount || parsed.bedtime) {
-          if (parsed.type === 'meal') {
-            setShowMealInput(true);
-          } else if (parsed.type === 'sleep') {
-            setShowSleepInput(true);
-          }
-        }
+        // Don't automatically show forms on page load - forms should be hidden by default
+        // Forms will only show when user explicitly clicks the buttons
         console.log('Loaded form state from localStorage:', parsed);
       }
     } catch (error) {
