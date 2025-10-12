@@ -511,13 +511,17 @@ const DateTimeSelector = () => {
     });
     setFormError('');
     
+    // Hide all forms after successful submission
+    setShowMealInput(false);
+    setShowExerciseInput(false);
+    setShowSleepInput(false);
+    setShowMeasurementsInput(false);
+    
     // Show success message
     setFormSuccessMessage('Entry saved successfully! Form cleared for next entry.');
     setTimeout(() => {
       setFormSuccessMessage('');
     }, 3000);
-    
-    // Don't close input forms - let user continue adding entries
   }
 
 
@@ -639,11 +643,6 @@ const DateTimeSelector = () => {
       }
 
       resetForm();
-      // Close measurements form after successful submission
-      if (activeForm === 'measurements') {
-        setShowMeasurementsInput(false);
-      }
-      // Don't close the input forms after adding entries - let user continue adding
     } else {
       // Update existing
       const updatedEntry = {
@@ -698,11 +697,6 @@ const DateTimeSelector = () => {
         console.error('Error updating entry in IndexedDB:', error);
       }
       resetForm();
-      // Close measurements form after successful edit
-      if (activeForm === 'measurements') {
-        setShowMeasurementsInput(false);
-      }
-      // Don't close the input forms after editing entries
     }
   }
 
