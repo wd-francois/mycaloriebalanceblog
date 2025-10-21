@@ -1,8 +1,8 @@
 {
   "main": [
     {
-      "name": "Home",
-      "url": "/"
+      "name": "Helpful Links",
+      "url": "/helpful-links/"
     }
   ],
   "footer": []
