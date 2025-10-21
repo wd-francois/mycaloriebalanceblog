@@ -152,12 +152,27 @@ const DateTimeSelector = () => {
       const savedSettings = localStorage.getItem('healthTrackerSettings');
       if (savedSettings) {
         const parsed = JSON.parse(savedSettings);
-        setSettings(prev => ({ ...prev, ...parsed }));
+        setSettings(prev => ({ ...prev, ...parsed, enableMeasurements: true })); // Force enable measurements
         console.log('Loaded settings from localStorage:', parsed);
       }
     } catch (error) {
       console.error('Error loading settings from localStorage:', error);
     }
+  }, []);
+
+  // Ensure measurements are always enabled
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    setSettings(prev => {
+      if (!prev.enableMeasurements) {
+        const updatedSettings = { ...prev, enableMeasurements: true };
+        // Save to localStorage
+        localStorage.setItem('healthTrackerSettings', JSON.stringify(updatedSettings));
+        return updatedSettings;
+      }
+      return prev;
+    });
   }, []);
 
   // Initialize database and load data on component mount
