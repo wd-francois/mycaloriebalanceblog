@@ -20,7 +20,7 @@ export const SettingsProvider = ({ children }) => {
     enableMeals: true,
     enableExercise: false, // Temporarily disabled
     enableSleep: true,
-    enableMeasurements: false, // Temporarily disabled
+    enableMeasurements: true,
     // Theme
     theme: 'light',
     // AI Settings
