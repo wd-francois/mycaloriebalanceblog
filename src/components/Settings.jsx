@@ -1,6 +1,48 @@
 import React, { useState, useEffect } from 'react';
 
+// Custom CSS for responsive radio buttons and toggle switches
+const radioStyles = `
+  .responsive-radio {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    min-height: 14px !important;
+  }
+  
+  @media (min-width: 640px) {
+    .responsive-radio {
+      width: 16px !important;
+      height: 16px !important;
+      min-width: 16px !important;
+      min-height: 16px !important;
+    }
+  }
+  
+  .responsive-toggle {
+    width: 2.5rem !important;
+    height: 1.25rem !important;
+  }
+  
+  .responsive-toggle::after {
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+  }
+  
+  @media (min-width: 640px) {
+    .responsive-toggle {
+      width: 2.75rem !important;
+      height: 1.5rem !important;
+    }
+    
+    .responsive-toggle::after {
+      width: 1.25rem !important;
+      height: 1.25rem !important;
+    }
+  }
+`;
+
 const Settings = ({ onClose = null }) => {
+  // Only initialize hooks if we're on the client side
   const [isClient, setIsClient] = useState(false);
   const [settings, setSettings] = useState({
     weightUnit: 'kg',
@@ -37,10 +79,10 @@ Please format your response clearly so I can easily update my meal entry.`,
   });
   
   useEffect(() => {
-    setIsClient(true);
-    
-    // Only run on client side
+    // Ensure we're on the client side before doing anything
     if (typeof window === 'undefined') return;
+    
+    setIsClient(true);
     
     // Load settings from localStorage on mount
     const savedSettings = localStorage.getItem('healthTrackerSettings');
@@ -55,13 +97,14 @@ Please format your response clearly so I can easily update my meal entry.`,
   }, []);
 
   const updateSetting = (key, value) => {
+    // Only update if we're on the client side
+    if (typeof window === 'undefined') return;
+    
     setSettings(prev => {
       const newSettings = { ...prev, [key]: value };
       
-      // Only run on client side
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
-      }
+      // Save to localStorage
+      localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
       
       return newSettings;
     });
@@ -144,12 +187,14 @@ Please format your response clearly so I can easily update my meal entry.`,
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: radioStyles }} />
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-4">
         <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Settings</h3>
           <div className="flex items-center gap-2">
             <a
-              href="/food-logger"
+              href="/"
               className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors min-h-[44px] flex items-center px-2"
             >
               Back to Food Logger
@@ -186,7 +231,7 @@ Please format your response clearly so I can easily update my meal entry.`,
                     </label>
                     <p className="text-sm text-gray-500">{setting.description}</p>
                   </div>
-                  <div className="sm:ml-4">
+                  <div className="sm:ml-4 flex justify-end sm:justify-start">
                     {setting.type === 'toggle' ? (
                       /* Toggle Switch */
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -196,7 +241,7 @@ Please format your response clearly so I can easily update my meal entry.`,
                           onChange={(e) => updateSetting(setting.key, e.target.checked)}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="responsive-toggle bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     ) : (
                       <>
@@ -210,7 +255,7 @@ Please format your response clearly so I can easily update my meal entry.`,
                                 value={option.value}
                                 checked={settings[setting.key] === option.value}
                                 onChange={(e) => updateSetting(setting.key, e.target.value)}
-                                className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                className="responsive-radio text-blue-600 border-gray-300 focus:ring-blue-500"
                               />
                               <span className="text-xs">{option.label}</span>
                             </label>
@@ -315,6 +360,7 @@ Please format your response clearly so I can easily update my meal entry.`,
         </div>
       </div>
     </div>
+    </>
   );
 };
 

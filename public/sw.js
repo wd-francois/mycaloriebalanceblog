@@ -2,7 +2,6 @@
 const CACHE_NAME = 'calorie-balance-v5';
 const urlsToCache = [
   '/',
-  '/food-logger/',
   '/library/',
   '/settings/',
   '/export/',

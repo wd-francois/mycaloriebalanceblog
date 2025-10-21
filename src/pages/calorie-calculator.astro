@@ -15,7 +15,7 @@ import { siteConfig } from '@config/site';
         Calorie Calculator
       </h1>
       <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto">
-        Calculate your daily calorie needs using the scientifically-proven Mifflin-St Jeor Equation. Get your Basal Metabolic Rate (BMR) and Total Daily Energy Expenditure (TDEE).
+        Calculate your daily calorie needs. 
       </p>
     </section>
 
@@ -30,11 +30,11 @@ import { siteConfig } from '@config/site';
             </label>
             <div class="flex space-x-4">
               <label class="flex items-center">
-                <input type="radio" name="gender" value="male" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600" required>
+                <input type="radio" name="gender" value="male" class="small-radio text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600" required>
                 <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Male</span>
               </label>
               <label class="flex items-center">
-                <input type="radio" name="gender" value="female" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600" required>
+                <input type="radio" name="gender" value="female" class="small-radio text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600" required>
                 <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Female</span>
               </label>
             </div>
@@ -167,35 +167,54 @@ import { siteConfig } from '@config/site';
     <!-- Information Section -->
     <section class="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 mt-12">
       <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 sm:p-8">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">About the Mifflin-St Jeor Equation</h2>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">About this calorie calculator</h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-8">
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">What is BMR?</h3>
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              Basal Metabolic Rate (BMR) is the number of calories your body needs to maintain basic functions like breathing, circulation, and cell production while at rest.
-            </p>
-            
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">What is TDEE?</h3>
-            <p class="text-gray-600 dark:text-gray-300">
-              Total Daily Energy Expenditure (TDEE) is your BMR multiplied by your activity level, representing the total calories you burn in a day.
+                <p class="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+              The calorie calculator is based on the Mifflin-St. Jeor equation is a widely accepted formula developed in 1990 to estimate an individual's Basal Metabolic Rate (BMR), which is the amount of energy (calories) the body burns while at complete rest. It is often considered the most accurate and reliable BMR calculation for a broad range of adults, including both non-obese and obese individuals, generally outperforming older equations like the Harris-Benedict. To function as a "daily calculator," this equation is the essential first step. The resulting BMR figure is multiplied by an activity factor—ranging from sedentary to extra active—to estimate a person's Total Daily Energy Expenditure (TDEE), or the total calories needed to maintain their current weight.
             </p>
           </div>
           
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Activity Levels</h3>
-            <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
-              <li><strong>Sedentary:</strong> Little or no exercise</li>
-              <li><strong>Lightly Active:</strong> Light exercise 1-3 days/week</li>
-              <li><strong>Moderately Active:</strong> Moderate exercise 3-5 days/week</li>
-              <li><strong>Very Active:</strong> Hard exercise 6-7 days/week</li>
-              <li><strong>Extremely Active:</strong> Very hard exercise, physical job</li>
-            </ul>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">How to Use Your Results</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                <h4 class="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">Weight Loss</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Create a 500-calorie daily deficit to lose about 1 pound per week.</p>
+              </div>
+              <div class="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                <h4 class="text-sm font-medium text-green-600 dark:text-green-400 mb-2">Maintenance</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Eat at your TDEE to maintain your current weight.</p>
+              </div>
+              <div class="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                <h4 class="text-sm font-medium text-orange-600 dark:text-orange-400 mb-2">Weight Gain</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-300">Add 500 calories daily to gain about 1 pound per week.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
   </main>
+
+  <style>
+    .small-radio {
+      width: 14px !important;
+      height: 14px !important;
+      min-width: 14px !important;
+      min-height: 14px !important;
+    }
+    
+    @media (min-width: 640px) {
+      .small-radio {
+        width: 16px !important;
+        height: 16px !important;
+        min-width: 16px !important;
+        min-height: 16px !important;
+      }
+    }
+  </style>
 
   <script>
     const form = document.getElementById('calorieCalculator');

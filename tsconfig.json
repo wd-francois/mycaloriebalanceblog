@@ -6,7 +6,9 @@
     "src/**/*.js",
     "src/**/*.tsx",
     "src/**/*.jsx",
-    "src/**/*.astro"
+    "src/pages/*.astro",
+    "src/layouts/**/*.astro",
+    "src/components/**/*.astro"
   ],
   "exclude": [
     "dist",

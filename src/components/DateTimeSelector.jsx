@@ -1990,7 +1990,7 @@ const DateTimeSelector = () => {
                             value="lbs"
                             checked={settings.weightUnit === 'lbs'}
                             onChange={(e) => updateSetting('weightUnit', e.target.value)}
-                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
                           <span className="text-xs">Pounds (lbs)</span>
                         </label>
@@ -2001,7 +2001,7 @@ const DateTimeSelector = () => {
                             value="kg"
                             checked={settings.weightUnit === 'kg'}
                             onChange={(e) => updateSetting('weightUnit', e.target.value)}
-                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
                           <span className="text-xs">Kilograms (kg)</span>
                         </label>
@@ -2032,7 +2032,7 @@ const DateTimeSelector = () => {
                             value="in"
                             checked={settings.lengthUnit === 'in'}
                             onChange={(e) => updateSetting('lengthUnit', e.target.value)}
-                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
                           <span className="text-xs">Inches (in)</span>
                         </label>
@@ -2043,7 +2043,7 @@ const DateTimeSelector = () => {
                             value="cm"
                             checked={settings.lengthUnit === 'cm'}
                             onChange={(e) => updateSetting('lengthUnit', e.target.value)}
-                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
                           <span className="text-xs">Centimeters (cm)</span>
                         </label>
@@ -2081,7 +2081,7 @@ const DateTimeSelector = () => {
                             value="MM/DD/YYYY"
                             checked={settings.dateFormat === 'MM/DD/YYYY'}
                             onChange={(e) => updateSetting('dateFormat', e.target.value)}
-                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
                           <span className="text-xs">MM/DD/YYYY</span>
                         </label>
@@ -2092,7 +2092,7 @@ const DateTimeSelector = () => {
                             value="DD/MM/YYYY"
                             checked={settings.dateFormat === 'DD/MM/YYYY'}
                             onChange={(e) => updateSetting('dateFormat', e.target.value)}
-                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
                           <span className="text-xs">DD/MM/YYYY</span>
                         </label>
@@ -2123,7 +2123,7 @@ const DateTimeSelector = () => {
                             value="12h"
                             checked={settings.timeFormat === '12h'}
                             onChange={(e) => updateSetting('timeFormat', e.target.value)}
-                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
                           <span className="text-xs">12h (AM/PM)</span>
                         </label>
@@ -2134,7 +2134,7 @@ const DateTimeSelector = () => {
                             value="24h"
                             checked={settings.timeFormat === '24h'}
                             onChange={(e) => updateSetting('timeFormat', e.target.value)}
-                            className="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
                           <span className="text-xs">24h</span>
                         </label>
