@@ -1,0 +1,452 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
+---
+
+<Layout
+  title="Statistics - My Calorie Balance"
+  description="View your health statistics, graphs, and analytics - " + siteConfig.title
+  wideContent={true}
+  showBottomNav={true}
+>
+  <main class="w-full py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Health Statistics</h1>
+      
+      <!-- Statistics Dashboard -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Calorie Intake Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Daily Calorie Intake</h2>
+          <div class="h-64">
+            <canvas id="calorieChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Weight Progress Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Weight Progress</h2>
+          <div class="h-64">
+            <canvas id="weightChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Sleep Patterns Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Sleep Patterns</h2>
+          <div class="h-64">
+            <canvas id="sleepChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Macronutrient Breakdown -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Macronutrient Breakdown</h2>
+          <div class="h-64">
+            <canvas id="macroChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Statistics -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Average Daily Calories -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+          <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2" id="avgCalories">-</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Avg Daily Calories</div>
+        </div>
+
+        <!-- Weight Change -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+          <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-2" id="weightChange">-</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Weight Change</div>
+        </div>
+
+        <!-- Average Sleep -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+          <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2" id="avgSleep">-</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Avg Sleep Hours</div>
+        </div>
+
+        <!-- Total Entries -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+          <div class="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2" id="totalEntries">-</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Total Entries</div>
+        </div>
+      </div>
+
+      <!-- Data Export Section -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Data Export</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-4">Export your health data for further analysis or backup.</p>
+        <div class="flex flex-wrap gap-3">
+          <button id="exportCSV" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Export as CSV
+          </button>
+          <button id="exportJSON" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            Export as JSON
+          </button>
+          <button id="printStats" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+            Print Statistics
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <script>
+    // Declare Chart.js types
+    declare const Chart: any;
+    // Statistics Dashboard
+    class StatisticsDashboard {
+      entries: any;
+      measurements: any;
+      charts: any;
+      constructor() {
+        this.entries = {};
+        this.measurements = {};
+        this.charts = {};
+        this.init();
+      }
+
+      async init() {
+        await this.loadData();
+        this.renderCharts();
+        this.updateSummaryStats();
+      }
+
+      async loadData() {
+        try {
+          // Load entries from localStorage
+          const entriesData = localStorage.getItem('healthEntries');
+          if (entriesData) {
+            const parsed = JSON.parse(entriesData);
+            // Filter out settings and keep only date entries
+            Object.keys(parsed).forEach(dateKey => {
+              if (Array.isArray(parsed[dateKey])) {
+                this.entries[dateKey] = parsed[dateKey];
+              }
+            });
+          }
+
+          // Load measurements
+          const measurementsData = localStorage.getItem('measurements');
+          if (measurementsData) {
+            this.measurements = JSON.parse(measurementsData);
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+        }
+      }
+
+      getCalorieData() {
+        const dates = Object.keys(this.entries).sort();
+        const calorieData = dates.map(date => {
+          const dayEntries = this.entries[date] || [];
+          const totalCalories = dayEntries
+            .filter((entry: any) => entry.type === 'meal')
+            .reduce((sum: any, entry: any) => sum + (parseFloat(entry.calories) || 0), 0);
+          return { date, calories: totalCalories };
+        });
+        return calorieData;
+      }
+
+      getWeightData() {
+        const dates = Object.keys(this.entries).sort();
+        const weightData = dates.map(date => {
+          const dayEntries = this.entries[date] || [];
+          const measurement = dayEntries.find((entry: any) => entry.type === 'measurements' && entry.weight);
+          return { date, weight: measurement ? parseFloat(measurement.weight) : null };
+        }).filter(d => d.weight !== null);
+        return weightData;
+      }
+
+      getSleepData() {
+        const dates = Object.keys(this.entries).sort();
+        const sleepData = dates.map(date => {
+          const dayEntries = this.entries[date] || [];
+          const sleep = dayEntries.find((entry: any) => entry.type === 'sleep');
+          if (sleep && sleep.bedtime && sleep.waketime) {
+            const bedtime = this.parseTime(sleep.bedtime);
+            const waketime = this.parseTime(sleep.waketime);
+            const sleepHours = this.calculateSleepHours(bedtime, waketime);
+            return { date, hours: sleepHours };
+          }
+          return null;
+        }).filter(d => d !== null);
+        return sleepData;
+      }
+
+      getMacroData() {
+        const dates = Object.keys(this.entries).sort();
+        const lastWeek = dates.slice(-7); // Last 7 days
+        let totalProtein = 0, totalCarbs = 0, totalFats = 0;
+        let dayCount = 0;
+
+        lastWeek.forEach(date => {
+          const dayEntries = this.entries[date] || [];
+          const meals = dayEntries.filter((entry: any) => entry.type === 'meal');
+          if (meals.length > 0) {
+            dayCount++;
+            meals.forEach((meal: any) => {
+              totalProtein += parseFloat(meal.protein) || 0;
+              totalCarbs += parseFloat(meal.carbs) || 0;
+              totalFats += parseFloat(meal.fats) || 0;
+            });
+          }
+        });
+
+        return {
+          protein: dayCount > 0 ? totalProtein / dayCount : 0,
+          carbs: dayCount > 0 ? totalCarbs / dayCount : 0,
+          fats: dayCount > 0 ? totalFats / dayCount : 0
+        };
+      }
+
+      parseTime(timeObj: any) {
+        if (!timeObj) return null;
+        let hour = parseInt(timeObj.hour);
+        if (timeObj.period === 'AM' && hour === 12) hour = 0;
+        if (timeObj.period === 'PM' && hour !== 12) hour += 12;
+        return { hour, minute: parseInt(timeObj.minute) };
+      }
+
+      calculateSleepHours(bedtime: any, waketime: any) {
+        if (!bedtime || !waketime) return 0;
+        
+        let bedtimeMinutes = bedtime.hour * 60 + bedtime.minute;
+        let waketimeMinutes = waketime.hour * 60 + waketime.minute;
+        
+        // Handle overnight sleep
+        if (waketimeMinutes < bedtimeMinutes) {
+          waketimeMinutes += 24 * 60; // Add 24 hours
+        }
+        
+        return (waketimeMinutes - bedtimeMinutes) / 60;
+      }
+
+      renderCharts() {
+        this.renderCalorieChart();
+        this.renderWeightChart();
+        this.renderSleepChart();
+        this.renderMacroChart();
+      }
+
+      renderCalorieChart() {
+        const ctx = (document.getElementById('calorieChart') as HTMLCanvasElement).getContext('2d');
+        const data = this.getCalorieData();
+        
+        this.charts.calorie = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.map(d => new Date(d.date).toLocaleDateString()),
+            datasets: [{
+              label: 'Daily Calories',
+              data: data.map(d => d.calories),
+              borderColor: 'rgb(59, 130, 246)',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Calories'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      renderWeightChart() {
+        const ctx = (document.getElementById('weightChart') as HTMLCanvasElement).getContext('2d');
+        const data = this.getWeightData();
+        
+        this.charts.weight = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.map(d => new Date(d.date).toLocaleDateString()),
+            datasets: [{
+              label: 'Weight (kg)',
+              data: data.map(d => d.weight),
+              borderColor: 'rgb(34, 197, 94)',
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                title: {
+                  display: true,
+                  text: 'Weight (kg)'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      renderSleepChart() {
+        const ctx = (document.getElementById('sleepChart') as HTMLCanvasElement).getContext('2d');
+        const data = this.getSleepData();
+        
+        this.charts.sleep = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.map(d => new Date(d.date).toLocaleDateString()),
+            datasets: [{
+              label: 'Sleep Hours',
+              data: data.map(d => d.hours),
+              backgroundColor: 'rgba(147, 51, 234, 0.8)',
+              borderColor: 'rgb(147, 51, 234)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 12,
+                title: {
+                  display: true,
+                  text: 'Hours'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      renderMacroChart() {
+        const ctx = (document.getElementById('macroChart') as HTMLCanvasElement).getContext('2d');
+        const data = this.getMacroData();
+        
+        this.charts.macro = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Protein', 'Carbs', 'Fats'],
+            datasets: [{
+              data: [data.protein, data.carbs, data.fats],
+              backgroundColor: [
+                'rgba(239, 68, 68, 0.8)',
+                'rgba(34, 197, 94, 0.8)',
+                'rgba(59, 130, 246, 0.8)'
+              ],
+              borderColor: [
+                'rgb(239, 68, 68)',
+                'rgb(34, 197, 94)',
+                'rgb(59, 130, 246)'
+              ],
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      }
+
+      updateSummaryStats() {
+        // Average Daily Calories
+        const calorieData = this.getCalorieData();
+        const avgCalories = calorieData.length > 0 
+          ? Math.round(calorieData.reduce((sum, d) => sum + d.calories, 0) / calorieData.length)
+          : 0;
+        const avgCaloriesEl = document.getElementById('avgCalories');
+        if (avgCaloriesEl) avgCaloriesEl.textContent = avgCalories.toString();
+
+        // Weight Change
+        const weightData = this.getWeightData();
+        if (weightData.length >= 2) {
+          const firstWeight = weightData[0]?.weight;
+          const lastWeight = weightData[weightData.length - 1]?.weight;
+          const change = (lastWeight || 0) - (firstWeight || 0);
+          const changeText = change > 0 ? `+${change.toFixed(1)}kg` : `${change.toFixed(1)}kg`;
+          const weightChangeEl = document.getElementById('weightChange');
+          if (weightChangeEl) weightChangeEl.textContent = changeText;
+        } else {
+          const weightChangeEl = document.getElementById('weightChange');
+          if (weightChangeEl) weightChangeEl.textContent = 'N/A';
+        }
+
+        // Average Sleep
+        const sleepData = this.getSleepData();
+        const avgSleep = sleepData.length > 0
+          ? (sleepData.reduce((sum, d) => sum + d.hours, 0) / sleepData.length).toFixed(1)
+          : 'N/A';
+        const avgSleepEl = document.getElementById('avgSleep');
+        if (avgSleepEl) avgSleepEl.textContent = avgSleep;
+        // Total Entries
+        const totalEntries = Object.values(this.entries).reduce((sum: number, dayEntries: any) => sum + (dayEntries?.length || 0), 0);
+        const totalEntriesEl = document.getElementById('totalEntries');
+        if (totalEntriesEl) totalEntriesEl.textContent = totalEntries.toString();
+      }
+
+      exportCSV() {
+        const data = this.getCalorieData();
+        const csvContent = "Date,Calories\n" + data.map(d => `${d.date},${d.calories}`).join('\n');
+        this.downloadFile(csvContent, 'calorie-data.csv', 'text/csv');
+      }
+
+      exportJSON() {
+        const data = {
+          entries: this.entries,
+          measurements: this.measurements,
+          exportDate: new Date().toISOString()
+        };
+        this.downloadFile(JSON.stringify(data, null, 2), 'health-data.json', 'application/json');
+      }
+
+      downloadFile(content: any, filename: any, mimeType: any) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      printStats() {
+        window.print();
+      }
+    }
+
+    // Initialize dashboard when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      const dashboard = new StatisticsDashboard();
+      
+      // Export buttons
+      const exportCSVEl = document.getElementById('exportCSV');
+      if (exportCSVEl) exportCSVEl.addEventListener('click', () => dashboard.exportCSV());
+      
+      const exportJSONEl = document.getElementById('exportJSON');
+      if (exportJSONEl) exportJSONEl.addEventListener('click', () => dashboard.exportJSON());
+      
+      const printStatsEl = document.getElementById('printStats');
+      if (printStatsEl) printStatsEl.addEventListener('click', () => dashboard.printStats());
+    });
+  </script>
+</Layout>
