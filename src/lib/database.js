@@ -315,13 +315,17 @@ class HealthDatabase {
         const entries = [];
         
         Object.keys(parsed).forEach(dateKey => {
-          parsed[dateKey].forEach(entry => {
-            entries.push({
-              ...entry,
-              date: new Date(entry.date).toISOString(),
-              id: entry.id || Date.now() + Math.random()
+          const value = parsed[dateKey];
+          // Skip if value is not an array (could be feature toggles like enableMeals, etc.)
+          if (Array.isArray(value)) {
+            value.forEach(entry => {
+              entries.push({
+                ...entry,
+                date: new Date(entry.date).toISOString(),
+                id: entry.id || Date.now() + Math.random()
+              });
             });
-          });
+          }
         });
 
         // Save all entries to IndexedDB

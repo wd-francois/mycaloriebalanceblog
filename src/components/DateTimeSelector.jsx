@@ -1253,7 +1253,7 @@ const DateTimeSelector = () => {
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                       >
-                        🍽️ Add Meal
+                        Add Meal
                       </button>
                     )}
                     {settings.enableSleep && (
@@ -1269,7 +1269,7 @@ const DateTimeSelector = () => {
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                       >
-                        😴 Add Sleep
+                        Add Sleep
                       </button>
                     )}
                     {settings.enableMeasurements && (
@@ -1285,7 +1285,7 @@ const DateTimeSelector = () => {
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                       >
-                        📏 Add Measurements
+                        Add Measurements
                       </button>
                     )}
                   </div>

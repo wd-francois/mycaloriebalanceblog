@@ -4,18 +4,14 @@ import { useSettings } from '../contexts/SettingsContext.jsx';
 const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, onDragStart, onDragEnd, onDragOver, onDrop, settings = { weightUnit: 'lbs', lengthUnit: 'in' } }) => {
   const [collapsedTimes, setCollapsedTimes] = useState(new Set());
   
-  // Safely get settings with fallback
-  let generateAIPrompt, getAIServiceUrl;
-  try {
-    const settingsContext = useSettings();
-    generateAIPrompt = settingsContext.generateAIPrompt;
-    getAIServiceUrl = settingsContext.getAIServiceUrl;
-  } catch (error) {
-    console.warn('Settings context not available, using fallback AI functions');
-    // Fallback functions
-    generateAIPrompt = (mealData) => {
-      const { name, amount, calories, protein, carbs, fats } = mealData;
-      return `I have a meal entry for "${name || 'Unknown Meal'}" with amount: ${amount || 'not specified'}. 
+  // Get settings context - must be called unconditionally at top level
+  // Since this component is used within SettingsProvider, the context should always be available
+  const settingsContext = useSettings();
+  
+  // Fallback functions if context methods are not available
+  const defaultGenerateAIPrompt = (mealData) => {
+    const { name, amount, calories, protein, carbs, fats } = mealData;
+    return `I have a meal entry for "${name || 'Unknown Meal'}" with amount: ${amount || 'not specified'}. 
 
 Current nutritional values:
 - Calories: ${calories || 'not specified'}
@@ -31,12 +27,15 @@ Please provide accurate nutritional information for this meal. Include:
 5. Any additional nutritional insights
 
 Please format your response clearly so I can easily update my meal entry.`;
-    };
-    getAIServiceUrl = (prompt) => {
-      const encodedPrompt = encodeURIComponent(prompt);
-      return `https://chat.openai.com/?q=${encodedPrompt}`;
-    };
-  }
+  };
+
+  const defaultGetAIServiceUrl = (prompt) => {
+    const encodedPrompt = encodeURIComponent(prompt);
+    return `https://chat.openai.com/?q=${encodedPrompt}`;
+  };
+
+  const generateAIPrompt = settingsContext?.generateAIPrompt || defaultGenerateAIPrompt;
+  const getAIServiceUrl = settingsContext?.getAIServiceUrl || defaultGetAIServiceUrl;
 
   const handleAIClick = (entry) => {
     // Generate prompt using settings context

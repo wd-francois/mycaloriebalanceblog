@@ -26,18 +26,15 @@ const LibraryManager = () => {
   });
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  // Safely get settings with fallback
-  let generateAIPrompt, getAIServiceUrl;
-  try {
-    const settings = useSettings();
-    generateAIPrompt = settings.generateAIPrompt;
-    getAIServiceUrl = settings.getAIServiceUrl;
-  } catch (error) {
-    console.warn('Settings context not available, using fallback AI functions');
-    // Fallback functions
-    generateAIPrompt = (mealData) => {
-      const { name, amount, calories, protein, carbs, fats } = mealData;
-      return `I have a meal entry for "${name || 'Unknown Meal'}" with amount: ${amount || 'not specified'}. 
+  
+  // Get settings context - must be called unconditionally at top level
+  // Since this component should be used within SettingsProvider, the context should always be available
+  const settings = useSettings();
+  
+  // Fallback functions if context methods are not available
+  const defaultGenerateAIPrompt = (mealData) => {
+    const { name, amount, calories, protein, carbs, fats } = mealData;
+    return `I have a meal entry for "${name || 'Unknown Meal'}" with amount: ${amount || 'not specified'}. 
 
 Current nutritional values:
 - Calories: ${calories || 'not specified'}
@@ -53,12 +50,15 @@ Please provide accurate nutritional information for this meal. Include:
 5. Any additional nutritional insights
 
 Please format your response clearly so I can easily update my meal entry.`;
-    };
-    getAIServiceUrl = (prompt) => {
-      const encodedPrompt = encodeURIComponent(prompt);
-      return `https://chat.openai.com/?q=${encodedPrompt}`;
-    };
-  }
+  };
+
+  const defaultGetAIServiceUrl = (prompt) => {
+    const encodedPrompt = encodeURIComponent(prompt);
+    return `https://chat.openai.com/?q=${encodedPrompt}`;
+  };
+
+  const generateAIPrompt = settings?.generateAIPrompt || defaultGenerateAIPrompt;
+  const getAIServiceUrl = settings?.getAIServiceUrl || defaultGetAIServiceUrl;
 
   // Load data on component mount
   useEffect(() => {
