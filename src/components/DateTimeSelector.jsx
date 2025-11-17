@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import Calendar from '@react/Calendar';
 import TimePicker from '@react/TimePicker';
 import AutocompleteInput from './AutocompleteInput';
@@ -17,6 +17,9 @@ function formatTime({ hour, minute, period }) {
   const mm = minute.toString().padStart(2, '0');
   return `${hour}:${mm} ${period}`;
 }
+
+const MAX_PHOTO_SIZE_MB = 5;
+const MAX_PHOTO_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024;
 
 function calculateSleepDuration(bedtime, waketime) {
   // Convert to 24-hour format for calculation
@@ -47,14 +50,14 @@ function calculateSleepDuration(bedtime, waketime) {
 }
 
 const DateTimeSelector = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
   const [time, setTime] = useState({ hour: 12, minute: 0, period: 'PM' });
   const [showModal, setShowModal] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   // Entries state - store entries per date (meals, exercises, sleep)
   const [entries, setEntries] = useState({});
-  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', calf: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '' });
+  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', calf: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '', photo: null });
   const [formError, setFormError] = useState('');
   const [librarySuccessMessage, setLibrarySuccessMessage] = useState('');
   const [formSuccessMessage, setFormSuccessMessage] = useState('');
@@ -83,6 +86,8 @@ const DateTimeSelector = () => {
     enableQuickAddExercise: true,
     enableMeals: true
   });
+  const cameraInputRef = useRef(null);
+  const uploadInputRef = useRef(null);
 
 
   // Local storage functions
@@ -130,6 +135,11 @@ const DateTimeSelector = () => {
   useEffect(() => {
     setIsClient(true);
     if (typeof window === 'undefined') return;
+    
+    // Initialize selectedDate on client side
+    if (selectedDate === null) {
+      setSelectedDate(new Date());
+    }
     
     // Load form state
     try {
@@ -286,6 +296,7 @@ const DateTimeSelector = () => {
   };
 
   const exportToCSV = () => {
+    if (!selectedDate) return;
     try {
       // Get entries for the selected date only
       const dateKey = selectedDate.toDateString();
@@ -394,11 +405,13 @@ const DateTimeSelector = () => {
   };
 
   const headerText = useMemo(() => {
+    if (!selectedDate) return '';
     return formatDate(selectedDate);
   }, [selectedDate]);
 
   // Get entries for the current selected date
   const currentDateEntries = useMemo(() => {
+    if (!selectedDate) return [];
     const dateKey = selectedDate.toDateString();
     return entries[dateKey] || [];
   }, [entries, selectedDate]);
@@ -516,7 +529,8 @@ const DateTimeSelector = () => {
       tricepSkinfold: '', 
       subscapularSkinfold: '', 
       suprailiacSkinfold: '', 
-      notes: '' 
+      notes: '', 
+      photo: null
     });
     setFormError('');
     
@@ -569,6 +583,7 @@ const DateTimeSelector = () => {
       }
     }
 
+    if (!selectedDate) return;
     const dateKey = selectedDate.toDateString();
 
     if (data.id == null) {
@@ -605,7 +620,8 @@ const DateTimeSelector = () => {
           subscapularSkinfold: data.subscapularSkinfold ? parseFloat(data.subscapularSkinfold) : null,
           suprailiacSkinfold: data.suprailiacSkinfold ? parseFloat(data.suprailiacSkinfold) : null,
           notes: data.notes
-        })
+        }),
+        ...(data.photo ? { photo: data.photo } : {})
       };
       setEntries((prev) => {
         const existingEntries = prev[dateKey] || [];
@@ -686,7 +702,8 @@ const DateTimeSelector = () => {
           subscapularSkinfold: data.subscapularSkinfold ? parseFloat(data.subscapularSkinfold) : null,
           suprailiacSkinfold: data.suprailiacSkinfold ? parseFloat(data.suprailiacSkinfold) : null,
           notes: data.notes
-        })
+        }),
+        ...(data.photo ? { photo: data.photo } : {})
       };
 
       setEntries((prev) => ({
@@ -740,7 +757,8 @@ const DateTimeSelector = () => {
       tricepSkinfold: entry.tricepSkinfold || '',
       subscapularSkinfold: entry.subscapularSkinfold || '',
       suprailiacSkinfold: entry.suprailiacSkinfold || '',
-      notes: entry.notes || ''
+      notes: entry.notes || '',
+      photo: entry.photo || null
     });
     setActiveForm(entry.type);
     if (entry.type === 'meal') {
@@ -753,6 +771,61 @@ const DateTimeSelector = () => {
       setShowMeasurementsInput(true);
     }
   }
+
+  const handlePhotoSelection = (event, source) => {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setFormError('Please select an image file.');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > MAX_PHOTO_BYTES) {
+      setFormError(`Please choose an image smaller than ${MAX_PHOTO_SIZE_MB}MB.`);
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (!result) {
+        setFormError('Unable to read the selected photo. Please try again.');
+        return;
+      }
+      setFormState(prev => ({
+        ...prev,
+        photo: {
+          dataUrl: result,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          source,
+          capturedAt: new Date().toISOString()
+        }
+      }));
+      setFormError('');
+    };
+    reader.onerror = () => {
+      setFormError('Unable to read the selected photo. Please try again.');
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  };
+
+  const removePhoto = () => {
+    setFormState(prev => ({ ...prev, photo: null }));
+  };
+
+  const triggerCameraCapture = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const triggerPhotoUpload = () => {
+    uploadInputRef.current?.click();
+  };
 
   // Functions to handle individual sets
   function addSet() {
@@ -779,6 +852,7 @@ const DateTimeSelector = () => {
   }
 
   function handleDelete(id) {
+    if (!selectedDate) return;
     const dateKey = selectedDate.toDateString();
     setEntries((prev) => ({
       ...prev,
@@ -992,7 +1066,7 @@ const DateTimeSelector = () => {
   };
 
   const handleInfoSave = () => {
-    if (!selectedEntry) return;
+    if (!selectedEntry || !selectedDate) return;
 
     const dateKey = selectedDate.toDateString();
     setEntries((prev) => ({
@@ -1036,7 +1110,7 @@ const DateTimeSelector = () => {
   const handleDrop = (e, targetEntry) => {
     e.preventDefault();
     
-    if (!draggedEntry || draggedEntry.id === targetEntry.id) {
+    if (!draggedEntry || draggedEntry.id === targetEntry.id || !selectedDate) {
       return;
     }
 
@@ -1063,8 +1137,8 @@ const DateTimeSelector = () => {
     }));
   };
 
-  // Don't render on server side
-  if (!isClient) {
+  // Don't render on server side or until selectedDate is initialized
+  if (!isClient || selectedDate === null) {
     return <div>Loading...</div>;
   }
 
@@ -1073,128 +1147,6 @@ const DateTimeSelector = () => {
       <div className="w-full max-w-sm mx-auto flex flex-col gap-4 px-2 sm:px-0">
         <div className="flex justify-center">
           {isClient && <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />}
-        </div>
-      </div>
-
-      {/* FAQ / Features Accordion below calendar */}
-      <div className="w-full max-w-2xl mx-auto mt-6 px-2 sm:px-4">
-        <div className="mb-3">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Frequent Questions</h2>
-        </div>
-        <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white shadow-sm">
-          <details className="group p-3 sm:p-4" open>
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 sm:gap-4">
-              <span className="text-sm sm:text-base font-semibold text-gray-900 pr-2">How do I log a meal with nutrition info?</span>
-              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-            How do I log a meal?
-            Click a date on the calendar, select "Add Meal", then fill in the meal name and amount (e.g., "1 cup"). You can optionally add nutrition details like calories, protein, carbs, and fats, but these aren't required. Use the autocomplete to quickly select from your food library.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I log sleep?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Click a date on the calendar, select "Add Sleep", then set your bedtime and wake time. The app will automatically calculate your sleep duration. You can add notes about sleep quality if desired.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">What is the food library?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Your personal database of frequently used foods and meals. Click "Manage Library" to add, edit, or delete items. The autocomplete will suggest items from your library as you type, making data entry much faster.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I reorder my entries?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Simply drag and drop any entry to reorder them. Entries with the same time are grouped together and can be collapsed/expanded by clicking the time header.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How are entries grouped by time?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              All entries for the same time (e.g., 8:00 AM) are automatically grouped together under a single time header. This keeps your log organized and makes it easy to see what you did at specific times. Click the time header to collapse or expand each group. You can have multiple meals or sleep entries at the same time.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I manage my data?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Use the Library to manage your food items, Settings to customize units and preferences, and Export to backup your data. All your entries are automatically saved and can be edited or deleted as needed.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I add notes to entries?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Click the information (i) button next to any entry to add notes or additional details. This is useful for tracking how you felt, intensity levels, or any other observations.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">Where is my data stored?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              All data is stored locally in your browser using IndexedDB, which is more reliable than regular storage. Your data stays private and is not sent to any servers. Use the Export feature to backup your data.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I export my data?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              Use the export functionality to backup your data in JSON, CSV, or PDF formats. This includes all your entries with nutrition and sleep details.
-            </div>
-          </details>
-          <details className="group p-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-              <span className="text-base font-semibold text-gray-900">How do I add this app to my home screen?</span>
-              <svg className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-            </summary>
-            <div className="mt-3 text-sm text-gray-600 leading-relaxed">
-              <div className="space-y-3">
-                <div>
-                  <strong>📱 For Android devices:</strong>
-                  <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
-                    <li>Open this website in Chrome browser</li>
-                    <li>Tap the menu button (three dots) in the top right</li>
-                    <li>Select "Add to Home screen" or "Install app"</li>
-                    <li>Tap "Add" to confirm</li>
-                  </ol>
-                </div>
-                <div>
-                  <strong>🍎 For iOS devices (iPhone/iPad):</strong>
-                  <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
-                    <li>Open this website in Safari browser</li>
-                    <li>Tap the Share button (square with arrow up)</li>
-                    <li>Scroll down and tap "Add to Home Screen"</li>
-                    <li>Tap "Add" to confirm</li>
-                  </ol>
-                </div>
-                <div className="text-xs text-gray-500 mt-2">
-                  💡 Once installed, the app will work like a native app with its own icon on your home screen!
-                </div>
-              </div>
-            </div>
-          </details>
         </div>
       </div>
 
@@ -1288,6 +1240,85 @@ const DateTimeSelector = () => {
                         Add Measurements
                       </button>
                     )}
+                  </div>
+
+                  <div className="bg-white border border-dashed border-gray-300 rounded-xl p-4 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-base font-medium text-gray-900">Attach Photo (optional)</p>
+                        <p className="text-sm text-gray-500">Capture what you&apos;re logging or choose a saved picture.</p>
+                      </div>
+                      {formState.photo && (
+                        <button
+                          type="button"
+                          onClick={removePhoto}
+                          className="text-sm text-red-600 hover:text-red-700 font-medium"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        type="button"
+                        onClick={triggerCameraCapture}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 transition-colors duration-200"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8h4l2-3h6l2 3h4v11H3V8z" />
+                          <circle cx="12" cy="13" r="3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Take Photo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={triggerPhotoUpload}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a4 4 0 010 8H7z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 12v9m0 0l-3-3m3 3l3-3" />
+                        </svg>
+                        Upload Photo
+                      </button>
+                    </div>
+
+                    {formState.photo ? (
+                      <div>
+                        <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                          <img
+                            src={formState.photo.dataUrl}
+                            alt="Entry attachment preview"
+                            className="w-full max-h-80 object-cover"
+                          />
+                        </div>
+                        <p className="mt-2 text-xs text-gray-600">
+                          {formState.photo.name ? `${formState.photo.name} • ` : ''}
+                          {new Date(formState.photo.capturedAt).toLocaleString()}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        Images are stored with your entry so you can revisit them later in the gallery.
+                      </p>
+                    )}
+
+                    <input
+                      ref={cameraInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(event) => handlePhotoSelection(event, 'camera')}
+                    />
+                    <input
+                      ref={uploadInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => handlePhotoSelection(event, 'library')}
+                    />
                   </div>
 
 

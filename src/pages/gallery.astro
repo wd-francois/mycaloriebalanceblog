@@ -1,0 +1,22 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
+import PhotoGallery from '../components/PhotoGallery.jsx';
+
+const pageTitle = `Photo Gallery - ${siteConfig.title}`;
+const pageDescription = 'Browse every meal, workout, or measurement photo you have attached to your entries.';
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  showBottomNav={true}
+  wideContent={true}
+>
+  <main class="w-full py-6 sm:py-12 bg-gradient-to-br from-indigo-50 via-white to-blue-50 min-h-[70vh]">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
+      <PhotoGallery client:load />
+    </div>
+  </main>
+</Layout>
+
