@@ -192,30 +192,15 @@ Please format your response clearly so I can easily update my meal entry.`,
       <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-4">
         <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Settings</h3>
-          <div className="flex items-center gap-2">
-            <a
-              href="/"
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors min-h-[44px] flex items-center px-2"
-            >
-              Back to Food Logger
-            </a>
-            <button
-              onClick={() => {
-                if (onClose && typeof onClose === 'function') {
-                  onClose();
-                } else {
-                  // Fallback: go back in browser history
-                  window.history.back();
-                }
-              }}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-              title="Close"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+        <a
+          href="/"
+          className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+          title="Close"
+        >
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </a>
       </div>
 
       <div className="space-y-8">

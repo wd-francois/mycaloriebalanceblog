@@ -21,6 +21,8 @@ interface Props {
   tags?: string[];
   categories?: string[];
   showBottomNav?: boolean;
+  showFooter?: boolean;
+  showHeader?: boolean;
 }
 
 const { 
@@ -34,6 +36,8 @@ const {
   publishDate,
   modifiedDate,
   showBottomNav = false,
+  showFooter = true,
+  showHeader = true,
   author,
   tags,
   categories
@@ -274,7 +278,8 @@ const {
       </div>
     </main>
     
-    <!-- Bottom Navigation - only show when showBottomNav is true -->
+    <!-- Bottom Navigation -->
     {showBottomNav && <BottomNavigation />}
+    
   </body>
 </html>

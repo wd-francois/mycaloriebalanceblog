@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1); // 1..12
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);   // 0..59
@@ -8,32 +8,27 @@ function pad2(n) {
 }
 
 const TimePicker = ({
-  initialHour = 12,
-  initialMinute = 0,
-  initialPeriod = 'PM',
+  value = { hour: 12, minute: 0, period: 'PM' },
   onChange,
 }) => {
-  const [hour, setHour] = useState(initialHour);
-  const [minute, setMinute] = useState(initialMinute);
-  const [period, setPeriod] = useState(initialPeriod);
+  const hour = value?.hour ?? 12;
+  const minute = value?.minute ?? 0;
+  const period = value?.period ?? 'PM';
 
   const formatted = useMemo(() => `${hour}:${pad2(minute)} ${period}`, [hour, minute, period]);
 
   function handleHourChange(e) {
     const value = Number(e.target.value);
-    setHour(value);
     onChange?.({ hour: value, minute, period, formatted });
   }
 
   function handleMinuteChange(e) {
     const value = Number(e.target.value);
-    setMinute(value);
     onChange?.({ hour, minute: value, period, formatted });
   }
 
   function handlePeriodChange(e) {
     const value = e.target.value;
-    setPeriod(value);
     onChange?.({ hour, minute, period: value, formatted });
   }
 
@@ -88,10 +83,10 @@ const TimePicker = ({
         </select>
       </div>
 
-      {/* Display time - only show on larger screens */}
-      <div className="hidden sm:flex flex-col items-center ml-2">
+      {/* Display time */}
+      <div className="flex flex-col items-center ml-2">
         <label className="text-xs font-medium text-gray-600 mb-1">Time</label>
-        <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 border border-blue-200 rounded-md text-blue-900 text-xs sm:text-sm font-semibold">
+        <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 border border-blue-200 rounded-md text-blue-900 text-xs sm:text-sm font-semibold min-w-[80px] text-center">
           {formatted}
         </div>
       </div>

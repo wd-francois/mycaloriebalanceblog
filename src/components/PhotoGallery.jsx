@@ -63,8 +63,11 @@ function groupPhotosByDate(entries) {
       grouped[dateKey] = [];
     }
     const capturedAt = entry.photo.capturedAt ? new Date(entry.photo.capturedAt) : entryDate;
+    const entryIdentifier = entry.entryId || entry.id || `${entryDate.valueOf()}`;
+    const displayKey = `${entryIdentifier}-${capturedAt.valueOf()}`;
     grouped[dateKey].push({
-      id: `${entry.id || entryDate.valueOf()}-${capturedAt.valueOf()}`,
+      key: displayKey,
+      entryId: entryIdentifier,
       image: entry.photo.dataUrl,
       entryName: entry.name || 'Untitled entry',
       entryType: entry.type || 'meal',
@@ -100,6 +103,7 @@ const PhotoGallery = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,14 +113,27 @@ const PhotoGallery = () => {
 
       try {
         await healthDB.init();
-        const dbEntries = await healthDB.getAllUserEntries();
+        let photoEntries = [];
+        if (typeof healthDB.getAllPhotoEntries === 'function') {
+          try {
+            photoEntries = await healthDB.getAllPhotoEntries();
+          } catch (photoError) {
+            console.warn('Unable to load dedicated photo entries, falling back to full entries.', photoError);
+          }
+        }
+
         if (!cancelled) {
-          const normalized = normalizeEntries(dbEntries);
-          if (normalized.length === 0) {
-            const fallback = normalizeEntries(loadEntriesFromLocalStorage());
-            setEntries(fallback);
+          if (Array.isArray(photoEntries) && photoEntries.some((entry) => entry?.photo?.dataUrl)) {
+            setEntries(normalizeEntries(photoEntries));
           } else {
-            setEntries(normalized);
+            const dbEntries = await healthDB.getAllUserEntries();
+            const normalized = normalizeEntries(dbEntries);
+            if (normalized.length === 0) {
+              const fallback = normalizeEntries(loadEntriesFromLocalStorage());
+              setEntries(fallback);
+            } else {
+              setEntries(normalized);
+            }
           }
         }
       } catch (dbError) {
@@ -141,6 +158,30 @@ const PhotoGallery = () => {
 
   const groupedPhotos = useMemo(() => groupPhotosByDate(entries), [entries]);
 
+  const handleDeletePhoto = async (entryId) => {
+    if (!entryId || deletingId) return;
+
+    const confirmed = window.confirm('Delete this photo from your gallery?');
+    if (!confirmed) return;
+
+    setDeletingId(entryId);
+    try {
+      await healthDB.init();
+      if (typeof healthDB.deletePhotoEntry === 'function') {
+        await healthDB.deletePhotoEntry(entryId);
+      }
+      if (typeof healthDB.removePhotoFromUserEntry === 'function') {
+        await healthDB.removePhotoFromUserEntry(entryId);
+      }
+      setEntries((prev) => prev.filter((entry) => (entry.entryId || entry.id) !== entryId));
+    } catch (deleteError) {
+      console.error('Error deleting gallery photo:', deleteError);
+      setError('Unable to delete that photo right now. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
@@ -151,17 +192,11 @@ const PhotoGallery = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Photo Gallery</h1>
-        <p className="text-gray-600">
-          Every photo you attach while logging entries is stored here, organized by the date and time of the entry.
+      {error && (
+        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-4 py-2">
+          {error}
         </p>
-        {error && (
-          <p className="mt-3 text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-4 py-2">
-            {error}
-          </p>
-        )}
-      </div>
+      )}
 
       {groupedPhotos.length === 0 ? (
         <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-8 text-center">
@@ -183,7 +218,7 @@ const PhotoGallery = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {group.photos.map((photo) => (
-                <article key={photo.id} className="border border-gray-200 rounded-xl overflow-hidden bg-white flex flex-col">
+                <article key={photo.key} className="border border-gray-200 rounded-xl overflow-hidden bg-white flex flex-col">
                   <div className="aspect-video bg-gray-100">
                     <img
                       src={photo.image}
@@ -192,12 +227,26 @@ const PhotoGallery = () => {
                       loading="lazy"
                     />
                   </div>
-                  <div className="p-4 space-y-1">
-                    <p className="text-sm font-medium text-gray-900">{photo.entryName}</p>
-                    <p className="text-xs text-gray-500">
-                      {getTypeLabel(photo.entryType)} • {photo.timeLabel}
-                    </p>
-                    <p className="text-xs text-gray-400">{photo.timestampLabel}</p>
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-gray-900">{photo.entryName}</p>
+                        <p className="text-xs text-gray-500">{photo.timestampLabel}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-red-100 text-red-700 rounded-full shadow-sm border border-red-200 hover:bg-red-200 disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap transition-colors"
+                        onClick={() => handleDeletePhoto(photo.entryId)}
+                        disabled={deletingId === photo.entryId}
+                        title="Delete photo"
+                        aria-label="Delete photo"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-9 0h10" />
+                        </svg>
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}

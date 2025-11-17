@@ -2,7 +2,7 @@
 class HealthDatabase {
   constructor() {
     this.dbName = 'HealthTrackerDB';
-    this.version = 1;
+    this.version = 2;
     this.db = null;
   }
 
@@ -50,6 +50,13 @@ class HealthDatabase {
         if (!db.objectStoreNames.contains('measurements')) {
           const measurementsStore = db.createObjectStore('measurements', { keyPath: 'id', autoIncrement: true });
           measurementsStore.createIndex('date', 'date', { unique: false });
+        }
+
+        // Create photo gallery store
+        if (!db.objectStoreNames.contains('entryPhotos')) {
+          const photosStore = db.createObjectStore('entryPhotos', { keyPath: 'id' });
+          photosStore.createIndex('date', 'date', { unique: false });
+          photosStore.createIndex('timestamp', 'timestamp', { unique: false });
         }
       };
     });
@@ -225,7 +232,7 @@ class HealthDatabase {
   async saveUserEntry(entry) {
     const transaction = this.db.transaction(['userEntries'], 'readwrite');
     const store = transaction.objectStore('userEntries');
-    return store.add(entry);
+    return store.put(entry);
   }
 
   async getUserEntries(date) {
@@ -255,6 +262,31 @@ class HealthDatabase {
     const transaction = this.db.transaction(['userEntries'], 'readwrite');
     const store = transaction.objectStore('userEntries');
     return store.delete(id);
+  }
+
+  async removePhotoFromUserEntry(entryId) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['userEntries'], 'readwrite');
+      const store = transaction.objectStore('userEntries');
+
+      const getRequest = store.get(entryId);
+      getRequest.onsuccess = () => {
+        const entry = getRequest.result;
+        if (!entry) {
+          resolve(false);
+          return;
+        }
+
+        if (entry.photo) {
+          delete entry.photo;
+        }
+
+        const updateRequest = store.put(entry);
+        updateRequest.onsuccess = () => resolve(true);
+        updateRequest.onerror = () => reject(updateRequest.error);
+      };
+      getRequest.onerror = () => reject(getRequest.error);
+    });
   }
 
   // Measurements Methods
@@ -303,6 +335,40 @@ class HealthDatabase {
     });
   }
 
+  // Photo Gallery Methods
+  async savePhotoEntry(photoEntry) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['entryPhotos'], 'readwrite');
+      const store = transaction.objectStore('entryPhotos');
+
+      const request = store.put(photoEntry);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async deletePhotoEntry(id) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['entryPhotos'], 'readwrite');
+      const store = transaction.objectStore('entryPhotos');
+
+      const request = store.delete(id);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getAllPhotoEntries() {
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['entryPhotos'], 'readonly');
+      const store = transaction.objectStore('entryPhotos');
+
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   // Migration from localStorage
   async migrateFromLocalStorage() {
     // Only run on client side
@@ -331,6 +397,18 @@ class HealthDatabase {
         // Save all entries to IndexedDB
         for (const entry of entries) {
           await this.saveUserEntry(entry);
+          if (entry.photo?.dataUrl) {
+            await this.savePhotoEntry({
+              id: entry.id,
+              entryId: entry.id,
+              date: entry.date,
+              time: entry.time,
+              type: entry.type,
+              name: entry.name,
+              photo: entry.photo,
+              timestamp: entry.photo.capturedAt || entry.date
+            });
+          }
         }
 
         // Clear localStorage after successful migration

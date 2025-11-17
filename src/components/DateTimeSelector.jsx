@@ -49,9 +49,18 @@ function calculateSleepDuration(bedtime, waketime) {
   }
 }
 
+function getCurrentTimeParts() {
+  const now = new Date();
+  const hours24 = now.getHours();
+  const hour = hours24 % 12 || 12;
+  const minute = now.getMinutes();
+  const period = hours24 >= 12 ? 'PM' : 'AM';
+  return { hour, minute, period };
+}
+
 const DateTimeSelector = () => {
   const [selectedDate, setSelectedDate] = useState(null);
-  const [time, setTime] = useState({ hour: 12, minute: 0, period: 'PM' });
+  const [time, setTime] = useState(() => getCurrentTimeParts());
   const [showModal, setShowModal] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -88,6 +97,42 @@ const DateTimeSelector = () => {
   });
   const cameraInputRef = useRef(null);
   const uploadInputRef = useRef(null);
+  const [photoSaveMessage, setPhotoSaveMessage] = useState('');
+  const [photoSaveError, setPhotoSaveError] = useState('');
+
+  const buildPhotoRecord = (entry) => {
+    if (!entry?.photo?.dataUrl) return null;
+    const entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
+    const timestamp = entry.photo?.capturedAt ? new Date(entry.photo.capturedAt) : entryDate;
+
+    return {
+      id: entry.id,
+      entryId: entry.id,
+      date: entryDate.toISOString(),
+      time: entry.time,
+      type: entry.type,
+      name: entry.name,
+      photo: entry.photo,
+      timestamp: timestamp.toISOString()
+    };
+  };
+
+  const syncPhotoEntry = async (entry, hadPhotoBefore = false) => {
+    if (!isDBInitialized || !entry) return;
+
+    try {
+      if (entry.photo?.dataUrl) {
+        const photoRecord = buildPhotoRecord(entry);
+        if (photoRecord) {
+          await healthDB.savePhotoEntry(photoRecord);
+        }
+      } else if (hadPhotoBefore) {
+        await healthDB.deletePhotoEntry(entry.id);
+      }
+    } catch (error) {
+      console.error('Error syncing entry photo:', error);
+    }
+  };
 
 
   // Local storage functions
@@ -169,6 +214,12 @@ const DateTimeSelector = () => {
       console.error('Error loading settings from localStorage:', error);
     }
   }, []);
+
+  useEffect(() => {
+    if (showModal && formState.id == null) {
+      setTime(getCurrentTimeParts());
+    }
+  }, [showModal, formState.id]);
 
   // Ensure measurements are always enabled
   useEffect(() => {
@@ -588,8 +639,9 @@ const DateTimeSelector = () => {
 
     if (data.id == null) {
       // Add new entry
+      const generatedId = data.photo?.tempId || Date.now();
       const newEntry = {
-        id: Date.now(),
+        id: generatedId,
         name,
         type: activeForm,
         date: selectedDate,
@@ -657,6 +709,7 @@ const DateTimeSelector = () => {
         if (isDBInitialized) {
           await healthDB.saveUserEntry(newEntry);
           console.log('Entry saved to IndexedDB:', newEntry);
+          await syncPhotoEntry(newEntry, false);
         }
       } catch (error) {
         console.error('Error saving entry to IndexedDB:', error);
@@ -670,6 +723,9 @@ const DateTimeSelector = () => {
       resetForm();
     } else {
       // Update existing
+      const existingEntriesForDate = entries[dateKey] || [];
+      const previousEntry = existingEntriesForDate.find(e => e.id === data.id);
+      const hadPhotoBefore = !!previousEntry?.photo;
       const updatedEntry = {
         id: data.id,
         name, 
@@ -718,6 +774,7 @@ const DateTimeSelector = () => {
         if (isDBInitialized) {
           await healthDB.saveUserEntry(updatedEntry);
           console.log('Entry updated in IndexedDB:', updatedEntry);
+          await syncPhotoEntry(updatedEntry, hadPhotoBefore);
         }
       } catch (error) {
         console.error('Error updating entry in IndexedDB:', error);
@@ -727,6 +784,9 @@ const DateTimeSelector = () => {
   }
 
   function handleEdit(entry) {
+    if (entry.time) {
+      setTime(entry.time);
+    }
     setFormState({
       id: entry.id,
       name: entry.name,
@@ -795,6 +855,7 @@ const DateTimeSelector = () => {
         setFormError('Unable to read the selected photo. Please try again.');
         return;
       }
+      const generatedId = formState.id || Date.now();
       setFormState(prev => ({
         ...prev,
         photo: {
@@ -803,10 +864,13 @@ const DateTimeSelector = () => {
           size: file.size,
           type: file.type,
           source,
-          capturedAt: new Date().toISOString()
+          capturedAt: new Date().toISOString(),
+          tempId: generatedId
         }
       }));
       setFormError('');
+      setPhotoSaveMessage('');
+      setPhotoSaveError('');
     };
     reader.onerror = () => {
       setFormError('Unable to read the selected photo. Please try again.');
@@ -817,6 +881,8 @@ const DateTimeSelector = () => {
 
   const removePhoto = () => {
     setFormState(prev => ({ ...prev, photo: null }));
+    setPhotoSaveMessage('');
+    setPhotoSaveError('');
   };
 
   const triggerCameraCapture = () => {
@@ -825,6 +891,53 @@ const DateTimeSelector = () => {
 
   const triggerPhotoUpload = () => {
     uploadInputRef.current?.click();
+  };
+
+  const handleSavePhotoToGallery = async () => {
+    if (!formState.photo?.dataUrl) {
+      setPhotoSaveError('Attach a photo before saving to the gallery.');
+      return;
+    }
+
+    if (!selectedDate) {
+      setPhotoSaveError('Select a date before saving the photo.');
+      return;
+    }
+
+    if (!isDBInitialized) {
+      setPhotoSaveError('Storage is still initializing. Please try again in a moment.');
+      return;
+    }
+
+    const entryId = formState.id || formState.photo.tempId || Date.now();
+    const normalizedPhoto = {
+      ...formState.photo,
+      tempId: entryId
+    };
+
+    setFormState(prev => ({
+      ...prev,
+      photo: normalizedPhoto
+    }));
+
+    const tempEntry = {
+      id: entryId,
+      name: formState.name?.trim() || 'Untitled entry',
+      type: activeForm,
+      date: selectedDate,
+      time,
+      photo: normalizedPhoto
+    };
+
+    try {
+      await syncPhotoEntry(tempEntry, false);
+      setPhotoSaveMessage('Photo saved to gallery.');
+      setPhotoSaveError('');
+      setTimeout(() => setPhotoSaveMessage(''), 3000);
+    } catch (error) {
+      console.error('Error saving photo to gallery:', error);
+      setPhotoSaveError('Unable to save photo right now. Please try again.');
+    }
   };
 
   // Functions to handle individual sets
@@ -860,6 +973,12 @@ const DateTimeSelector = () => {
     }));
     if (formState.id === id) {
       resetForm();
+    }
+
+    if (isDBInitialized) {
+      healthDB.deletePhotoEntry(id).catch(error => {
+        console.error('Error deleting entry photo:', error);
+      });
     }
   }
 
@@ -1161,17 +1280,17 @@ const DateTimeSelector = () => {
                   <div className="text-lg font-bold text-gray-900 truncate pr-2">
                     {headerText}
                   </div>
-                  
-                  {/* Export Button */}
                   <button
-                    onClick={exportToCSV}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                    title="Export daily entries"
+                    type="button"
+                    onClick={() => setShowSettings(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200 border border-blue-100"
+                    title="Open settings"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Export
+                    Settings
                   </button>
                 </div>
               </div>
@@ -1187,7 +1306,16 @@ const DateTimeSelector = () => {
                 <form className="space-y-4">
                   <div className="grid grid-cols-1 gap-3 sm:gap-4">
                     <div>
-                      {isClient && <TimePicker onChange={setTime} />}
+                      {isClient && (
+                        <TimePicker
+                          value={time}
+                          onChange={(newTime) => setTime({
+                            hour: newTime.hour,
+                            minute: newTime.minute,
+                            period: newTime.period
+                          })}
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -1283,6 +1411,27 @@ const DateTimeSelector = () => {
                         Upload Photo
                       </button>
                     </div>
+
+                    {formState.photo && (
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <button
+                          type="button"
+                          onClick={handleSavePhotoToGallery}
+                          className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-green-200 bg-green-50 text-green-700 font-medium hover:bg-green-100 transition-colors duration-200"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Save Photo to Gallery
+                        </button>
+                        {photoSaveMessage && (
+                          <span className="text-sm text-green-600 flex items-center">{photoSaveMessage}</span>
+                        )}
+                        {!photoSaveMessage && photoSaveError && (
+                          <span className="text-sm text-red-600 flex items-center">{photoSaveError}</span>
+                        )}
+                      </div>
+                    )}
 
                     {formState.photo ? (
                       <div>
@@ -1886,13 +2035,25 @@ const DateTimeSelector = () => {
 
               {/* Entries List */}
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <h3 className="text-lg font-semibold text-gray-900">Entries</h3>
-                  {currentDateEntries.length > 0 && (
-                    <span className="text-sm text-gray-500">
-                      {currentDateEntries.length} entry{currentDateEntries.length !== 1 ? 's' : ''}
-                    </span>
-                  )}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-gray-900">Entries</h3>
+                    {currentDateEntries.length > 0 && (
+                      <span className="text-sm text-gray-500">
+                        {currentDateEntries.length} entry{currentDateEntries.length !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={exportToCSV}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200 w-fit"
+                    title="Export daily entries"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export
+                  </button>
                 </div>
                 
                 <GroupedEntries 
