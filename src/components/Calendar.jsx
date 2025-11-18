@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function getMonthMatrix(year, month) {
   const firstOfMonth = new Date(year, month, 1);
   const startDayOfWeek = firstOfMonth.getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const leadingEmpty = startDayOfWeek;
+  // Convert Sunday (0) to 6, Monday (1) to 0, etc. to make Monday the first day
+  const leadingEmpty = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
   const totalCells = leadingEmpty + daysInMonth;
   const weeks = Math.ceil(totalCells / 7);
 
@@ -40,6 +41,8 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   const [selectedKey, setSelectedKey] = useState(
     `${initial.getFullYear()}-${initial.getMonth()}-${initial.getDate()}`
   );
+  const [hoveredDate, setHoveredDate] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (selectedDate instanceof Date) {
@@ -59,6 +62,20 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   const isToday = (date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
+  };
+
+  // Count entries by type for a given date
+  const getEntryCounts = (date) => {
+    const dateKey = date.toDateString();
+    const dateEntries = entries[dateKey] || [];
+    
+    return {
+      meal: dateEntries.filter(e => e.type === 'meal').length,
+      sleep: dateEntries.filter(e => e.type === 'sleep').length,
+      measurements: dateEntries.filter(e => e.type === 'measurements').length,
+      exercise: dateEntries.filter(e => e.type === 'exercise').length,
+      total: dateEntries.length
+    };
   };
 
   function goPrevMonth() {
@@ -123,7 +140,6 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
         {monthMatrix.map((week) =>
           week.map((cell) => {
             const isSelected = cell.key === selectedKey;
-            const hasEntriesForDay = hasEntries(cell.date);
             const isTodayDate = isToday(cell.date);
             
             const baseClasses = 'py-2 sm:py-3 px-1 rounded-lg cursor-pointer select-none transition-all duration-200 relative touch-manipulation min-h-[32px] sm:min-h-[36px] flex items-center justify-center';
@@ -139,10 +155,13 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
               stateClasses = 'text-gray-400 hover:bg-gray-50';
             }
 
+            const entryCounts = getEntryCounts(cell.date);
+            const hasAnyEntries = entryCounts.total > 0;
+
             return (
               <div
                 key={cell.key}
-                className={`${baseClasses} ${stateClasses}`}
+                className={`${baseClasses} ${stateClasses} relative`}
                 onClick={() => {
                   setSelectedKey(cell.key);
                   // If clicking an outside day, also update the visible month to match
@@ -153,6 +172,19 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                   if (typeof onSelectDate === 'function') {
                     onSelectDate(cell.date);
                   }
+                }}
+                onMouseEnter={(e) => {
+                  if (hasAnyEntries) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setTooltipPosition({
+                      x: rect.left + rect.width / 2,
+                      y: rect.top - 10
+                    });
+                    setHoveredDate(cell.date);
+                  }
+                }}
+                onMouseLeave={() => {
+                  setHoveredDate(null);
                 }}
                 aria-selected={isSelected}
                 role="gridcell"
@@ -170,38 +202,72 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                   <span className={`font-medium ${isTodayDate && !isSelected ? 'text-blue-700' : ''}`}>
                     {cell.dayNumber}
                   </span>
-                  
-                  {/* Entry indicator */}
-                  {hasEntriesForDay && (
-                    <div className={`w-2 h-2 rounded-full mt-1 ${
-                      isSelected ? 'bg-white' : 'bg-blue-500'
-                    }`}></div>
-                  )}
-                  
-                  {/* Today indicator */}
-                  {isTodayDate && !isSelected && (
-                    <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
-                  )}
                 </div>
               </div>
             );
           })
         )}
       </div>
-      
-      {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span>Has entries</span>
+
+      {/* Tooltip */}
+      {hoveredDate && (() => {
+        const counts = getEntryCounts(hoveredDate);
+        return (
+          <div
+            className="fixed z-50 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg pointer-events-none"
+            style={{
+              left: `${tooltipPosition.x}px`,
+              top: `${tooltipPosition.y}px`,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
+            <div className="space-y-1">
+              <div className="text-sm font-bold mb-2 pb-1 border-b border-gray-700">
+                Entries
+              </div>
+              {counts.meal > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">Meals:</span>
+                  <span>{counts.meal}</span>
+                </div>
+              )}
+              {counts.sleep > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">Sleep:</span>
+                  <span>{counts.sleep}</span>
+                </div>
+              )}
+              {counts.measurements > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">Measurements:</span>
+                  <span>{counts.measurements}</span>
+                </div>
+              )}
+              {counts.exercise > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">Exercise:</span>
+                  <span>{counts.exercise}</span>
+                </div>
+              )}
+              <div className="pt-1 border-t border-gray-700 mt-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">Total:</span>
+                  <span>{counts.total}</span>
+                </div>
+              </div>
+            </div>
+            {/* Arrow pointing down */}
+            <div
+              className="absolute left-1/2 top-full -translate-x-1/2"
+              style={{
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: '6px solid rgb(17, 24, 39)',
+              }}
+            />
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span>Today</span>
-          </div>
-        </div>
-      </div>
+        );
+      })()}
     </div>
   );
 };

@@ -1,0 +1,70 @@
+---
+// Top navigation component for mobile and desktop
+import { Icon } from 'astro-icon/components';
+
+// Get current URL to determine active state
+const currentUrl = Astro.url.pathname;
+---
+
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex justify-end items-center py-2">
+      <!-- Settings -->
+      <a 
+        href="/settings/" 
+        class={`flex flex-col items-center justify-center py-2 px-3 min-h-[60px] min-w-[60px] transition-all duration-200 group ${
+          currentUrl === '/settings/' 
+            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg' 
+            : 'text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
+        }`}
+        aria-label="Settings"
+      >
+        <svg 
+          class={`w-6 h-6 mb-1 transition-all duration-200 ${
+            currentUrl === '/settings/' 
+              ? 'scale-110' 
+              : 'group-hover:scale-110'
+          }`}
+          fill={currentUrl === '/settings/' ? 'currentColor' : 'none'} 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
+          />
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+          />
+        </svg>
+        <span class={`text-xs font-medium ${currentUrl === '/settings/' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Settings</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Add padding to prevent content from being hidden behind the fixed top nav -->
+<style>
+  /* Add padding to the page when top nav is present */
+  :global(body:has(.top-nav-present)) {
+    padding-top: 80px;
+  }
+  
+  /* Alternative approach for browsers that don't support :has() */
+  :global(.top-nav-present) {
+    padding-top: 80px;
+  }
+  
+  /* Ensure proper spacing for mobile devices */
+  @media (max-width: 768px) {
+    :global(body:has(.top-nav-present) main) {
+      margin-top: 80px;
+    }
+  }
+</style>
+

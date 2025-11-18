@@ -1,6 +1,7 @@
 ---
 import "@styles/global.css";
 import BottomNavigation from "@components/common/BottomNavigation.astro";
+import TopNavigation from "@components/common/TopNavigation.astro";
 import SEO from "@components/common/SEO.astro";
 import { siteConfig } from '@config/site';
 
@@ -21,6 +22,7 @@ interface Props {
   tags?: string[];
   categories?: string[];
   showBottomNav?: boolean;
+  showTopNav?: boolean;
   showFooter?: boolean;
   showHeader?: boolean;
 }
@@ -36,6 +38,7 @@ const {
   publishDate,
   modifiedDate,
   showBottomNav = false,
+  showTopNav = false,
   showFooter = true,
   showHeader = true,
   author,
@@ -207,7 +210,7 @@ const {
   
     
   </head>
-  <body class={`bg-white dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col ${showBottomNav ? 'bottom-nav-present' : ''}`}>
+  <body class={`bg-white dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col ${showBottomNav ? 'bottom-nav-present' : ''} ${showTopNav ? 'top-nav-present' : ''}`}>
     <!-- Script to prevent FOUC - TEMPORARILY DISABLED FOR DEBUGGING -->
     <!-- <script is:inline>
       // Remove loading class when CSS is loaded
@@ -271,6 +274,10 @@ const {
         setTimeout(revealContent, 10);
       });
     </script> -->
+    
+    <!-- Top Navigation -->
+    {showTopNav && <TopNavigation />}
+    
     <!-- Main content area with conditional width -->
     <main class="flex-grow w-full">
       <div class={wideContent ? "w-full" : "max-w-5xl mx-auto px-4 sm:px-6"}>
