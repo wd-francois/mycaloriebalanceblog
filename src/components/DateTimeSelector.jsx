@@ -460,6 +460,28 @@ const DateTimeSelector = () => {
     return formatDate(selectedDate);
   }, [selectedDate]);
 
+  // Prevent body scroll when info modal is open
+  useEffect(() => {
+    if (showInfoModal) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+      // Prevent body scroll
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        // Restore scroll position
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [showInfoModal]);
+
   // Get entries for the current selected date
   const currentDateEntries = useMemo(() => {
     if (!selectedDate) return [];
@@ -1280,194 +1302,204 @@ const DateTimeSelector = () => {
                   <div className="text-lg font-bold text-gray-900 truncate pr-2">
                     {headerText}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowSettings(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200 border border-blue-100"
-                    title="Open settings"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Settings
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSettings(true)}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200 border border-blue-100"
+                      title="Open settings"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Settings
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-24">
               {/* Entry Form */}
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="w-full max-w-[380px] md:max-w-4xl mx-auto border border-gray-200 rounded-3xl overflow-hidden shadow-lg bg-white p-6 md:p-8 space-y-6">
+                <h2 className="text-xl md:text-2xl font-semibold">
                   {formState.id == null ? `Add New ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry` : `Edit ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry`}
-                </h3>
+                </h2>
                 
-                <form className="space-y-4">
-                  <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                    <div>
-                      {isClient && (
-                        <TimePicker
-                          value={time}
-                          onChange={(newTime) => setTime({
-                            hour: newTime.hour,
-                            minute: newTime.minute,
-                            period: newTime.period
-                          })}
-                        />
-                      )}
+                <form className="space-y-6">
+                  {/* Desktop Layout: Side by side */}
+                  <div className="md:grid md:grid-cols-2 md:gap-6 md:space-y-0 space-y-6">
+                    {/* Left Column */}
+                    <div className="space-y-6">
+                      {/* Time Picker */}
+                      <div className="bg-gray-50 p-4 md:p-5 rounded-2xl space-y-2">
+                        <label className="text-sm font-medium text-gray-600">Time</label>
+                        {isClient && (
+                          <div className="flex items-center gap-3">
+                            <select 
+                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base"
+                              value={time.hour}
+                              onChange={(e) => setTime({ ...time, hour: Number(e.target.value) })}
+                            >
+                              {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+                                <option key={h} value={h}>{h}</option>
+                              ))}
+                            </select>
+                            <select 
+                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base"
+                              value={time.minute}
+                              onChange={(e) => setTime({ ...time, minute: Number(e.target.value) })}
+                            >
+                              {Array.from({ length: 60 }, (_, i) => i).map((m) => (
+                                <option key={m} value={m}>{m.toString().padStart(2, '0')}</option>
+                              ))}
+                            </select>
+                            <select 
+                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base"
+                              value={time.period}
+                              onChange={(e) => setTime({ ...time, period: e.target.value })}
+                            >
+                              <option value="AM">AM</option>
+                              <option value="PM">PM</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="grid grid-cols-3 gap-3">
+                        {settings.enableMeals && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveForm('meal');
+                              setShowMealInput(true);
+                            }}
+                            className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
+                              activeForm === 'meal'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            Meal
+                          </button>
+                        )}
+                        {settings.enableSleep && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveForm('sleep');
+                              setShowSleepInput(true);
+                            }}
+                            className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
+                              activeForm === 'sleep'
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            Sleep
+                          </button>
+                        )}
+                        {settings.enableMeasurements && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveForm('measurements');
+                              setShowMeasurementsInput(true);
+                            }}
+                            className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
+                              activeForm === 'measurements'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            Measure
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex flex-wrap gap-3 pt-2">
-                    {settings.enableMeals && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveForm('meal');
-                          setShowMealInput(true);
-                        }}
-                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                          activeForm === 'meal'
-                            ? 'bg-blue-600 text-white shadow-md'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        Add Meal
-                      </button>
-                    )}
-                    {settings.enableSleep && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveForm('sleep');
-                          setShowSleepInput(true);
-                        }}
-                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                          activeForm === 'sleep'
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        Add Sleep
-                      </button>
-                    )}
-                    {settings.enableMeasurements && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveForm('measurements');
-                          setShowMeasurementsInput(true);
-                        }}
-                        className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                          activeForm === 'measurements'
-                            ? 'bg-green-600 text-white shadow-md'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        Add Measurements
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="bg-white border border-dashed border-gray-300 rounded-xl p-4 space-y-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-base font-medium text-gray-900">Attach Photo (optional)</p>
-                        <p className="text-sm text-gray-500">Capture what you&apos;re logging or choose a saved picture.</p>
+                    {/* Right Column - Photo Upload */}
+                    <div className="border border-gray-200 rounded-2xl p-4 md:p-5 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-sm md:text-base font-medium text-gray-700">Attach Photo (optional)</p>
+                        {formState.photo && (
+                          <button
+                            type="button"
+                            onClick={removePhoto}
+                            className="text-sm text-red-600 hover:text-red-700 font-medium"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={triggerCameraCapture}
+                          className="flex-1 border border-gray-300 py-3 md:py-4 rounded-xl font-medium text-gray-700 active:scale-[0.97] transition-all hover:bg-gray-50 text-sm md:text-base"
+                        >
+                          📷 Take Photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={triggerPhotoUpload}
+                          className="flex-1 border border-gray-300 py-3 md:py-4 rounded-xl font-medium text-gray-700 active:scale-[0.97] transition-all hover:bg-gray-50 text-sm md:text-base"
+                        >
+                          ⬆️ Upload Photo
+                        </button>
                       </div>
                       {formState.photo && (
-                        <button
-                          type="button"
-                          onClick={removePhoto}
-                          className="text-sm text-red-600 hover:text-red-700 font-medium"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <button
-                        type="button"
-                        onClick={triggerCameraCapture}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 transition-colors duration-200"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8h4l2-3h6l2 3h4v11H3V8z" />
-                          <circle cx="12" cy="13" r="3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        Take Photo
-                      </button>
-                      <button
-                        type="button"
-                        onClick={triggerPhotoUpload}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a4 4 0 010 8H7z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 12v9m0 0l-3-3m3 3l3-3" />
-                        </svg>
-                        Upload Photo
-                      </button>
-                    </div>
-
-                    {formState.photo && (
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <button
-                          type="button"
-                          onClick={handleSavePhotoToGallery}
-                          className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-green-200 bg-green-50 text-green-700 font-medium hover:bg-green-100 transition-colors duration-200"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                          Save Photo to Gallery
-                        </button>
-                        {photoSaveMessage && (
-                          <span className="text-sm text-green-600 flex items-center">{photoSaveMessage}</span>
-                        )}
-                        {!photoSaveMessage && photoSaveError && (
-                          <span className="text-sm text-red-600 flex items-center">{photoSaveError}</span>
-                        )}
-                      </div>
-                    )}
-
-                    {formState.photo ? (
-                      <div>
-                        <div className="relative rounded-lg overflow-hidden border border-gray-200">
-                          <img
-                            src={formState.photo.dataUrl}
-                            alt="Entry attachment preview"
-                            className="w-full max-h-80 object-cover"
-                          />
+                        <div className="mt-3">
+                          <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                            <img
+                              src={formState.photo.dataUrl}
+                              alt="Entry attachment preview"
+                              className="w-full max-h-80 object-cover"
+                            />
+                          </div>
+                          <p className="mt-2 text-xs text-gray-600">
+                            {formState.photo.name ? `${formState.photo.name} • ` : ''}
+                            {new Date(formState.photo.capturedAt).toLocaleString()}
+                          </p>
+                          <div className="mt-3">
+                            <button
+                              type="button"
+                              onClick={handleSavePhotoToGallery}
+                              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-green-200 bg-green-50 text-green-700 font-medium hover:bg-green-100 transition-colors duration-200 text-sm"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                              Save Photo to Gallery
+                            </button>
+                            {photoSaveMessage && (
+                              <span className="ml-2 text-sm text-green-600">{photoSaveMessage}</span>
+                            )}
+                            {!photoSaveMessage && photoSaveError && (
+                              <span className="ml-2 text-sm text-red-600">{photoSaveError}</span>
+                            )}
+                          </div>
                         </div>
-                        <p className="mt-2 text-xs text-gray-600">
-                          {formState.photo.name ? `${formState.photo.name} • ` : ''}
-                          {new Date(formState.photo.capturedAt).toLocaleString()}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-500">
-                        Images are stored with your entry so you can revisit them later in the gallery.
-                      </p>
-                    )}
+                      )}
 
-                    <input
-                      ref={cameraInputRef}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      className="hidden"
-                      onChange={(event) => handlePhotoSelection(event, 'camera')}
-                    />
-                    <input
-                      ref={uploadInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(event) => handlePhotoSelection(event, 'library')}
-                    />
+                      <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(event) => handlePhotoSelection(event, 'camera')}
+                      />
+                      <input
+                        ref={uploadInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(event) => handlePhotoSelection(event, 'library')}
+                      />
+                    </div>
                   </div>
 
 
@@ -2034,52 +2066,54 @@ const DateTimeSelector = () => {
               </div>
 
               {/* Entries List */}
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-semibold text-gray-900">Entries</h3>
-                    {currentDateEntries.length > 0 && (
-                      <span className="text-sm text-gray-500">
-                        {currentDateEntries.length} entry{currentDateEntries.length !== 1 ? 's' : ''}
-                      </span>
-                    )}
+              <div className="mt-8 md:mt-10">
+                <div className="w-full max-w-[380px] md:max-w-4xl mx-auto border border-gray-200 rounded-3xl overflow-hidden shadow-lg bg-white p-6 md:p-8 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-900">Entries</h3>
+                      {currentDateEntries.length > 0 && (
+                        <span className="text-sm text-gray-500">
+                          {currentDateEntries.length} entry{currentDateEntries.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={exportToCSV}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200 w-fit"
+                      title="Export daily entries"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Export
+                    </button>
                   </div>
-                  <button
-                    onClick={exportToCSV}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200 w-fit"
-                    title="Export daily entries"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Export
-                  </button>
+                  
+                  <GroupedEntries 
+                    entries={currentDateEntries.filter(entry => {
+                      // Filter entries based on enabled features
+                      if (entry.type === 'meal' && !settings.enableMeals) return false;
+                      if (entry.type === 'exercise' && !settings.enableExercise) return false;
+                      if (entry.type === 'sleep' && !settings.enableSleep) return false;
+                      if (entry.type === 'measurements' && !settings.enableMeasurements) return false;
+                      return true;
+                    })}
+                    formatTime={formatTime}
+                    settings={settings}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onInfoClick={handleInfoClick}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  />
                 </div>
-                
-                <GroupedEntries 
-                  entries={currentDateEntries.filter(entry => {
-                    // Filter entries based on enabled features
-                    if (entry.type === 'meal' && !settings.enableMeals) return false;
-                    if (entry.type === 'exercise' && !settings.enableExercise) return false;
-                    if (entry.type === 'sleep' && !settings.enableSleep) return false;
-                    if (entry.type === 'measurements' && !settings.enableMeasurements) return false;
-                    return true;
-                  })}
-                  formatTime={formatTime}
-                  settings={settings}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onInfoClick={handleInfoClick}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                />
               </div>
 
 
               {/* Close modal */}
-              <div className="mt-8 sm:mt-12 text-center">
+              <div className="mt-8 sm:mt-12 pb-8 text-center">
                 <button
                   className="inline-flex items-center px-6 sm:px-8 py-3 bg-gray-200 text-gray-900 font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                   onClick={closeModal}
@@ -2098,9 +2132,9 @@ const DateTimeSelector = () => {
 
       {/* Information Modal */}
       {showInfoModal && selectedEntry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ overflow: 'hidden' }}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleInfoCancel} />
-          <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl mx-4">
+          <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl mx-4 max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">

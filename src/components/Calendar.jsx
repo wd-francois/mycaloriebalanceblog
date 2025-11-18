@@ -42,13 +42,53 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
     `${initial.getFullYear()}-${initial.getMonth()}-${initial.getDate()}`
   );
   const [hoveredDate, setHoveredDate] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0, above: true });
+  const [touchTimeout, setTouchTimeout] = useState(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [lastTouchTime, setLastTouchTime] = useState(0);
 
   useEffect(() => {
     if (selectedDate instanceof Date) {
       setSelectedKey(`${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${selectedDate.getDate()}`);
     }
   }, [selectedDate]);
+
+  // Detect touch device
+  useEffect(() => {
+    const checkTouchDevice = () => {
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    checkTouchDevice();
+    window.addEventListener('resize', checkTouchDevice);
+    return () => window.removeEventListener('resize', checkTouchDevice);
+  }, []);
+
+  // Hide tooltip when clicking outside (for mobile)
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (hoveredDate && !e.target.closest('[role="gridcell"]')) {
+        setHoveredDate(null);
+        if (touchTimeout) {
+          clearTimeout(touchTimeout);
+          setTouchTimeout(null);
+        }
+      }
+    };
+    
+    if (hoveredDate) {
+      // Add a small delay to avoid hiding immediately on the same touch
+      const timer = setTimeout(() => {
+        document.addEventListener('click', handleClickOutside, true);
+        document.addEventListener('touchstart', handleClickOutside, true);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('click', handleClickOutside, true);
+        document.removeEventListener('touchstart', handleClickOutside, true);
+      };
+    }
+  }, [hoveredDate, touchTimeout]);
 
   const monthMatrix = useMemo(() => getMonthMatrix(viewYear, viewMonth), [viewYear, viewMonth]);
 
@@ -162,7 +202,20 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
               <div
                 key={cell.key}
                 className={`${baseClasses} ${stateClasses} relative`}
-                onClick={() => {
+                onClick={(e) => {
+                  // On touch devices, delay hiding tooltip if it was just shown
+                  const timeSinceTouch = Date.now() - lastTouchTime;
+                  const shouldHideTooltip = !isTouchDevice || timeSinceTouch > 300;
+                  
+                  if (shouldHideTooltip) {
+                    // Hide tooltip when clicking
+                    if (touchTimeout) {
+                      clearTimeout(touchTimeout);
+                      setTouchTimeout(null);
+                    }
+                    setHoveredDate(null);
+                  }
+                  
                   setSelectedKey(cell.key);
                   // If clicking an outside day, also update the visible month to match
                   if (!cell.inCurrentMonth) {
@@ -176,15 +229,82 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                 onMouseEnter={(e) => {
                   if (hasAnyEntries) {
                     const rect = e.currentTarget.getBoundingClientRect();
-                    setTooltipPosition({
-                      x: rect.left + rect.width / 2,
-                      y: rect.top - 10
-                    });
+                    const viewportWidth = window.innerWidth;
+                    
+                    // Calculate tooltip position (centered above the cell)
+                    let x = rect.left + rect.width / 2;
+                    let y = rect.top - 10;
+                    
+                    // Ensure tooltip doesn't go off-screen horizontally
+                    const tooltipWidth = 150; // Approximate tooltip width
+                    if (x - tooltipWidth / 2 < 10) {
+                      x = tooltipWidth / 2 + 10;
+                    } else if (x + tooltipWidth / 2 > viewportWidth - 10) {
+                      x = viewportWidth - tooltipWidth / 2 - 10;
+                    }
+                    
+                    // Ensure tooltip doesn't go off-screen vertically (show below if needed)
+                    const tooltipHeight = 150; // Approximate tooltip height
+                    let above = true;
+                    if (y - tooltipHeight < 10) {
+                      y = rect.bottom + 10;
+                      above = false;
+                    }
+                    
+                    setTooltipPosition({ x, y, above });
                     setHoveredDate(cell.date);
                   }
                 }}
                 onMouseLeave={() => {
                   setHoveredDate(null);
+                }}
+                onTouchStart={(e) => {
+                  if (hasAnyEntries) {
+                    // Record touch time
+                    setLastTouchTime(Date.now());
+                    
+                    // Clear any existing timeout
+                    if (touchTimeout) {
+                      clearTimeout(touchTimeout);
+                    }
+                    
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    
+                    // Calculate tooltip position (centered above the cell)
+                    let x = rect.left + rect.width / 2;
+                    let y = rect.top - 10;
+                    
+                    // Ensure tooltip doesn't go off-screen horizontally
+                    const tooltipWidth = 150; // Approximate tooltip width
+                    if (x - tooltipWidth / 2 < 10) {
+                      x = tooltipWidth / 2 + 10;
+                    } else if (x + tooltipWidth / 2 > viewportWidth - 10) {
+                      x = viewportWidth - tooltipWidth / 2 - 10;
+                    }
+                    
+                    // Ensure tooltip doesn't go off-screen vertically (show below if needed)
+                    const tooltipHeight = 150; // Approximate tooltip height
+                    let above = true;
+                    if (y - tooltipHeight < 10) {
+                      y = rect.bottom + 10;
+                      above = false;
+                    }
+                    
+                    setTooltipPosition({ x, y, above });
+                    setHoveredDate(cell.date);
+                    
+                    // Hide tooltip after 4 seconds on mobile (longer so user can see it)
+                    const timeout = setTimeout(() => {
+                      setHoveredDate(null);
+                      setTouchTimeout(null);
+                    }, 4000);
+                    setTouchTimeout(timeout);
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  // Don't prevent default - allow click to work normally
+                  // Tooltip will auto-hide after timeout set in onTouchStart
                 }}
                 aria-selected={isSelected}
                 role="gridcell"
@@ -214,11 +334,11 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
         const counts = getEntryCounts(hoveredDate);
         return (
           <div
-            className="fixed z-50 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg pointer-events-none"
+            className="fixed z-[9999] px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg pointer-events-none"
             style={{
               left: `${tooltipPosition.x}px`,
               top: `${tooltipPosition.y}px`,
-              transform: 'translate(-50%, -100%)',
+              transform: tooltipPosition.above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
             }}
           >
             <div className="space-y-1">
@@ -256,15 +376,26 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                 </div>
               </div>
             </div>
-            {/* Arrow pointing down */}
-            <div
-              className="absolute left-1/2 top-full -translate-x-1/2"
-              style={{
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: '6px solid rgb(17, 24, 39)',
-              }}
-            />
+            {/* Arrow pointing down or up */}
+            {tooltipPosition.above ? (
+              <div
+                className="absolute left-1/2 top-full -translate-x-1/2"
+                style={{
+                  borderLeft: '6px solid transparent',
+                  borderRight: '6px solid transparent',
+                  borderTop: '6px solid rgb(17, 24, 39)',
+                }}
+              />
+            ) : (
+              <div
+                className="absolute left-1/2 bottom-full -translate-x-1/2"
+                style={{
+                  borderLeft: '6px solid transparent',
+                  borderRight: '6px solid transparent',
+                  borderBottom: '6px solid rgb(17, 24, 39)',
+                }}
+              />
+            )}
           </div>
         );
       })()}

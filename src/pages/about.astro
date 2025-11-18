@@ -3,6 +3,23 @@ import Layout from '@layouts/Layout.astro';
 import { siteConfig } from '@config/site';
 ---
 
+<script is:inline>
+  // Prevent auto-scroll on page load
+  if (typeof window !== 'undefined') {
+    window.addEventListener('load', function() {
+      window.scrollTo(0, 0);
+    });
+    // Also prevent scroll during page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        window.scrollTo(0, 0);
+      });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
+</script>
+
 <Layout
   title="About - Food Diary App"
   description="Learn about our food diary app designed to make tracking your meals simple, fast, and meaningful."
@@ -10,34 +27,34 @@ import { siteConfig } from '@config/site';
   wideContent={true}
 >
   <main class="w-full py-6 sm:py-10 lg:py-12">
-    <!-- Page Header -->
+    <!-- Frequent Questions -->
     <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 sm:mb-16 lg:mb-20">
-      <div class="relative mb-4 sm:mb-6">
-        <div class="absolute top-0 right-0">
-          <a
-            href="/"
-            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-            title="Close"
-          >
-            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </a>
-        </div>
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white text-center">
-          About
-        </h1>
-      </div>
-        
-        <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-8 sm:mb-10 leading-relaxed">
-          This food diary app is designed to make tracking your meals simple, fast, and meaningful. Log your food in seconds, view clear nutritional insights, and build healthier habits without the overwhelm. Whether your goal is weight management, improved performance, or just better awareness of what you eat, this app helps you stay consistent, informed, and in control.
-        </p>
-        
-        <!-- Frequent Questions -->
-        <div class="max-w-3xl mx-auto">
-          <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Frequent Questions</h2>
+      <div class="max-w-3xl mx-auto">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Frequent Questions</h2>
           <div class="divide-y divide-gray-200 dark:divide-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
             <details class="group p-4" open>
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">What kind of information can I log with this app?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                You are in control and can log whatever information your want. This app is completely flexible – you're in total control of what you track and how much detail you add. You can log anything you find useful and are not required to fill in every field.
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">How do I use the camera to add photos?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                You can attach photos to any entry using the camera feature. Your photos are saved with the entry and appear in your personal gallery whenever you view it. Perfect for food pics, progress shots, or anything you want to remember visually!
+              </div>
+            </details>
+            <details class="group p-4">
               <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
                 <span class="text-lg font-semibold text-gray-900 dark:text-white">How do I log a meal with nutrition info?</span>
                 <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,7 +188,6 @@ import { siteConfig } from '@config/site';
               </div>
             </details>
           </div>
-        </div>
       </div>
     </section>
 
@@ -680,8 +696,16 @@ import { siteConfig } from '@config/site';
       }, 300);
     });
     
-    // Focus search input on page load
-    searchInput.focus();
+    // Focus search input on page load without scrolling
+    // Use requestAnimationFrame to prevent scroll
+    requestAnimationFrame(() => {
+      const scrollY = window.scrollY;
+      searchInput.focus({ preventScroll: true });
+      // Ensure we stay at top if page just loaded
+      if (scrollY === 0) {
+        window.scrollTo(0, 0);
+      }
+    });
   });
 </script>
 
