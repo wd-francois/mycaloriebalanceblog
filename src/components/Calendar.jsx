@@ -288,16 +288,25 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
         const counts = getEntryCounts(tooltipDate);
         const photos = getEntriesWithPhotos(tooltipDate);
         const photoCount = getPhotoCount(tooltipDate);
+        const dateKey = tooltipDate.toDateString();
+        const dateEntries = entries[dateKey] || [];
         
-        // Debug logging (remove in production if needed)
-        if (photoCount > 0) {
-          console.log('Tooltip photos debug:', {
-            photoCount,
-            photosFound: photos.length,
-            date: tooltipDate.toDateString(),
-            entries: entries[tooltipDate.toDateString()] || []
-          });
-        }
+        // Debug logging - always show to help diagnose
+        console.log('🔍 Calendar Tooltip Debug:', {
+          date: dateKey,
+          totalEntries: dateEntries.length,
+          photoCount,
+          photosFound: photos.length,
+          entriesWithPhotos: dateEntries.filter(e => e.photo).map(e => ({
+            id: e.id,
+            name: e.name,
+            hasPhoto: !!e.photo,
+            photoKeys: e.photo ? Object.keys(e.photo) : [],
+            photoDataUrl: e.photo?.dataUrl ? 'exists' : 'missing',
+            photoUrl: e.photo?.url ? 'exists' : 'missing'
+          })),
+          allEntries: dateEntries
+        });
         
         return (
           <div
