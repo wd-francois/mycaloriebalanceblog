@@ -44,7 +44,11 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   const [hoveredDate, setHoveredDate] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0, above: true });
   const [touchTimeout, setTouchTimeout] = useState(null);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  // Initialize as true to be safe (assume touch device until proven otherwise)
+  // This prevents tooltips from showing during initial render on mobile
+  const [isTouchDevice, setIsTouchDevice] = useState(
+    typeof window !== 'undefined' ? ('ontouchstart' in window || navigator.maxTouchPoints > 0) : false
+  );
 
   useEffect(() => {
     if (selectedDate instanceof Date) {
@@ -64,8 +68,21 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
 
   // Hide tooltip when clicking outside (for desktop only, since tooltips are disabled on mobile)
   useEffect(() => {
+    // Don't set up any listeners on touch devices
+    if (isTouchDevice) {
+      // Clear any existing tooltip state on touch devices
+      if (hoveredDate) {
+        setHoveredDate(null);
+      }
+      if (touchTimeout) {
+        clearTimeout(touchTimeout);
+        setTouchTimeout(null);
+      }
+      return;
+    }
+    
     const handleClickOutside = (e) => {
-      if (hoveredDate && !isTouchDevice && !e.target.closest('[role="gridcell"]')) {
+      if (hoveredDate && !e.target.closest('[role="gridcell"]')) {
         setHoveredDate(null);
         if (touchTimeout) {
           clearTimeout(touchTimeout);
@@ -74,7 +91,7 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
       }
     };
     
-    if (hoveredDate && !isTouchDevice) {
+    if (hoveredDate) {
       // Add a small delay to avoid hiding immediately on the same click
       const timer = setTimeout(() => {
         document.addEventListener('click', handleClickOutside, true);
@@ -200,13 +217,24 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                 key={cell.key}
                 className={`${baseClasses} ${stateClasses} relative`}
                 onClick={(e) => {
-                  // Hide tooltip when clicking (only relevant for desktop)
-                  if (!isTouchDevice && hoveredDate) {
+                  // On touch devices, ensure tooltip is cleared
+                  if (isTouchDevice) {
+                    if (hoveredDate) {
+                      setHoveredDate(null);
+                    }
                     if (touchTimeout) {
                       clearTimeout(touchTimeout);
                       setTouchTimeout(null);
                     }
-                    setHoveredDate(null);
+                  } else {
+                    // Hide tooltip when clicking (only relevant for desktop)
+                    if (hoveredDate) {
+                      if (touchTimeout) {
+                        clearTimeout(touchTimeout);
+                        setTouchTimeout(null);
+                      }
+                      setHoveredDate(null);
+                    }
                   }
                   
                   setSelectedKey(cell.key);
@@ -256,7 +284,7 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                 }}
                 onTouchStart={(e) => {
                   // Disable tooltips on touch devices to prevent interference with form interactions
-                  // Clear any existing tooltip
+                  // Immediately clear any tooltip state to prevent any interference
                   if (hoveredDate) {
                     setHoveredDate(null);
                   }
