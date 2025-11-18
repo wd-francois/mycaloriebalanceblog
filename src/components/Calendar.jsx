@@ -41,95 +41,18 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   const [selectedKey, setSelectedKey] = useState(
     `${initial.getFullYear()}-${initial.getMonth()}-${initial.getDate()}`
   );
-  const [hoveredDate, setHoveredDate] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0, above: true });
-  const [touchTimeout, setTouchTimeout] = useState(null);
-  // Initialize as true to be safe (assume touch device until proven otherwise)
-  // This prevents tooltips from showing during initial render on mobile
-  const [isTouchDevice, setIsTouchDevice] = useState(
-    typeof window !== 'undefined' ? ('ontouchstart' in window || navigator.maxTouchPoints > 0) : false
-  );
-
   useEffect(() => {
     if (selectedDate instanceof Date) {
       setSelectedKey(`${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${selectedDate.getDate()}`);
     }
   }, [selectedDate]);
 
-  // Detect touch device
-  useEffect(() => {
-    const checkTouchDevice = () => {
-      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
-    };
-    checkTouchDevice();
-    window.addEventListener('resize', checkTouchDevice);
-    return () => window.removeEventListener('resize', checkTouchDevice);
-  }, []);
-
-  // Hide tooltip when clicking outside (for desktop only, since tooltips are disabled on mobile)
-  useEffect(() => {
-    // Don't set up any listeners on touch devices
-    if (isTouchDevice) {
-      // Clear any existing tooltip state on touch devices
-      if (hoveredDate) {
-        setHoveredDate(null);
-      }
-      if (touchTimeout) {
-        clearTimeout(touchTimeout);
-        setTouchTimeout(null);
-      }
-      return;
-    }
-    
-    const handleClickOutside = (e) => {
-      if (hoveredDate && !e.target.closest('[role="gridcell"]')) {
-        setHoveredDate(null);
-        if (touchTimeout) {
-          clearTimeout(touchTimeout);
-          setTouchTimeout(null);
-        }
-      }
-    };
-    
-    if (hoveredDate) {
-      // Add a small delay to avoid hiding immediately on the same click
-      const timer = setTimeout(() => {
-        document.addEventListener('click', handleClickOutside, true);
-      }, 100);
-      
-      return () => {
-        clearTimeout(timer);
-        document.removeEventListener('click', handleClickOutside, true);
-      };
-    }
-  }, [hoveredDate, touchTimeout, isTouchDevice]);
-
   const monthMatrix = useMemo(() => getMonthMatrix(viewYear, viewMonth), [viewYear, viewMonth]);
-
-  // Helper function to check if a date has entries
-  const hasEntries = (date) => {
-    const dateKey = date.toDateString();
-    return entries[dateKey] && entries[dateKey].length > 0;
-  };
 
   // Check if date is today
   const isToday = (date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
-  };
-
-  // Count entries by type for a given date
-  const getEntryCounts = (date) => {
-    const dateKey = date.toDateString();
-    const dateEntries = entries[dateKey] || [];
-    
-    return {
-      meal: dateEntries.filter(e => e.type === 'meal').length,
-      sleep: dateEntries.filter(e => e.type === 'sleep').length,
-      measurements: dateEntries.filter(e => e.type === 'measurements').length,
-      exercise: dateEntries.filter(e => e.type === 'exercise').length,
-      total: dateEntries.length
-    };
   };
 
   function goPrevMonth() {
@@ -209,34 +132,11 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
               stateClasses = 'text-gray-400 hover:bg-gray-50';
             }
 
-            const entryCounts = getEntryCounts(cell.date);
-            const hasAnyEntries = entryCounts.total > 0;
-
             return (
               <div
                 key={cell.key}
                 className={`${baseClasses} ${stateClasses} relative`}
                 onClick={(e) => {
-                  // On touch devices, ensure tooltip is cleared
-                  if (isTouchDevice) {
-                    if (hoveredDate) {
-                      setHoveredDate(null);
-                    }
-                    if (touchTimeout) {
-                      clearTimeout(touchTimeout);
-                      setTouchTimeout(null);
-                    }
-                  } else {
-                    // Hide tooltip when clicking (only relevant for desktop)
-                    if (hoveredDate) {
-                      if (touchTimeout) {
-                        clearTimeout(touchTimeout);
-                        setTouchTimeout(null);
-                      }
-                      setHoveredDate(null);
-                    }
-                  }
-                  
                   setSelectedKey(cell.key);
                   // If clicking an outside day, also update the visible month to match
                   if (!cell.inCurrentMonth) {
@@ -246,55 +146,6 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                   if (typeof onSelectDate === 'function') {
                     onSelectDate(cell.date);
                   }
-                }}
-                onMouseEnter={(e) => {
-                  // Only show tooltip on non-touch devices (desktop)
-                  if (hasAnyEntries && !isTouchDevice) {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const viewportWidth = window.innerWidth;
-                    
-                    // Calculate tooltip position (centered above the cell)
-                    let x = rect.left + rect.width / 2;
-                    let y = rect.top - 10;
-                    
-                    // Ensure tooltip doesn't go off-screen horizontally
-                    const tooltipWidth = 150; // Approximate tooltip width
-                    if (x - tooltipWidth / 2 < 10) {
-                      x = tooltipWidth / 2 + 10;
-                    } else if (x + tooltipWidth / 2 > viewportWidth - 10) {
-                      x = viewportWidth - tooltipWidth / 2 - 10;
-                    }
-                    
-                    // Ensure tooltip doesn't go off-screen vertically (show below if needed)
-                    const tooltipHeight = 150; // Approximate tooltip height
-                    let above = true;
-                    if (y - tooltipHeight < 10) {
-                      y = rect.bottom + 10;
-                      above = false;
-                    }
-                    
-                    setTooltipPosition({ x, y, above });
-                    setHoveredDate(cell.date);
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (!isTouchDevice) {
-                    setHoveredDate(null);
-                  }
-                }}
-                onTouchStart={(e) => {
-                  // Disable tooltips on touch devices to prevent interference with form interactions
-                  // Immediately clear any tooltip state to prevent any interference
-                  if (hoveredDate) {
-                    setHoveredDate(null);
-                  }
-                  if (touchTimeout) {
-                    clearTimeout(touchTimeout);
-                    setTouchTimeout(null);
-                  }
-                }}
-                onTouchEnd={(e) => {
-                  // Don't prevent default - allow click to work normally
                 }}
                 aria-selected={isSelected}
                 role="gridcell"
@@ -318,77 +169,6 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
           })
         )}
       </div>
-
-      {/* Tooltip - Only show on desktop (non-touch devices) */}
-      {hoveredDate && !isTouchDevice && (() => {
-        const counts = getEntryCounts(hoveredDate);
-        return (
-          <div
-            className="fixed z-[9999] px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg pointer-events-none"
-            style={{
-              left: `${tooltipPosition.x}px`,
-              top: `${tooltipPosition.y}px`,
-              transform: tooltipPosition.above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
-            }}
-          >
-            <div className="space-y-1">
-              <div className="text-sm font-bold mb-2 pb-1 border-b border-gray-700">
-                Entries
-              </div>
-              {counts.meal > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">Meals:</span>
-                  <span>{counts.meal}</span>
-                </div>
-              )}
-              {counts.sleep > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">Sleep:</span>
-                  <span>{counts.sleep}</span>
-                </div>
-              )}
-              {counts.measurements > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">Measurements:</span>
-                  <span>{counts.measurements}</span>
-                </div>
-              )}
-              {counts.exercise > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">Exercise:</span>
-                  <span>{counts.exercise}</span>
-                </div>
-              )}
-              <div className="pt-1 border-t border-gray-700 mt-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">Total:</span>
-                  <span>{counts.total}</span>
-                </div>
-              </div>
-            </div>
-            {/* Arrow pointing down or up */}
-            {tooltipPosition.above ? (
-              <div
-                className="absolute left-1/2 top-full -translate-x-1/2"
-                style={{
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: '6px solid rgb(17, 24, 39)',
-                }}
-              />
-            ) : (
-              <div
-                className="absolute left-1/2 bottom-full -translate-x-1/2"
-                style={{
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderBottom: '6px solid rgb(17, 24, 39)',
-                }}
-              />
-            )}
-          </div>
-        );
-      })()}
     </div>
   );
 };
