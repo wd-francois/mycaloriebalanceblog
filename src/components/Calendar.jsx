@@ -41,11 +41,35 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   const [selectedKey, setSelectedKey] = useState(
     `${initial.getFullYear()}-${initial.getMonth()}-${initial.getDate()}`
   );
+  const [tooltipDate, setTooltipDate] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0, above: true });
+
   useEffect(() => {
     if (selectedDate instanceof Date) {
       setSelectedKey(`${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${selectedDate.getDate()}`);
     }
   }, [selectedDate]);
+
+  // Close tooltip when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (tooltipDate && !e.target.closest('[data-calendar-cell]') && !e.target.closest('[data-calendar-tooltip]')) {
+        setTooltipDate(null);
+      }
+    };
+    
+    if (tooltipDate) {
+      // Small delay to avoid immediate closing
+      const timer = setTimeout(() => {
+        document.addEventListener('click', handleClickOutside, true);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('click', handleClickOutside, true);
+      };
+    }
+  }, [tooltipDate]);
 
   const monthMatrix = useMemo(() => getMonthMatrix(viewYear, viewMonth), [viewYear, viewMonth]);
 
@@ -53,6 +77,27 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   const isToday = (date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
+  };
+
+  // Count entries by type for a given date
+  const getEntryCounts = (date) => {
+    const dateKey = date.toDateString();
+    const dateEntries = entries[dateKey] || [];
+    
+    return {
+      meal: dateEntries.filter(e => e.type === 'meal').length,
+      sleep: dateEntries.filter(e => e.type === 'sleep').length,
+      measurements: dateEntries.filter(e => e.type === 'measurements').length,
+      exercise: dateEntries.filter(e => e.type === 'exercise').length,
+      total: dateEntries.length
+    };
+  };
+
+  // Get entries with photos for a given date
+  const getEntriesWithPhotos = (date) => {
+    const dateKey = date.toDateString();
+    const dateEntries = entries[dateKey] || [];
+    return dateEntries.filter(e => e.photo?.dataUrl).slice(0, 3); // Limit to 3 photos for tooltip
   };
 
   function goPrevMonth() {
@@ -132,9 +177,13 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
               stateClasses = 'text-gray-400 hover:bg-gray-50';
             }
 
+            const entryCounts = getEntryCounts(cell.date);
+            const hasEntries = entryCounts.total > 0;
+
             return (
               <div
                 key={cell.key}
+                data-calendar-cell
                 className={`${baseClasses} ${stateClasses} relative`}
                 onClick={(e) => {
                   setSelectedKey(cell.key);
@@ -143,8 +192,45 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                     setViewYear(cell.date.getFullYear());
                     setViewMonth(cell.date.getMonth());
                   }
-                  if (typeof onSelectDate === 'function') {
-                    onSelectDate(cell.date);
+                  
+                  // Only show tooltip if there are entries, otherwise navigate directly
+                  if (hasEntries) {
+                    // Show tooltip on click
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Calculate tooltip position (centered above the cell)
+                    let x = rect.left + rect.width / 2;
+                    let y = rect.top - 10;
+                    
+                    // Ensure tooltip doesn't go off-screen horizontally
+                    const tooltipWidth = 240;
+                    if (x - tooltipWidth / 2 < 10) {
+                      x = tooltipWidth / 2 + 10;
+                    } else if (x + tooltipWidth / 2 > viewportWidth - 10) {
+                      x = viewportWidth - tooltipWidth / 2 - 10;
+                    }
+                    
+                    // Ensure tooltip doesn't go off-screen vertically (show below if needed)
+                    // Increase height to accommodate photos
+                    const tooltipHeight = 280;
+                    let above = true;
+                    if (y - tooltipHeight < 10) {
+                      y = rect.bottom + 10;
+                      above = false;
+                    } else if (y + tooltipHeight > viewportHeight - 10 && above) {
+                      y = rect.bottom + 10;
+                      above = false;
+                    }
+                    
+                    setTooltipPosition({ x, y, above });
+                    setTooltipDate(cell.date);
+                  } else {
+                    // No entries - navigate directly
+                    if (typeof onSelectDate === 'function') {
+                      onSelectDate(cell.date);
+                    }
                   }
                 }}
                 aria-selected={isSelected}
@@ -153,6 +239,7 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
+                    // For keyboard, navigate directly
                     if (typeof onSelectDate === 'function') {
                       onSelectDate(cell.date);
                     }
@@ -169,6 +256,126 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
           })
         )}
       </div>
+
+      {/* Tooltip with Add Entry button */}
+      {tooltipDate && (() => {
+        const counts = getEntryCounts(tooltipDate);
+        const photos = getEntriesWithPhotos(tooltipDate);
+        return (
+          <div
+            data-calendar-tooltip
+            className="fixed z-[9999] w-[240px] bg-white border border-gray-200 rounded-lg shadow-xl"
+            style={{
+              left: `${tooltipPosition.x}px`,
+              top: `${tooltipPosition.y}px`,
+              transform: tooltipPosition.above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
+            }}
+          >
+            {/* Arrow */}
+            {tooltipPosition.above ? (
+              <div
+                className="absolute left-1/2 top-full -translate-x-1/2"
+                style={{
+                  borderLeft: '8px solid transparent',
+                  borderRight: '8px solid transparent',
+                  borderTop: '8px solid white',
+                }}
+              />
+            ) : (
+              <div
+                className="absolute left-1/2 bottom-full -translate-x-1/2"
+                style={{
+                  borderLeft: '8px solid transparent',
+                  borderRight: '8px solid transparent',
+                  borderBottom: '8px solid white',
+                }}
+              />
+            )}
+            
+            <div className="p-3 space-y-2">
+              <div className="text-xs font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-200">
+                {tooltipDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+              </div>
+              
+              {/* Photos section */}
+              {photos.length > 0 && (
+                <div className="mb-2">
+                  <div className="text-xs font-medium text-gray-600 mb-1.5">Photos:</div>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1">
+                    {photos.map((entry, idx) => (
+                      <div
+                        key={entry.id || idx}
+                        className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100"
+                      >
+                        <img
+                          src={entry.photo.dataUrl}
+                          alt={entry.name || 'Entry photo'}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {counts.total > photos.length && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      +{counts.total - photos.length} more {counts.total - photos.length === 1 ? 'entry' : 'entries'}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {counts.total > 0 ? (
+                <div className="space-y-1 text-xs">
+                  {counts.meal > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Meals:</span>
+                      <span className="font-semibold text-gray-900">{counts.meal}</span>
+                    </div>
+                  )}
+                  {counts.sleep > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Sleep:</span>
+                      <span className="font-semibold text-gray-900">{counts.sleep}</span>
+                    </div>
+                  )}
+                  {counts.measurements > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Measurements:</span>
+                      <span className="font-semibold text-gray-900">{counts.measurements}</span>
+                    </div>
+                  )}
+                  {counts.exercise > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Exercise:</span>
+                      <span className="font-semibold text-gray-900">{counts.exercise}</span>
+                    </div>
+                  )}
+                  <div className="pt-1 mt-1 border-t border-gray-200 flex items-center justify-between">
+                    <span className="font-semibold text-gray-900">Total:</span>
+                    <span className="font-bold text-blue-600">{counts.total}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500 text-center py-1">
+                  No entries yet
+                </div>
+              )}
+              
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTooltipDate(null);
+                  if (typeof onSelectDate === 'function') {
+                    onSelectDate(tooltipDate);
+                  }
+                }}
+                className="w-full mt-3 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation"
+              >
+                {counts.total > 0 ? 'View/Add Entry' : 'Add Entry'}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
