@@ -1337,30 +1337,27 @@ const DateTimeSelector = () => {
                         <label className="text-sm font-medium text-gray-600">Time</label>
                         <div className="flex items-center gap-3">
                           <select 
-                            className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base appearance-none"
+                            className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
                             value={time.hour}
                             onChange={(e) => setTime({ ...time, hour: Number(e.target.value) })}
-                            style={{ WebkitAppearance: 'menulist' }}
                           >
                             {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
                               <option key={h} value={h}>{h}</option>
                             ))}
                           </select>
                           <select 
-                            className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base appearance-none"
+                            className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
                             value={time.minute}
                             onChange={(e) => setTime({ ...time, minute: Number(e.target.value) })}
-                            style={{ WebkitAppearance: 'menulist' }}
                           >
                             {Array.from({ length: 60 }, (_, i) => i).map((m) => (
                               <option key={m} value={m}>{m.toString().padStart(2, '0')}</option>
                             ))}
                           </select>
                           <select 
-                            className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base appearance-none"
+                            className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
                             value={time.period}
                             onChange={(e) => setTime({ ...time, period: e.target.value })}
-                            style={{ WebkitAppearance: 'menulist' }}
                           >
                             <option value="AM">AM</option>
                             <option value="PM">PM</option>
