@@ -113,6 +113,13 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
     return dateEntries.filter(e => e.photo?.dataUrl).slice(0, 3); // Limit to 3 photos for tooltip
   };
 
+  // Get total photo count for a given date
+  const getPhotoCount = (date) => {
+    const dateKey = date.toDateString();
+    const dateEntries = entries[dateKey] || [];
+    return dateEntries.filter(e => e.photo?.dataUrl).length;
+  };
+
   function goPrevMonth() {
     setViewMonth((m) => {
       if (m === 0) {
@@ -274,6 +281,7 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
       {tooltipDate && (() => {
         const counts = getEntryCounts(tooltipDate);
         const photos = getEntriesWithPhotos(tooltipDate);
+        const photoCount = getPhotoCount(tooltipDate);
         return (
           <div
             data-calendar-tooltip
@@ -311,26 +319,30 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
               </div>
               
               {/* Photos section */}
-              {photos.length > 0 && (
+              {photoCount > 0 && (
                 <div className="mb-2">
-                  <div className="text-xs font-medium text-gray-600 mb-1.5">Photos:</div>
-                  <div className="flex gap-1.5 overflow-x-auto pb-1">
-                    {photos.map((entry, idx) => (
-                      <div
-                        key={entry.id || idx}
-                        className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100"
-                      >
-                        <img
-                          src={entry.photo.dataUrl}
-                          alt={entry.name || 'Entry photo'}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
+                  <div className="text-xs font-medium text-gray-600 mb-1.5">
+                    Photos: <span className="font-semibold text-gray-900">{photoCount}</span>
                   </div>
-                  {counts.total > photos.length && (
+                  {photos.length > 0 && (
+                    <div className="flex gap-1.5 overflow-x-auto pb-1">
+                      {photos.map((entry, idx) => (
+                        <div
+                          key={entry.id || idx}
+                          className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100"
+                        >
+                          <img
+                            src={entry.photo.dataUrl}
+                            alt={entry.name || 'Entry photo'}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {photoCount > photos.length && (
                     <div className="text-xs text-gray-500 mt-1">
-                      +{counts.total - photos.length} more {counts.total - photos.length === 1 ? 'entry' : 'entries'}
+                      +{photoCount - photos.length} more {photoCount - photos.length === 1 ? 'photo' : 'photos'}
                     </div>
                   )}
                 </div>
