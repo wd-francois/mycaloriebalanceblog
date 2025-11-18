@@ -274,10 +274,13 @@ const DateTimeSelector = () => {
           const photosByEntryId = {};
           photoEntries.forEach(photoEntry => {
             const entryId = photoEntry.entryId || photoEntry.id;
-            if (entryId) {
+            if (entryId && photoEntry.photo) {
               photosByEntryId[entryId] = photoEntry.photo;
             }
           });
+          
+          console.log('Photos by entry ID:', photosByEntryId);
+          console.log('Total photo entries:', photoEntries.length);
           
           // Convert IndexedDB entries to the format expected by the component
           const formattedEntries = {};
@@ -288,16 +291,22 @@ const DateTimeSelector = () => {
             if (!formattedEntries[dateKey]) {
               formattedEntries[dateKey] = [];
             }
-            // Merge photo if it exists in photoEntries
+            // Merge photo if it exists in photoEntries (prioritize photoEntries over entry.photo)
             const entryPhoto = photosByEntryId[entry.id] || entry.photo;
             // Update the entry with the proper Date object and merged photo
-            formattedEntries[dateKey].push({
+            const mergedEntry = {
               ...entry,
-              date: entryDate,
-              ...(entryPhoto ? { photo: entryPhoto } : {})
-            });
+              date: entryDate
+            };
+            // Only add photo property if it exists
+            if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
+              mergedEntry.photo = entryPhoto;
+              console.log(`Merged photo for entry ${entry.id}:`, entryPhoto);
+            }
+            formattedEntries[dateKey].push(mergedEntry);
           });
           
+          console.log('Formatted entries with photos:', formattedEntries);
           setEntries(formattedEntries);
         } catch (error) {
           console.error('Error loading entries from IndexedDB:', error);
