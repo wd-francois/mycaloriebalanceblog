@@ -110,14 +110,20 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   const getEntriesWithPhotos = (date) => {
     const dateKey = date.toDateString();
     const dateEntries = entries[dateKey] || [];
-    return dateEntries.filter(e => e.photo?.dataUrl).slice(0, 3); // Limit to 3 photos for tooltip
+    // Filter entries that have photos with dataUrl
+    const entriesWithPhotos = dateEntries.filter(e => {
+      return e.photo && (e.photo.dataUrl || e.photo.url);
+    });
+    return entriesWithPhotos.slice(0, 3); // Limit to 3 photos for tooltip
   };
 
   // Get total photo count for a given date
   const getPhotoCount = (date) => {
     const dateKey = date.toDateString();
     const dateEntries = entries[dateKey] || [];
-    return dateEntries.filter(e => e.photo?.dataUrl).length;
+    return dateEntries.filter(e => {
+      return e.photo && (e.photo.dataUrl || e.photo.url);
+    }).length;
   };
 
   function goPrevMonth() {
@@ -282,6 +288,17 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
         const counts = getEntryCounts(tooltipDate);
         const photos = getEntriesWithPhotos(tooltipDate);
         const photoCount = getPhotoCount(tooltipDate);
+        
+        // Debug logging (remove in production if needed)
+        if (photoCount > 0) {
+          console.log('Tooltip photos debug:', {
+            photoCount,
+            photosFound: photos.length,
+            date: tooltipDate.toDateString(),
+            entries: entries[tooltipDate.toDateString()] || []
+          });
+        }
+        
         return (
           <div
             data-calendar-tooltip
@@ -326,18 +343,26 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                   </div>
                   {photos.length > 0 && (
                     <div className="flex gap-1.5 overflow-x-auto pb-1">
-                      {photos.map((entry, idx) => (
-                        <div
-                          key={entry.id || idx}
-                          className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100"
-                        >
-                          <img
-                            src={entry.photo.dataUrl}
-                            alt={entry.name || 'Entry photo'}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
+                      {photos.map((entry, idx) => {
+                        const photoUrl = entry.photo?.dataUrl || entry.photo?.url;
+                        if (!photoUrl) return null;
+                        return (
+                          <div
+                            key={entry.id || idx}
+                            className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100"
+                          >
+                            <img
+                              src={photoUrl}
+                              alt={entry.name || 'Entry photo'}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.error('Failed to load photo:', entry.id, entry.photo);
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   {photoCount > photos.length && (
