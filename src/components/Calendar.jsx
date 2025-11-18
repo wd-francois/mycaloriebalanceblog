@@ -207,9 +207,8 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                   }
                   
                   // Only show tooltip if there are entries, otherwise navigate directly
-                  // On mobile, always navigate directly to avoid tooltip interference
-                  if (hasEntries && !isTouchDevice) {
-                    // Show tooltip on click (desktop only)
+                  if (hasEntries) {
+                    // Show tooltip on click (both mobile and desktop)
                     const rect = e.currentTarget.getBoundingClientRect();
                     const viewportWidth = window.innerWidth;
                     const viewportHeight = window.innerHeight;
@@ -241,7 +240,7 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                     setTooltipPosition({ x, y, above });
                     setTooltipDate(cell.date);
                   } else {
-                    // No entries or mobile device - navigate directly
+                    // No entries - navigate directly
                     if (typeof onSelectDate === 'function') {
                       onSelectDate(cell.date);
                     }
@@ -271,8 +270,8 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
         )}
       </div>
 
-      {/* Tooltip with Add Entry button - Desktop only */}
-      {tooltipDate && !isTouchDevice && (() => {
+      {/* Tooltip with Add Entry button */}
+      {tooltipDate && (() => {
         const counts = getEntryCounts(tooltipDate);
         const photos = getEntriesWithPhotos(tooltipDate);
         return (
