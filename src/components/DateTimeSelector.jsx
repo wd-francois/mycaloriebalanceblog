@@ -261,6 +261,24 @@ const DateTimeSelector = () => {
           const dbEntries = await healthDB.getUserEntries();
           console.log('Loaded entries from IndexedDB:', dbEntries);
           
+          // Load photos separately and merge with entries
+          let photoEntries = [];
+          try {
+            photoEntries = await healthDB.getAllPhotoEntries();
+            console.log('Loaded photo entries:', photoEntries);
+          } catch (photoError) {
+            console.warn('Could not load photo entries:', photoError);
+          }
+          
+          // Create a map of photos by entry ID for quick lookup
+          const photosByEntryId = {};
+          photoEntries.forEach(photoEntry => {
+            const entryId = photoEntry.entryId || photoEntry.id;
+            if (entryId) {
+              photosByEntryId[entryId] = photoEntry.photo;
+            }
+          });
+          
           // Convert IndexedDB entries to the format expected by the component
           const formattedEntries = {};
           dbEntries.forEach(entry => {
@@ -270,10 +288,13 @@ const DateTimeSelector = () => {
             if (!formattedEntries[dateKey]) {
               formattedEntries[dateKey] = [];
             }
-            // Update the entry with the proper Date object
+            // Merge photo if it exists in photoEntries
+            const entryPhoto = photosByEntryId[entry.id] || entry.photo;
+            // Update the entry with the proper Date object and merged photo
             formattedEntries[dateKey].push({
               ...entry,
-              date: entryDate
+              date: entryDate,
+              ...(entryPhoto ? { photo: entryPhoto } : {})
             });
           });
           
