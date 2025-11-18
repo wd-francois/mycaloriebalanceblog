@@ -279,9 +279,6 @@ const DateTimeSelector = () => {
             }
           });
           
-          console.log('Photos by entry ID:', photosByEntryId);
-          console.log('Total photo entries:', photoEntries.length);
-          
           // Convert IndexedDB entries to the format expected by the component
           const formattedEntries = {};
           dbEntries.forEach(entry => {
@@ -301,12 +298,9 @@ const DateTimeSelector = () => {
             // Only add photo property if it exists
             if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
               mergedEntry.photo = entryPhoto;
-              console.log(`Merged photo for entry ${entry.id}:`, entryPhoto);
             }
             formattedEntries[dateKey].push(mergedEntry);
           });
-          
-          console.log('Formatted entries with photos:', formattedEntries);
           setEntries(formattedEntries);
         } catch (error) {
           console.error('Error loading entries from IndexedDB:', error);
