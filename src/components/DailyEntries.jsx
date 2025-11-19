@@ -69,6 +69,11 @@ const DailyEntriesContent = ({ date: dateParam }) => {
   const [loading, setLoading] = useState(true);
   const { settings } = useSettings();
 
+  // Log the received date prop
+  useEffect(() => {
+    console.log('DailyEntriesContent - Received date param:', dateParam);
+  }, [dateParam]);
+
   // Get date from prop or URL parameter
   const selectedDate = useMemo(() => {
     let dateToUse = null;
@@ -138,14 +143,24 @@ const DailyEntriesContent = ({ date: dateParam }) => {
 
         // Convert IndexedDB entries to the format expected by the component
         const formattedEntries = {};
-        dbEntries.forEach(entry => {
-          if (!entry || !entry.date) return;
+        console.log('Processing', dbEntries.length, 'entries from IndexedDB');
+        dbEntries.forEach((entry, index) => {
+          if (!entry || !entry.date) {
+            console.log(`Skipping entry ${index}: missing date`, entry);
+            return;
+          }
           
           let entryDate;
           if (entry.date instanceof Date) {
             entryDate = entry.date;
           } else if (typeof entry.date === 'string') {
-            entryDate = new Date(entry.date);
+            // Handle YYYY-MM-DD format
+            if (entry.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+              const [year, month, day] = entry.date.split('-').map(Number);
+              entryDate = new Date(year, month - 1, day);
+            } else {
+              entryDate = new Date(entry.date);
+            }
           } else {
             entryDate = new Date(entry.date);
           }
@@ -168,11 +183,17 @@ const DailyEntriesContent = ({ date: dateParam }) => {
               mergedEntry.photo = entryPhoto;
             }
             formattedEntries[dateKey].push(mergedEntry);
+            console.log(`Added entry ${index} to date key: ${dateKey}`, mergedEntry.name || mergedEntry.type);
+          } else {
+            console.log(`Skipping entry ${index}: invalid date`, entry.date, entryDate);
           }
         });
         
         console.log('Loaded entries:', Object.keys(formattedEntries).length, 'dates');
-        console.log('Formatted entries:', formattedEntries);
+        console.log('Formatted entries keys:', Object.keys(formattedEntries));
+        if (Object.keys(formattedEntries).length > 0) {
+          console.log('Sample entry:', formattedEntries[Object.keys(formattedEntries)[0]][0]);
+        }
         setEntries(formattedEntries);
       } catch (error) {
         console.error('Error loading entries from IndexedDB:', error);
@@ -195,11 +216,43 @@ const DailyEntriesContent = ({ date: dateParam }) => {
 
   // Get entries for the selected date
   const currentDateEntries = useMemo(() => {
-    if (!selectedDate) return [];
-    const dateKey = selectedDate.toDateString();
-    const foundEntries = entries[dateKey] || [];
-    console.log('Selected date:', selectedDate, 'Date key:', dateKey, 'Found entries:', foundEntries.length);
+    if (!selectedDate) {
+      console.log('No selected date');
+      return [];
+    }
+    
+    // Normalize selected date to ensure consistent matching
+    const normalizedSelectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const dateKey = normalizedSelectedDate.toDateString();
+    
+    // Try exact match first
+    let foundEntries = entries[dateKey] || [];
+    
+    // If no exact match, try to find entries with similar dates (handle timezone issues)
+    if (foundEntries.length === 0 && Object.keys(entries).length > 0) {
+      console.log('No exact match, trying to find similar dates...');
+      // Try matching by date components
+      const selectedYear = normalizedSelectedDate.getFullYear();
+      const selectedMonth = normalizedSelectedDate.getMonth();
+      const selectedDay = normalizedSelectedDate.getDate();
+      
+      Object.keys(entries).forEach(key => {
+        const keyDate = new Date(key);
+        if (keyDate.getFullYear() === selectedYear && 
+            keyDate.getMonth() === selectedMonth && 
+            keyDate.getDate() === selectedDay) {
+          foundEntries = entries[key];
+          console.log('Found entries using date components match:', key);
+        }
+      });
+    }
+    
+    console.log('Selected date:', normalizedSelectedDate, 'Date key:', dateKey, 'Found entries:', foundEntries.length);
     console.log('Available date keys:', Object.keys(entries));
+    if (foundEntries.length > 0) {
+      console.log('Sample found entry:', foundEntries[0]);
+    }
+    
     return foundEntries;
   }, [entries, selectedDate]);
 
@@ -385,10 +438,23 @@ const DailyEntriesContent = ({ date: dateParam }) => {
               <GroupedEntries
                 entries={currentDateEntries.filter(entry => {
                   // Filter entries based on enabled features
-                  if (entry.type === 'meal' && !settings.enableMeals) return false;
-                  if (entry.type === 'exercise' && !settings.enableExercise) return false;
-                  if (entry.type === 'sleep' && !settings.enableSleep) return false;
-                  if (entry.type === 'measurements' && !settings.enableMeasurements) return false;
+                  const beforeFilter = currentDateEntries.length;
+                  if (entry.type === 'meal' && !settings.enableMeals) {
+                    console.log('Filtered out meal entry:', entry.name);
+                    return false;
+                  }
+                  if (entry.type === 'exercise' && !settings.enableExercise) {
+                    console.log('Filtered out exercise entry:', entry.name);
+                    return false;
+                  }
+                  if (entry.type === 'sleep' && !settings.enableSleep) {
+                    console.log('Filtered out sleep entry:', entry.name);
+                    return false;
+                  }
+                  if (entry.type === 'measurements' && !settings.enableMeasurements) {
+                    console.log('Filtered out measurements entry:', entry.name);
+                    return false;
+                  }
                   return true;
                 })}
                 formatTime={formatTime}
