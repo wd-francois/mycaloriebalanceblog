@@ -1316,35 +1316,46 @@ const DateTimeSelector = () => {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative w-full h-full max-h-screen overflow-auto bg-white">
-            {/* Header */}
-            <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
-              <div className="max-w-4xl mx-auto px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
+        <div className="fixed inset-0 z-50 w-full h-full bg-white flex flex-col">
+          {/* Header */}
+          <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+            <div className="max-w-4xl mx-auto px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={closeModal}
+                    className="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Back"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                  </button>
                   <div className="text-lg font-bold text-gray-900 truncate pr-2">
                     {headerText}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowSettings(true)}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200 border border-blue-100"
-                      title="Open settings"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Settings
-                    </button>
-                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowSettings(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200 border border-blue-100"
+                    title="Open settings"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Settings
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-24">
+          {/* Content - Centered vertically between header and bottom nav */}
+          <div className="flex-1 flex items-center justify-center pb-24 overflow-y-auto">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 w-full py-8">
               {/* Entry Form */}
               <div className="w-full max-w-[380px] md:max-w-4xl mx-auto border border-gray-200 rounded-3xl overflow-hidden shadow-lg bg-white p-6 md:p-8 space-y-6">
                 <h2 className="text-xl md:text-2xl font-semibold">
@@ -2087,64 +2098,17 @@ const DateTimeSelector = () => {
                 </form>
               </div>
 
-              {/* Entries List */}
-              <div className="mt-8 md:mt-10">
-                <div className="w-full max-w-[380px] md:max-w-4xl mx-auto border border-gray-200 rounded-3xl overflow-hidden shadow-lg bg-white p-6 md:p-8 space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg md:text-xl font-semibold text-gray-900">Entries</h3>
-                      {currentDateEntries.length > 0 && (
-                        <span className="text-sm text-gray-500">
-                          {currentDateEntries.length} entry{currentDateEntries.length !== 1 ? 's' : ''}
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      onClick={exportToCSV}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200 w-fit"
-                      title="Export daily entries"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Export
-                    </button>
-                  </div>
-                  
-                  <GroupedEntries 
-                    entries={currentDateEntries.filter(entry => {
-                      // Filter entries based on enabled features
-                      if (entry.type === 'meal' && !settings.enableMeals) return false;
-                      if (entry.type === 'exercise' && !settings.enableExercise) return false;
-                      if (entry.type === 'sleep' && !settings.enableSleep) return false;
-                      if (entry.type === 'measurements' && !settings.enableMeasurements) return false;
-                      return true;
-                    })}
-                    formatTime={formatTime}
-                    settings={settings}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onInfoClick={handleInfoClick}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                  />
-                </div>
-              </div>
-
-
-              {/* Close modal */}
-              <div className="mt-8 sm:mt-12 pb-8 text-center">
-                <button
-                  className="inline-flex items-center px-6 sm:px-8 py-3 bg-gray-200 text-gray-900 font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                  onClick={closeModal}
+              {/* Show Entries Button */}
+              <div className="mt-6 flex justify-center">
+                <a
+                  href={`/entries?date=${selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}`}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Close
-                </button>
+                  Show Entries
+                </a>
               </div>
             </div>
           </div>

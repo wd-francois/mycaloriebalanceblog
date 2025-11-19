@@ -1,0 +1,21 @@
+---
+import Layout from '@layouts/Layout.astro';
+import DailyEntries from '../components/DailyEntries.jsx';
+import { siteConfig } from '@config/site';
+
+// Get date from URL parameter
+const dateParam = Astro.url.searchParams.get('date');
+const date = dateParam || new Date().toISOString().split('T')[0];
+---
+
+<Layout
+  title="Daily Entries - " + siteConfig.title
+  description="View your daily entries - " + siteConfig.title
+  wideContent={true}
+  showBottomNav={true}
+  showTopNav={false}
+  showFooter={false}
+>
+  <DailyEntries client:load date={date} />
+</Layout>
+

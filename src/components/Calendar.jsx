@@ -41,48 +41,11 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   const [selectedKey, setSelectedKey] = useState(
     `${initial.getFullYear()}-${initial.getMonth()}-${initial.getDate()}`
   );
-  const [tooltipDate, setTooltipDate] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0, above: true });
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-
   useEffect(() => {
     if (selectedDate instanceof Date) {
       setSelectedKey(`${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${selectedDate.getDate()}`);
     }
   }, [selectedDate]);
-
-  // Detect touch device
-  useEffect(() => {
-    const checkTouchDevice = () => {
-      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
-    };
-    checkTouchDevice();
-    window.addEventListener('resize', checkTouchDevice);
-    return () => window.removeEventListener('resize', checkTouchDevice);
-  }, []);
-
-  // Close tooltip when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (tooltipDate && !e.target.closest('[data-calendar-cell]') && !e.target.closest('[data-calendar-tooltip]')) {
-        setTooltipDate(null);
-      }
-    };
-    
-    if (tooltipDate) {
-      // Small delay to avoid immediate closing
-      const timer = setTimeout(() => {
-        document.addEventListener('click', handleClickOutside, true);
-        document.addEventListener('touchstart', handleClickOutside, true);
-      }, 100);
-      
-      return () => {
-        clearTimeout(timer);
-        document.removeEventListener('click', handleClickOutside, true);
-        document.removeEventListener('touchstart', handleClickOutside, true);
-      };
-    }
-  }, [tooltipDate]);
 
   const monthMatrix = useMemo(() => getMonthMatrix(viewYear, viewMonth), [viewYear, viewMonth]);
 
@@ -106,25 +69,6 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
     };
   };
 
-  // Get entries with photos for a given date
-  const getEntriesWithPhotos = (date) => {
-    const dateKey = date.toDateString();
-    const dateEntries = entries[dateKey] || [];
-    // Filter entries that have photos with dataUrl
-    const entriesWithPhotos = dateEntries.filter(e => {
-      return e.photo && (e.photo.dataUrl || e.photo.url);
-    });
-    return entriesWithPhotos.slice(0, 3); // Limit to 3 photos for tooltip
-  };
-
-  // Get total photo count for a given date
-  const getPhotoCount = (date) => {
-    const dateKey = date.toDateString();
-    const dateEntries = entries[dateKey] || [];
-    return dateEntries.filter(e => {
-      return e.photo && (e.photo.dataUrl || e.photo.url);
-    }).length;
-  };
 
   function goPrevMonth() {
     setViewMonth((m) => {
@@ -219,44 +163,9 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                     setViewMonth(cell.date.getMonth());
                   }
                   
-                  // Only show tooltip if there are entries, otherwise navigate directly
-                  if (hasEntries) {
-                    // Show tooltip on click (both mobile and desktop)
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const viewportWidth = window.innerWidth;
-                    const viewportHeight = window.innerHeight;
-                    
-                    // Calculate tooltip position (centered above the cell)
-                    let x = rect.left + rect.width / 2;
-                    let y = rect.top - 10;
-                    
-                    // Ensure tooltip doesn't go off-screen horizontally
-                    const tooltipWidth = 240;
-                    if (x - tooltipWidth / 2 < 10) {
-                      x = tooltipWidth / 2 + 10;
-                    } else if (x + tooltipWidth / 2 > viewportWidth - 10) {
-                      x = viewportWidth - tooltipWidth / 2 - 10;
-                    }
-                    
-                    // Ensure tooltip doesn't go off-screen vertically (show below if needed)
-                    // Increase height to accommodate photos
-                    const tooltipHeight = 280;
-                    let above = true;
-                    if (y - tooltipHeight < 10) {
-                      y = rect.bottom + 10;
-                      above = false;
-                    } else if (y + tooltipHeight > viewportHeight - 10 && above) {
-                      y = rect.bottom + 10;
-                      above = false;
-                    }
-                    
-                    setTooltipPosition({ x, y, above });
-                    setTooltipDate(cell.date);
-                  } else {
-                    // No entries - navigate directly
-                    if (typeof onSelectDate === 'function') {
-                      onSelectDate(cell.date);
-                    }
+                  // Navigate directly to the date
+                  if (typeof onSelectDate === 'function') {
+                    onSelectDate(cell.date);
                   }
                 }}
                 aria-selected={isSelected}
@@ -272,153 +181,25 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                   }
                 }}
               >
-                <div className="flex flex-col items-center justify-center min-h-[2.5rem]">
+                <div className="flex flex-col items-center justify-center min-h-[2.5rem] gap-1">
                   <span className={`font-medium ${isTodayDate && !isSelected ? 'text-blue-700' : ''}`}>
                     {cell.dayNumber}
                   </span>
+                  {hasEntries && (
+                    <div className={`w-1.5 h-1.5 rounded-full ${
+                      isSelected 
+                        ? 'bg-white' 
+                        : isTodayDate 
+                          ? 'bg-blue-600' 
+                          : 'bg-blue-500'
+                    }`}></div>
+                  )}
                 </div>
               </div>
             );
           })
         )}
       </div>
-
-      {/* Tooltip with Add Entry button */}
-      {tooltipDate && (() => {
-        const counts = getEntryCounts(tooltipDate);
-        const photos = getEntriesWithPhotos(tooltipDate);
-        const photoCount = getPhotoCount(tooltipDate);
-        const dateKey = tooltipDate.toDateString();
-        const dateEntries = entries[dateKey] || [];
-        
-        
-        return (
-          <div
-            data-calendar-tooltip
-            className="fixed z-[9999] w-[240px] bg-white border border-gray-200 rounded-lg shadow-xl"
-            style={{
-              left: `${tooltipPosition.x}px`,
-              top: `${tooltipPosition.y}px`,
-              transform: tooltipPosition.above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
-            }}
-          >
-            {/* Arrow */}
-            {tooltipPosition.above ? (
-              <div
-                className="absolute left-1/2 top-full -translate-x-1/2"
-                style={{
-                  borderLeft: '8px solid transparent',
-                  borderRight: '8px solid transparent',
-                  borderTop: '8px solid white',
-                }}
-              />
-            ) : (
-              <div
-                className="absolute left-1/2 bottom-full -translate-x-1/2"
-                style={{
-                  borderLeft: '8px solid transparent',
-                  borderRight: '8px solid transparent',
-                  borderBottom: '8px solid white',
-                }}
-              />
-            )}
-            
-            <div className="p-3 space-y-2">
-              <div className="text-xs font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-200">
-                {tooltipDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-              </div>
-              
-              {/* Photos section */}
-              {photoCount > 0 && (
-                <div className="mb-2">
-                  <div className="text-xs font-medium text-gray-600 mb-1.5">
-                    Photos: <span className="font-semibold text-gray-900">{photoCount}</span>
-                  </div>
-                  {photos.length > 0 && (
-                    <div className="flex gap-1.5 overflow-x-auto pb-1">
-                      {photos.map((entry, idx) => {
-                        const photoUrl = entry.photo?.dataUrl || entry.photo?.url;
-                        if (!photoUrl) return null;
-                        return (
-                          <div
-                            key={entry.id || idx}
-                            className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-200 bg-gray-100"
-                          >
-                            <img
-                              src={photoUrl}
-                              alt={entry.name || 'Entry photo'}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                console.error('Failed to load photo:', entry.id, entry.photo);
-                                e.target.style.display = 'none';
-                              }}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {photoCount > photos.length && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      +{photoCount - photos.length} more {photoCount - photos.length === 1 ? 'photo' : 'photos'}
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {counts.total > 0 ? (
-                <div className="space-y-1 text-xs">
-                  {counts.meal > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Meals:</span>
-                      <span className="font-semibold text-gray-900">{counts.meal}</span>
-                    </div>
-                  )}
-                  {counts.sleep > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Sleep:</span>
-                      <span className="font-semibold text-gray-900">{counts.sleep}</span>
-                    </div>
-                  )}
-                  {counts.measurements > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Measurements:</span>
-                      <span className="font-semibold text-gray-900">{counts.measurements}</span>
-                    </div>
-                  )}
-                  {counts.exercise > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Exercise:</span>
-                      <span className="font-semibold text-gray-900">{counts.exercise}</span>
-                    </div>
-                  )}
-                  <div className="pt-1 mt-1 border-t border-gray-200 flex items-center justify-between">
-                    <span className="font-semibold text-gray-900">Total:</span>
-                    <span className="font-bold text-blue-600">{counts.total}</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-xs text-gray-500 text-center py-1">
-                  No entries yet
-                </div>
-              )}
-              
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setTooltipDate(null);
-                  if (typeof onSelectDate === 'function') {
-                    onSelectDate(tooltipDate);
-                  }
-                }}
-                className="w-full mt-3 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation"
-              >
-                {counts.total > 0 ? 'View/Add Entry' : 'Add Entry'}
-              </button>
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 };
