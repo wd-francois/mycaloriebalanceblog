@@ -2113,7 +2113,19 @@ const DateTimeSelector = () => {
               {/* Show Entries Button */}
               <div className="mt-6 flex justify-center">
                 <a
-                  href={`/entries?date=${selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}`}
+                  href={`/entries?date=${selectedDate ? (() => {
+                    // Format date using local timezone to avoid timezone issues
+                    const year = selectedDate.getFullYear();
+                    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(selectedDate.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                  })() : (() => {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                  })()}`}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -82,6 +82,10 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     const checkUrl = () => {
       if (typeof window !== 'undefined') {
         const newUrl = window.location.href;
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlDate = urlParams.get('date');
+        console.log('Checking URL - Full URL:', newUrl, 'Date param:', urlDate);
+        
         if (newUrl !== currentUrl) {
           console.log('URL changed from', currentUrl, 'to', newUrl);
           setCurrentUrl(newUrl);
@@ -89,8 +93,11 @@ const DailyEntriesContent = ({ date: dateParam }) => {
       }
     };
     
-    // Check immediately
+    // Check immediately on mount
     checkUrl();
+    
+    // Also check after a short delay to catch any timing issues
+    const timeout = setTimeout(checkUrl, 100);
     
     // Listen for navigation events
     window.addEventListener('popstate', checkUrl);
@@ -99,6 +106,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     window.addEventListener('focus', checkUrl);
     
     return () => {
+      clearTimeout(timeout);
       window.removeEventListener('popstate', checkUrl);
       window.removeEventListener('focus', checkUrl);
     };
@@ -259,10 +267,14 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     loadEntries();
   }, []); // Only load once on mount
 
-  // Reload entries when selectedDate changes (if needed)
+  // Log when selectedDate changes
   useEffect(() => {
-    // This ensures entries are available when date changes
-    // The entries are already loaded, just need to ensure state is updated
+    console.log('=== SELECTED DATE CHANGED ===');
+    console.log('Selected date:', selectedDate);
+    console.log('Selected date ISO:', selectedDate?.toISOString().split('T')[0]);
+    console.log('Selected date formatted:', formatDate(selectedDate));
+    console.log('Current URL:', typeof window !== 'undefined' ? window.location.href : 'N/A');
+    console.log('URL search params:', typeof window !== 'undefined' ? window.location.search : 'N/A');
   }, [selectedDate]);
 
   // Get entries for the selected date
@@ -276,13 +288,26 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     const normalizedSelectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     const dateKey = normalizedSelectedDate.toDateString();
     
+    console.log('=== FILTERING ENTRIES ===');
+    console.log('Selected date:', normalizedSelectedDate);
+    console.log('Selected date ISO:', normalizedSelectedDate.toISOString().split('T')[0]);
+    console.log('Date key:', dateKey);
+    console.log('Total entries loaded:', Object.keys(entries).length, 'dates');
+    console.log('Available date keys:', Object.keys(entries));
+    
     // Only use exact match - don't do fallback matching as it can cause entries to appear on all dates
     const foundEntries = entries[dateKey] || [];
     
-    console.log('Selected date:', normalizedSelectedDate, 'Date key:', dateKey, 'Found entries:', foundEntries.length);
-    console.log('Available date keys:', Object.keys(entries));
+    console.log('Found entries for this date:', foundEntries.length);
     if (foundEntries.length > 0) {
       console.log('Sample found entry:', foundEntries[0]);
+      console.log('Sample entry date:', foundEntries[0].date, 'Date key:', foundEntries[0].date?.toDateString());
+    } else {
+      console.log('No entries found for date key:', dateKey);
+      // Debug: show what entries exist
+      Object.keys(entries).forEach(key => {
+        console.log(`  Date key "${key}" has ${entries[key].length} entries`);
+      });
     }
     
     return foundEntries;
