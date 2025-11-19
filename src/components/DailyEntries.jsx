@@ -68,47 +68,89 @@ const DailyEntriesContent = ({ date: dateParam }) => {
   const [isDBInitialized, setIsDBInitialized] = useState(false);
   const [loading, setLoading] = useState(true);
   const { settings } = useSettings();
+  
+  // Track URL to force re-render when it changes
+  const [currentUrl, setCurrentUrl] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.href;
+    }
+    return '';
+  });
 
-  // Log the received date prop
+  // Update URL state when location changes (for client-side navigation or page reloads)
   useEffect(() => {
-    console.log('DailyEntriesContent - Received date param:', dateParam);
-  }, [dateParam]);
+    const checkUrl = () => {
+      if (typeof window !== 'undefined') {
+        const newUrl = window.location.href;
+        if (newUrl !== currentUrl) {
+          console.log('URL changed from', currentUrl, 'to', newUrl);
+          setCurrentUrl(newUrl);
+        }
+      }
+    };
+    
+    // Check immediately
+    checkUrl();
+    
+    // Listen for navigation events
+    window.addEventListener('popstate', checkUrl);
+    
+    // Also check on focus (in case user navigated away and back)
+    window.addEventListener('focus', checkUrl);
+    
+    return () => {
+      window.removeEventListener('popstate', checkUrl);
+      window.removeEventListener('focus', checkUrl);
+    };
+  }, [currentUrl]);
 
-  // Get date from prop or URL parameter
+  // Get date from prop or URL parameter - always read from URL to ensure it's current
   const selectedDate = useMemo(() => {
     let dateToUse = null;
     
-    if (dateParam) {
+    // Always check URL first (most reliable for navigation)
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlDateParam = urlParams.get('date');
+      if (urlDateParam) {
+        // If URL date is in YYYY-MM-DD format, parse it correctly
+        if (urlDateParam.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const [year, month, day] = urlDateParam.split('-').map(Number);
+          dateToUse = new Date(year, month - 1, day);
+          console.log('Using URL date:', urlDateParam, '->', dateToUse);
+        } else {
+          dateToUse = new Date(urlDateParam);
+          console.log('Using URL date (parsed):', urlDateParam, '->', dateToUse);
+        }
+      }
+    }
+    
+    // Fallback to prop if URL date not available
+    if (!dateToUse && dateParam) {
       // If dateParam is in YYYY-MM-DD format, parse it correctly
       if (typeof dateParam === 'string' && dateParam.match(/^\d{4}-\d{2}-\d{2}$/)) {
         const [year, month, day] = dateParam.split('-').map(Number);
         dateToUse = new Date(year, month - 1, day);
+        console.log('Using prop date:', dateParam, '->', dateToUse);
       } else {
         dateToUse = new Date(dateParam);
-      }
-    } else if (typeof window !== 'undefined') {
-      // Fallback to URL parameter if prop not provided
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlDate = urlParams.get('date');
-      if (urlDate) {
-        // If URL date is in YYYY-MM-DD format, parse it correctly
-        if (urlDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-          const [year, month, day] = urlDate.split('-').map(Number);
-          dateToUse = new Date(year, month - 1, day);
-        } else {
-          dateToUse = new Date(urlDate);
-        }
+        console.log('Using prop date (parsed):', dateParam, '->', dateToUse);
       }
     }
     
     // Normalize date to midnight to avoid timezone issues
     if (dateToUse && !isNaN(dateToUse.getTime())) {
       const normalized = new Date(dateToUse.getFullYear(), dateToUse.getMonth(), dateToUse.getDate());
+      console.log('Selected date normalized:', normalized.toISOString().split('T')[0], 'Date key:', normalized.toDateString());
       return normalized;
     }
     
-    return new Date();
-  }, [dateParam]);
+    // Last resort: today's date
+    const today = new Date();
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    console.log('Using today as fallback:', normalizedToday.toISOString().split('T')[0]);
+    return normalizedToday;
+  }, [dateParam, currentUrl]); // Re-compute when dateParam or URL changes
 
   // Load entries from database
   useEffect(() => {
