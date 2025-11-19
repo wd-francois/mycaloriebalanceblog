@@ -19,7 +19,44 @@ function loadFromLocalStorage() {
   try {
     const saved = localStorage.getItem('healthEntries');
     if (!saved) return {};
-    return JSON.parse(saved);
+    const parsed = JSON.parse(saved);
+    
+    // Convert localStorage entries to proper format with normalized dates
+    const formattedEntries = {};
+    Object.keys(parsed).forEach(dateKey => {
+      const dateEntries = parsed[dateKey];
+      if (Array.isArray(dateEntries)) {
+        dateEntries.forEach(entry => {
+          if (!entry || !entry.date) return;
+          
+          let entryDate;
+          if (entry.date instanceof Date) {
+            entryDate = entry.date;
+          } else if (typeof entry.date === 'string') {
+            entryDate = new Date(entry.date);
+          } else {
+            entryDate = new Date(entry.date);
+          }
+          
+          // Normalize date to midnight to avoid timezone issues
+          if (!isNaN(entryDate.getTime())) {
+            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+            const normalizedDateKey = entryDate.toDateString();
+            
+            if (!formattedEntries[normalizedDateKey]) {
+              formattedEntries[normalizedDateKey] = [];
+            }
+            
+            formattedEntries[normalizedDateKey].push({
+              ...entry,
+              date: entryDate
+            });
+          }
+        });
+      }
+    });
+    
+    return formattedEntries;
   } catch (error) {
     console.error('Error loading from localStorage:', error);
     return {};
@@ -34,19 +71,37 @@ const DailyEntriesContent = ({ date: dateParam }) => {
 
   // Get date from prop or URL parameter
   const selectedDate = useMemo(() => {
+    let dateToUse = null;
+    
     if (dateParam) {
-      const date = new Date(dateParam);
-      return isNaN(date.getTime()) ? new Date() : date;
-    }
-    // Fallback to URL parameter if prop not provided
-    if (typeof window !== 'undefined') {
+      // If dateParam is in YYYY-MM-DD format, parse it correctly
+      if (typeof dateParam === 'string' && dateParam.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = dateParam.split('-').map(Number);
+        dateToUse = new Date(year, month - 1, day);
+      } else {
+        dateToUse = new Date(dateParam);
+      }
+    } else if (typeof window !== 'undefined') {
+      // Fallback to URL parameter if prop not provided
       const urlParams = new URLSearchParams(window.location.search);
       const urlDate = urlParams.get('date');
       if (urlDate) {
-        const date = new Date(urlDate);
-        return isNaN(date.getTime()) ? new Date() : date;
+        // If URL date is in YYYY-MM-DD format, parse it correctly
+        if (urlDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const [year, month, day] = urlDate.split('-').map(Number);
+          dateToUse = new Date(year, month - 1, day);
+        } else {
+          dateToUse = new Date(urlDate);
+        }
       }
     }
+    
+    // Normalize date to midnight to avoid timezone issues
+    if (dateToUse && !isNaN(dateToUse.getTime())) {
+      const normalized = new Date(dateToUse.getFullYear(), dateToUse.getMonth(), dateToUse.getDate());
+      return normalized;
+    }
+    
     return new Date();
   }, [dateParam]);
 
@@ -84,21 +139,40 @@ const DailyEntriesContent = ({ date: dateParam }) => {
         // Convert IndexedDB entries to the format expected by the component
         const formattedEntries = {};
         dbEntries.forEach(entry => {
-          const entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
-          const dateKey = entryDate.toDateString();
-          if (!formattedEntries[dateKey]) {
-            formattedEntries[dateKey] = [];
+          if (!entry || !entry.date) return;
+          
+          let entryDate;
+          if (entry.date instanceof Date) {
+            entryDate = entry.date;
+          } else if (typeof entry.date === 'string') {
+            entryDate = new Date(entry.date);
+          } else {
+            entryDate = new Date(entry.date);
           }
-          const entryPhoto = photosByEntryId[entry.id] || entry.photo;
-          const mergedEntry = {
-            ...entry,
-            date: entryDate
-          };
-          if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
-            mergedEntry.photo = entryPhoto;
+          
+          // Normalize date to midnight to avoid timezone issues
+          if (!isNaN(entryDate.getTime())) {
+            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+            const dateKey = entryDate.toDateString();
+            
+            if (!formattedEntries[dateKey]) {
+              formattedEntries[dateKey] = [];
+            }
+            
+            const entryPhoto = photosByEntryId[entry.id] || entry.photo;
+            const mergedEntry = {
+              ...entry,
+              date: entryDate
+            };
+            if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
+              mergedEntry.photo = entryPhoto;
+            }
+            formattedEntries[dateKey].push(mergedEntry);
           }
-          formattedEntries[dateKey].push(mergedEntry);
         });
+        
+        console.log('Loaded entries:', Object.keys(formattedEntries).length, 'dates');
+        console.log('Formatted entries:', formattedEntries);
         setEntries(formattedEntries);
       } catch (error) {
         console.error('Error loading entries from IndexedDB:', error);
@@ -111,13 +185,22 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     };
 
     loadEntries();
-  }, []);
+  }, []); // Only load once on mount
+
+  // Reload entries when selectedDate changes (if needed)
+  useEffect(() => {
+    // This ensures entries are available when date changes
+    // The entries are already loaded, just need to ensure state is updated
+  }, [selectedDate]);
 
   // Get entries for the selected date
   const currentDateEntries = useMemo(() => {
     if (!selectedDate) return [];
     const dateKey = selectedDate.toDateString();
-    return entries[dateKey] || [];
+    const foundEntries = entries[dateKey] || [];
+    console.log('Selected date:', selectedDate, 'Date key:', dateKey, 'Found entries:', foundEntries.length);
+    console.log('Available date keys:', Object.keys(entries));
+    return foundEntries;
   }, [entries, selectedDate]);
 
   // Handle delete
@@ -279,25 +362,46 @@ const DailyEntriesContent = ({ date: dateParam }) => {
       <div className="flex-1 flex items-center justify-center pb-24">
         <div className="max-w-4xl mx-auto px-4 w-full">
           <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-lg p-6 md:p-8">
-            <GroupedEntries
-              entries={currentDateEntries.filter(entry => {
-                // Filter entries based on enabled features
-                if (entry.type === 'meal' && !settings.enableMeals) return false;
-                if (entry.type === 'exercise' && !settings.enableExercise) return false;
-                if (entry.type === 'sleep' && !settings.enableSleep) return false;
-                if (entry.type === 'measurements' && !settings.enableMeasurements) return false;
-                return true;
-              })}
-              formatTime={formatTime}
-              settings={settings}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onInfoClick={handleInfoClick}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            />
+            {currentDateEntries.length === 0 ? (
+              <div className="text-center py-12">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No entries for this date</h3>
+                <p className="mt-1 text-sm text-gray-500">Add your first entry from the calendar page</p>
+                <div className="mt-6">
+                  <a
+                    href="/"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Go to Calendar
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <GroupedEntries
+                entries={currentDateEntries.filter(entry => {
+                  // Filter entries based on enabled features
+                  if (entry.type === 'meal' && !settings.enableMeals) return false;
+                  if (entry.type === 'exercise' && !settings.enableExercise) return false;
+                  if (entry.type === 'sleep' && !settings.enableSleep) return false;
+                  if (entry.type === 'measurements' && !settings.enableMeasurements) return false;
+                  return true;
+                })}
+                formatTime={formatTime}
+                settings={settings}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onInfoClick={handleInfoClick}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              />
+            )}
           </div>
         </div>
       </div>
