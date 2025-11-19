@@ -165,28 +165,37 @@ const DailyEntriesContent = ({ date: dateParam }) => {
             entryDate = new Date(entry.date);
           }
           
-          // Normalize date to midnight to avoid timezone issues
-          if (!isNaN(entryDate.getTime())) {
-            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-            const dateKey = entryDate.toDateString();
-            
-            if (!formattedEntries[dateKey]) {
-              formattedEntries[dateKey] = [];
-            }
-            
-            const entryPhoto = photosByEntryId[entry.id] || entry.photo;
-            const mergedEntry = {
-              ...entry,
-              date: entryDate
-            };
-            if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
-              mergedEntry.photo = entryPhoto;
-            }
-            formattedEntries[dateKey].push(mergedEntry);
-            console.log(`Added entry ${index} to date key: ${dateKey}`, mergedEntry.name || mergedEntry.type);
-          } else {
+          // Validate date is valid before proceeding
+          if (isNaN(entryDate.getTime())) {
             console.log(`Skipping entry ${index}: invalid date`, entry.date, entryDate);
+            return;
           }
+          
+          // Normalize date to midnight to avoid timezone issues
+          entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+          
+          // Double-check normalized date is valid
+          if (isNaN(entryDate.getTime())) {
+            console.log(`Skipping entry ${index}: invalid normalized date`, entry.date);
+            return;
+          }
+          
+          const dateKey = entryDate.toDateString();
+          
+          if (!formattedEntries[dateKey]) {
+            formattedEntries[dateKey] = [];
+          }
+          
+          const entryPhoto = photosByEntryId[entry.id] || entry.photo;
+          const mergedEntry = {
+            ...entry,
+            date: entryDate
+          };
+          if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
+            mergedEntry.photo = entryPhoto;
+          }
+          formattedEntries[dateKey].push(mergedEntry);
+          console.log(`Added entry ${index} to date key: ${dateKey}`, mergedEntry.name || mergedEntry.type);
         });
         
         console.log('Loaded entries:', Object.keys(formattedEntries).length, 'dates');
@@ -225,27 +234,8 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     const normalizedSelectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     const dateKey = normalizedSelectedDate.toDateString();
     
-    // Try exact match first
-    let foundEntries = entries[dateKey] || [];
-    
-    // If no exact match, try to find entries with similar dates (handle timezone issues)
-    if (foundEntries.length === 0 && Object.keys(entries).length > 0) {
-      console.log('No exact match, trying to find similar dates...');
-      // Try matching by date components
-      const selectedYear = normalizedSelectedDate.getFullYear();
-      const selectedMonth = normalizedSelectedDate.getMonth();
-      const selectedDay = normalizedSelectedDate.getDate();
-      
-      Object.keys(entries).forEach(key => {
-        const keyDate = new Date(key);
-        if (keyDate.getFullYear() === selectedYear && 
-            keyDate.getMonth() === selectedMonth && 
-            keyDate.getDate() === selectedDay) {
-          foundEntries = entries[key];
-          console.log('Found entries using date components match:', key);
-        }
-      });
-    }
+    // Only use exact match - don't do fallback matching as it can cause entries to appear on all dates
+    const foundEntries = entries[dateKey] || [];
     
     console.log('Selected date:', normalizedSelectedDate, 'Date key:', dateKey, 'Found entries:', foundEntries.length);
     console.log('Available date keys:', Object.keys(entries));

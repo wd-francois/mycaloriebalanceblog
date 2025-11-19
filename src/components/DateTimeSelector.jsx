@@ -680,8 +680,19 @@ const DateTimeSelector = () => {
       }
     }
 
-    if (!selectedDate) return;
-    const dateKey = selectedDate.toDateString();
+    if (!selectedDate) {
+      console.error('Cannot save entry: selectedDate is null or undefined');
+      return;
+    }
+    
+    // Normalize date to ensure consistent storage
+    const normalizedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    if (isNaN(normalizedDate.getTime())) {
+      console.error('Cannot save entry: invalid date', selectedDate);
+      return;
+    }
+    
+    const dateKey = normalizedDate.toDateString();
 
     if (data.id == null) {
       // Add new entry
@@ -690,7 +701,7 @@ const DateTimeSelector = () => {
         id: generatedId,
         name,
         type: activeForm,
-        date: selectedDate,
+        date: normalizedDate, // Use normalized date
         time,
         ...(activeForm === 'exercise' && { sets: data.sets }),
         ...(activeForm === 'meal' && { 
@@ -772,11 +783,12 @@ const DateTimeSelector = () => {
       const existingEntriesForDate = entries[dateKey] || [];
       const previousEntry = existingEntriesForDate.find(e => e.id === data.id);
       const hadPhotoBefore = !!previousEntry?.photo;
+      
       const updatedEntry = {
         id: data.id,
         name, 
         type: activeForm,
-        date: selectedDate, 
+        date: normalizedDate, // Use normalized date (same as for new entries) 
         time,
         ...(activeForm === 'exercise' && { sets: data.sets }),
         ...(activeForm === 'meal' && { 
