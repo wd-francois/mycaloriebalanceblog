@@ -258,7 +258,7 @@ const DateTimeSelector = () => {
         
         // Load existing data from IndexedDB first, then localStorage as fallback
         try {
-          const dbEntries = await healthDB.getUserEntries();
+          const dbEntries = await healthDB.getAllUserEntries();
           console.log('Loaded entries from IndexedDB:', dbEntries);
           
           // Load photos separately and merge with entries

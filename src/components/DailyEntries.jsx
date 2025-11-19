@@ -61,8 +61,8 @@ const DailyEntriesContent = ({ date: dateParam }) => {
         await healthDB.init();
         setIsDBInitialized(true);
 
-        // Load entries from IndexedDB
-        const dbEntries = await healthDB.getUserEntries();
+        // Load entries from IndexedDB - use getAllUserEntries to get all entries
+        const dbEntries = await healthDB.getAllUserEntries();
         
         // Load photos separately and merge with entries
         let photoEntries = [];
