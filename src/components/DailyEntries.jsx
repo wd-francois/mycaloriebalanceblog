@@ -2,17 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import GroupedEntries from './GroupedEntries';
 import healthDB from '../lib/database.js';
 import { SettingsProvider, useSettings } from '../contexts/SettingsContext.jsx';
-
-function formatDate(date) {
-  return date?.toLocaleDateString(undefined, {
-    year: 'numeric', month: 'long', day: 'numeric'
-  });
-}
-
-function formatTime({ hour, minute, period }) {
-  const mm = minute.toString().padStart(2, '0');
-  return `${hour}:${mm} ${period}`;
-}
+import { formatDate, formatTime } from '../lib/utils';
 
 function loadFromLocalStorage() {
   if (typeof window === 'undefined') return {};
@@ -67,6 +57,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
   const [entries, setEntries] = useState({});
   const [isDBInitialized, setIsDBInitialized] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [entriesLoaded, setEntriesLoaded] = useState(false);
   const { settings } = useSettings();
   
   // Track URL to force re-render when it changes
@@ -120,16 +111,19 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const urlDateParam = urlParams.get('date');
+      console.log('URL date param:', urlDateParam);
       if (urlDateParam) {
         // If URL date is in YYYY-MM-DD format, parse it correctly
         if (urlDateParam.match(/^\d{4}-\d{2}-\d{2}$/)) {
           const [year, month, day] = urlDateParam.split('-').map(Number);
           dateToUse = new Date(year, month - 1, day);
-          console.log('Using URL date:', urlDateParam, '->', dateToUse);
+          console.log('Using URL date:', urlDateParam, '->', dateToUse, '->', dateToUse.toDateString());
         } else {
           dateToUse = new Date(urlDateParam);
-          console.log('Using URL date (parsed):', urlDateParam, '->', dateToUse);
+          console.log('Using URL date (parsed):', urlDateParam, '->', dateToUse, '->', dateToUse.toDateString());
         }
+      } else {
+        console.log('No date param in URL, will use prop or today');
       }
     }
     
@@ -166,6 +160,8 @@ const DailyEntriesContent = ({ date: dateParam }) => {
       if (typeof window === 'undefined') return;
       
       setLoading(true);
+      setEntriesLoaded(false);
+      // Keep previous entries while loading to avoid showing "No entries" during reload
       try {
         // Initialize IndexedDB
         await healthDB.init();
@@ -252,20 +248,27 @@ const DailyEntriesContent = ({ date: dateParam }) => {
         console.log('Formatted entries keys:', Object.keys(formattedEntries));
         if (Object.keys(formattedEntries).length > 0) {
           console.log('Sample entry:', formattedEntries[Object.keys(formattedEntries)[0]][0]);
+          // Log all date keys for debugging
+          Object.keys(formattedEntries).forEach(key => {
+            console.log(`Date key "${key}": ${formattedEntries[key].length} entries`);
+          });
         }
         setEntries(formattedEntries);
+        setEntriesLoaded(true);
+        console.log('Entries loaded and setEntriesLoaded(true) called');
       } catch (error) {
         console.error('Error loading entries from IndexedDB:', error);
         // Fallback to localStorage
         const savedEntries = loadFromLocalStorage();
         setEntries(savedEntries);
+        setEntriesLoaded(true);
       } finally {
         setLoading(false);
       }
     };
 
     loadEntries();
-  }, []); // Only load once on mount
+  }, [currentUrl, selectedDate]); // Reload when URL changes OR when selected date changes (e.g., when navigating from another page)
 
   // Log when selectedDate changes
   useEffect(() => {
@@ -295,8 +298,53 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     console.log('Total entries loaded:', Object.keys(entries).length, 'dates');
     console.log('Available date keys:', Object.keys(entries));
     
-    // Only use exact match - don't do fallback matching as it can cause entries to appear on all dates
-    const foundEntries = entries[dateKey] || [];
+    // Try exact match first
+    let foundEntries = entries[dateKey] || [];
+    
+    // If no exact match, try to find entries by comparing ISO date strings (more robust)
+    if (foundEntries.length === 0 && Object.keys(entries).length > 0) {
+      const selectedISO = normalizedSelectedDate.toISOString().split('T')[0];
+      console.log('No exact match, trying ISO date match:', selectedISO);
+      
+      // Check each date key to see if it matches the selected date
+      Object.keys(entries).forEach(key => {
+        try {
+          // First try parsing the key as a date string
+          let keyDate = new Date(key);
+          
+          // If that doesn't work, check the actual entry dates in that key
+          if (isNaN(keyDate.getTime()) && entries[key].length > 0) {
+            const firstEntry = entries[key][0];
+            if (firstEntry && firstEntry.date) {
+              if (firstEntry.date instanceof Date) {
+                keyDate = firstEntry.date;
+              } else if (typeof firstEntry.date === 'string') {
+                // Handle YYYY-MM-DD format
+                if (firstEntry.date.match(/^\d{4}-\d{2}-\d{2}/)) {
+                  const [year, month, day] = firstEntry.date.split('T')[0].split('-').map(Number);
+                  keyDate = new Date(year, month - 1, day);
+                } else {
+                  keyDate = new Date(firstEntry.date);
+                }
+              } else {
+                keyDate = new Date(firstEntry.date);
+              }
+            }
+          }
+          
+          if (!isNaN(keyDate.getTime())) {
+            const normalizedKeyDate = new Date(keyDate.getFullYear(), keyDate.getMonth(), keyDate.getDate());
+            const keyISO = normalizedKeyDate.toISOString().split('T')[0];
+            if (keyISO === selectedISO) {
+              console.log(`Found matching date key by ISO: "${key}" matches "${selectedISO}"`);
+              foundEntries = entries[key];
+            }
+          }
+        } catch (e) {
+          console.log('Error parsing date key:', key, e);
+        }
+      });
+    }
     
     console.log('Found entries for this date:', foundEntries.length);
     if (foundEntries.length > 0) {
@@ -312,6 +360,17 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     
     return foundEntries;
   }, [entries, selectedDate]);
+
+  // Compute filtered entries once
+  const filteredDateEntries = useMemo(() => {
+    return currentDateEntries.filter(entry => {
+      if (entry.type === 'meal' && !settings.enableMeals) return false;
+      if (entry.type === 'exercise' && !settings.enableExercise) return false;
+      if (entry.type === 'sleep' && !settings.enableSleep) return false;
+      if (entry.type === 'measurements' && !settings.enableMeasurements) return false;
+      return true;
+    });
+  }, [currentDateEntries, settings]);
 
   // Handle delete
   const handleDelete = async (entryId) => {
@@ -360,6 +419,20 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     const dateStr = selectedDate.toISOString().split('T')[0];
     window.location.href = `/?date=${dateStr}&info=${entry.id}`;
   };
+
+  // Format selected date as YYYY-MM-DD for URL
+  const dateStr = selectedDate ? (() => {
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  })() : (() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  })();
 
   // Export to CSV
   const exportToCSV = () => {
@@ -421,48 +494,21 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {formatDate(selectedDate)}
-              </h1>
-              {currentDateEntries.length > 0 && (
-                <p className="text-sm text-gray-500 mt-1">
-                  {currentDateEntries.length} entry{currentDateEntries.length !== 1 ? 's' : ''}
-                </p>
-              )}
-            </div>
+        <div className="max-w-4xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <button
-                onClick={exportToCSV}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
-                title="Export daily entries"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Export
-              </button>
               <a
-                href="/statistics/"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
-                title="View statistics"
+                href={`/?date=${dateStr}&add=true`}
+                className="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Back to Add New Entry"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Stats
-              </a>
-              <a
-                href="/"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors duration-200"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Back
               </a>
+              <div className="text-lg font-bold text-gray-900 truncate pr-2">
+                {formatDate(selectedDate)}
+              </div>
             </div>
           </div>
         </div>
@@ -472,48 +518,58 @@ const DailyEntriesContent = ({ date: dateParam }) => {
       <div className="flex-1 flex items-center justify-center pb-24">
         <div className="max-w-4xl mx-auto px-4 w-full">
           <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-lg p-6 md:p-8">
-            {currentDateEntries.length === 0 ? (
-              <div className="text-center py-12">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No entries for this date</h3>
-                <p className="mt-1 text-sm text-gray-500">Add your first entry from the calendar page</p>
-                <div className="mt-6">
+            {/* Show entries if filtered entries exist */}
+            {filteredDateEntries.length > 0 ? (
+              <>
+                {/* Action Buttons */}
+                <div className="flex items-center justify-end gap-3 mb-6 pb-6 border-b border-gray-200">
                   <a
-                    href="/"
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
+                    href={`/daily-calories?date=${dateStr}`}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
+                    title={`View calorie intake graph (${dateStr})`}
+                    onClick={(e) => {
+                      console.log('Navigating to calories with date:', dateStr, 'selectedDate:', selectedDate?.toDateString());
+                    }}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    Go to Calendar
+                    Calories
                   </a>
+                  <a
+                    href={`/daily-sleep?date=${dateStr}`}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg border border-purple-100 transition-colors duration-200"
+                    title="View sleep statistics"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    Sleep
+                  </a>
+                  <a
+                    href={`/daily-weight?date=${dateStr}`}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-green-100 transition-colors duration-200"
+                    title="View weight progress"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Weight
+                  </a>
+                  <button
+                    onClick={exportToCSV}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
+                    title="Export daily entries"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export
+                  </button>
                 </div>
-              </div>
-            ) : (
-              <GroupedEntries
-                entries={currentDateEntries.filter(entry => {
-                  // Filter entries based on enabled features
-                  const beforeFilter = currentDateEntries.length;
-                  if (entry.type === 'meal' && !settings.enableMeals) {
-                    console.log('Filtered out meal entry:', entry.name);
-                    return false;
-                  }
-                  if (entry.type === 'exercise' && !settings.enableExercise) {
-                    console.log('Filtered out exercise entry:', entry.name);
-                    return false;
-                  }
-                  if (entry.type === 'sleep' && !settings.enableSleep) {
-                    console.log('Filtered out sleep entry:', entry.name);
-                    return false;
-                  }
-                  if (entry.type === 'measurements' && !settings.enableMeasurements) {
-                    console.log('Filtered out measurements entry:', entry.name);
-                    return false;
-                  }
-                  return true;
-                })}
+                <GroupedEntries
+                  key={`${dateStr}-${filteredDateEntries.length}`}
+                  entries={filteredDateEntries}
                 formatTime={formatTime}
                 settings={settings}
                 onEdit={handleEdit}
@@ -524,6 +580,28 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
               />
+              </>
+            ) : (
+              !loading && entriesLoaded && filteredDateEntries.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No entries for this date</h3>
+                  <p className="mt-1 text-sm text-gray-500">Add your first entry from the calendar page</p>
+                  <div className="mt-6">
+                    <a
+                      href="/"
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                      </svg>
+                      Go to Calendar
+                    </a>
+                  </div>
+                </div>
+              ) : null
             )}
           </div>
         </div>

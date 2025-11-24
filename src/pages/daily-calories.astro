@@ -1,0 +1,560 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
+
+// Get date from URL parameter
+const dateParam = Astro.url.searchParams.get('date');
+// Format date for back link - use dateParam if available and valid, otherwise use today
+const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+})();
+
+// Debug: log the date parameter (remove in production)
+console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
+---
+
+<Layout
+  title="Daily Calorie Intake - " + siteConfig.title
+  description="View your daily calorie intake graph - " + siteConfig.title
+  wideContent={true}
+  showBottomNav={true}
+  showTopNav={false}
+  showFooter={false}
+>
+  <main class="w-full bg-gray-50 flex flex-col min-h-screen">
+    <!-- Top Navigation Header -->
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <div class="max-w-6xl mx-auto px-4 py-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <a
+              href={`/entries?date=${backDate}`}
+              id="back-to-entries-link"
+              class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title={`Back to Show Entries (${backDate})`}
+              data-date={backDate}
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </a>
+            <div class="text-lg font-bold text-gray-900 truncate pr-2">
+              Daily Calorie Intake
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
+        <!-- Date Display -->
+        <div class="mb-6">
+          <p class="text-gray-600 dark:text-gray-400" id="dateRange">Loading...</p>
+        </div>
+
+      <!-- Daily Calorie Breakdown Chart -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Daily Calorie Breakdown</h2>
+        <div class="flex flex-col items-center justify-center">
+          <div class="relative w-full max-w-md h-96 flex items-center justify-center">
+            <canvas id="calorieChart"></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div class="text-4xl font-bold text-gray-900 dark:text-white mb-2" id="totalCalories">0</div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">Total Calories</div>
+            </div>
+          </div>
+          
+          <!-- Macronutrient Breakdown -->
+          <div class="mt-6 grid grid-cols-3 gap-4 w-full max-w-md">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-red-600 dark:text-red-400 mb-1" id="proteinCalories">0</div>
+              <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Protein</div>
+              <div class="text-xs text-gray-500 dark:text-gray-500" id="proteinGrams">0g</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-green-600 dark:text-green-400 mb-1" id="carbsCalories">0</div>
+              <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Carbs</div>
+              <div class="text-xs text-gray-500 dark:text-gray-500" id="carbsGrams">0g</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1" id="fatsCalories">0</div>
+              <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Fats</div>
+              <div class="text-xs text-gray-500 dark:text-gray-500" id="fatsGrams">0g</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <script>
+    // Declare Chart.js types
+    declare const Chart: any;
+    
+    // Wait for Chart.js to load
+    function waitForChart() {
+      return new Promise((resolve) => {
+        if (typeof Chart !== 'undefined') {
+          resolve();
+        } else {
+          const checkInterval = setInterval(() => {
+            if (typeof Chart !== 'undefined') {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 50);
+        }
+      });
+    }
+    
+    // Database helper functions (simplified version for script tag)
+    async function loadEntriesFromDB() {
+      const entries = {};
+      
+      console.log('Starting to load entries...');
+      
+      // Load from localStorage first
+      try {
+        const entriesData = localStorage.getItem('healthEntries');
+        console.log('localStorage data exists:', !!entriesData);
+        if (entriesData) {
+          const parsed = JSON.parse(entriesData);
+          console.log('Parsed localStorage keys:', Object.keys(parsed));
+          
+          Object.keys(parsed).forEach(dateKey => {
+            if (Array.isArray(parsed[dateKey])) {
+              console.log(`Processing ${parsed[dateKey].length} entries for dateKey: ${dateKey}`);
+              
+              // Process each entry and normalize date
+              parsed[dateKey].forEach(entry => {
+                if (!entry) return;
+                
+                // Try to get date from entry.date or use dateKey
+                let entryDate = null;
+                
+                if (entry.date) {
+                  if (entry.date instanceof Date) {
+                    entryDate = entry.date;
+                  } else if (typeof entry.date === 'string') {
+                    if (entry.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                      const [year, month, day] = entry.date.split('-').map(Number);
+                      entryDate = new Date(year, month - 1, day);
+                    } else {
+                      entryDate = new Date(entry.date);
+                    }
+                  } else {
+                    entryDate = new Date(entry.date);
+                  }
+                } else {
+                  // If no date in entry, try to parse the dateKey
+                  if (dateKey.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const [year, month, day] = dateKey.split('-').map(Number);
+                    entryDate = new Date(year, month - 1, day);
+                  } else {
+                    entryDate = new Date(dateKey);
+                  }
+                }
+                
+                if (entryDate && !isNaN(entryDate.getTime())) {
+                  entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+                  const normalizedDateKey = entryDate.toDateString();
+                  
+                  if (!entries[normalizedDateKey]) {
+                    entries[normalizedDateKey] = [];
+                  }
+                  
+                  const exists = entries[normalizedDateKey].some(e => e.id === entry.id);
+                  if (!exists) {
+                    entries[normalizedDateKey].push({ ...entry, date: entryDate });
+                  }
+                } else {
+                  console.warn('Could not parse date for entry:', entry);
+                }
+              });
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Error loading from localStorage:', e);
+      }
+      
+      console.log('After localStorage, entries:', Object.keys(entries).length, 'dates');
+      
+      // Load from IndexedDB
+      if (typeof indexedDB !== 'undefined') {
+        try {
+          const dbName = 'HealthTrackerDB';
+          const request = indexedDB.open(dbName, 2);
+          
+          await new Promise((resolve, reject) => {
+            request.onsuccess = () => {
+              const db = request.result;
+              console.log('IndexedDB opened, object stores:', Array.from(db.objectStoreNames));
+              
+              if (db.objectStoreNames.contains('userEntries')) {
+                const transaction = db.transaction(['userEntries'], 'readonly');
+                const store = transaction.objectStore('userEntries');
+                const getAllRequest = store.getAll();
+                
+                getAllRequest.onsuccess = () => {
+                  const allEntries = getAllRequest.result || [];
+                  console.log('Loaded', allEntries.length, 'entries from IndexedDB');
+                  
+                  allEntries.forEach(entry => {
+                    if (entry && entry.date) {
+                      let entryDate;
+                      if (entry.date instanceof Date) {
+                        entryDate = entry.date;
+                      } else if (typeof entry.date === 'string') {
+                        if (entry.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                          const [year, month, day] = entry.date.split('-').map(Number);
+                          entryDate = new Date(year, month - 1, day);
+                        } else {
+                          entryDate = new Date(entry.date);
+                        }
+                      } else {
+                        entryDate = new Date(entry.date);
+                      }
+                      
+                      if (!isNaN(entryDate.getTime())) {
+                        entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+                        const dateKey = entryDate.toDateString();
+                        
+                        if (!entries[dateKey]) {
+                          entries[dateKey] = [];
+                        }
+                        
+                        const exists = entries[dateKey].some(e => e.id === entry.id);
+                        if (!exists) {
+                          entries[dateKey].push({ ...entry, date: entryDate });
+                        }
+                      }
+                    }
+                  });
+                  
+                  console.log('After IndexedDB, entries:', Object.keys(entries).length, 'dates');
+                  resolve();
+                };
+                
+                getAllRequest.onerror = () => {
+                  console.log('IndexedDB read failed');
+                  resolve();
+                };
+              } else {
+                console.log('userEntries object store not found');
+                resolve();
+              }
+            };
+            
+            request.onerror = () => {
+              console.log('IndexedDB open failed:', request.error);
+              resolve(); // Resolve instead of reject to continue
+            };
+            
+            request.onupgradeneeded = () => {
+              console.log('IndexedDB upgrade needed');
+            };
+          });
+        } catch (e) {
+          console.log('IndexedDB error:', e);
+        }
+      }
+      
+      console.log('Final entries loaded:', Object.keys(entries).length, 'dates');
+      console.log('Date keys:', Object.keys(entries));
+      
+      return entries;
+    }
+    
+    // Daily Calorie Dashboard
+    class DailyCalorieDashboard {
+      entries: any;
+      chart: any;
+      selectedDate: string | null;
+      
+      constructor() {
+        this.entries = {};
+        this.chart = null;
+        this.selectedDate = new URLSearchParams(window.location.search).get('date');
+      }
+
+      async init() {
+        try {
+          await waitForChart();
+          await this.loadData();
+          console.log('Data loaded, rendering chart...');
+          this.renderChart();
+          this.updateStats();
+          console.log('Chart and stats updated');
+        } catch (error) {
+          console.error('Error initializing dashboard:', error);
+        }
+      }
+
+      async loadData() {
+        try {
+          // Use the helper function to load entries
+          this.entries = await loadEntriesFromDB();
+          
+          console.log('Loaded entries:', Object.keys(this.entries).length, 'dates');
+          console.log('Date keys:', Object.keys(this.entries));
+          if (Object.keys(this.entries).length > 0) {
+            console.log('Sample date key:', Object.keys(this.entries)[0]);
+            console.log('Sample entries:', this.entries[Object.keys(this.entries)[0]]);
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+        }
+      }
+
+      getDailyMacroData() {
+        // Get the selected date or today's date
+        let targetDate;
+        if (this.selectedDate) {
+          // Parse YYYY-MM-DD format
+          if (this.selectedDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const [year, month, day] = this.selectedDate.split('-').map(Number);
+            targetDate = new Date(year, month - 1, day);
+          } else {
+            targetDate = new Date(this.selectedDate);
+          }
+        } else {
+          targetDate = new Date();
+        }
+        
+        // Normalize date to midnight to avoid timezone issues
+        targetDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+        
+        // Use toDateString() format to match how entries are stored
+        const dateKey = targetDate.toDateString();
+        
+        console.log('Looking for entries with date key:', dateKey);
+        console.log('Available date keys:', Object.keys(this.entries));
+        
+        // Get entries for this date
+        const dayEntries = this.entries[dateKey] || [];
+        
+        console.log('Found entries for date:', dayEntries.length);
+        
+        // Filter meal entries and calculate totals
+        const mealEntries = dayEntries.filter((entry: any) => entry.type === 'meal');
+        
+        let totalCalories = 0;
+        let totalProtein = 0;
+        let totalCarbs = 0;
+        let totalFats = 0;
+        
+        console.log('Meal entries found:', mealEntries.length);
+        
+        mealEntries.forEach((entry: any) => {
+          const cal = parseFloat(entry.calories) || 0;
+          const prot = parseFloat(entry.protein) || 0;
+          const carb = parseFloat(entry.carbs) || 0;
+          const fat = parseFloat(entry.fats) || 0;
+          
+          totalCalories += cal;
+          totalProtein += prot;
+          totalCarbs += carb;
+          totalFats += fat;
+          
+          console.log('Entry:', entry.name || entry.id, 'Calories:', cal, 'Protein:', prot, 'Carbs:', carb, 'Fats:', fat);
+        });
+        
+        // Calculate calories from macros (protein and carbs = 4 cal/g, fats = 9 cal/g)
+        const proteinCalories = totalProtein * 4;
+        const carbsCalories = totalCarbs * 4;
+        const fatsCalories = totalFats * 9;
+        
+        // Use macro calories if available, otherwise use total calories and calculate percentages
+        const macroCaloriesTotal = proteinCalories + carbsCalories + fatsCalories;
+        const actualTotalCalories = totalCalories > 0 ? totalCalories : macroCaloriesTotal;
+        
+        console.log('Total calories:', actualTotalCalories, 'Protein:', totalProtein, 'Carbs:', totalCarbs, 'Fats:', totalFats);
+        
+        return {
+          totalCalories: actualTotalCalories,
+          protein: totalProtein,
+          carbs: totalCarbs,
+          fats: totalFats,
+          proteinCalories: proteinCalories,
+          carbsCalories: carbsCalories,
+          fatsCalories: fatsCalories
+        };
+      }
+
+      renderChart() {
+        const canvas = document.getElementById('calorieChart');
+        if (!canvas) {
+          console.error('Canvas element not found');
+          return;
+        }
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          console.error('Could not get 2d context');
+          return;
+        }
+        
+        const macroData = this.getDailyMacroData();
+        console.log('Macro data:', macroData);
+        
+        // Destroy existing chart if it exists
+        if (this.chart) {
+          this.chart.destroy();
+        }
+        
+        if (typeof Chart === 'undefined') {
+          console.error('Chart.js is not loaded');
+          return;
+        }
+        
+        // Calculate values for doughnut chart
+        const proteinCal = macroData.proteinCalories || 0;
+        const carbsCal = macroData.carbsCalories || 0;
+        const fatsCal = macroData.fatsCalories || 0;
+        const totalCal = macroData.totalCalories || 0;
+        
+        // If no calories, show empty state
+        const hasData = totalCal > 0;
+        
+        this.chart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Protein', 'Carbs', 'Fats'],
+            datasets: [{
+              data: hasData ? [proteinCal, carbsCal, fatsCal] : [1],
+              backgroundColor: hasData ? [
+                'rgba(239, 68, 68, 0.8)',   // Red for protein
+                'rgba(34, 197, 94, 0.8)',   // Green for carbs
+                'rgba(59, 130, 246, 0.8)'   // Blue for fats
+              ] : ['rgba(200, 200, 200, 0.3)'],
+              borderColor: hasData ? [
+                'rgb(239, 68, 68)',
+                'rgb(34, 197, 94)',
+                'rgb(59, 130, 246)'
+              ] : ['rgba(200, 200, 200, 0.5)'],
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '70%',
+            plugins: {
+              legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                  padding: 15,
+                  font: {
+                    size: 12
+                  }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const label = context.label || '';
+                    const value = context.parsed || 0;
+                    const percentage = totalCal > 0 ? ((value / totalCal) * 100).toFixed(1) : 0;
+                    return `${label}: ${value} cal (${percentage}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      updateStats() {
+        const macroData = this.getDailyMacroData();
+        
+        // Total Calories (displayed in center)
+        const totalCaloriesEl = document.getElementById('totalCalories');
+        if (totalCaloriesEl) {
+          totalCaloriesEl.textContent = Math.round(macroData.totalCalories).toString();
+        }
+
+        // Protein
+        const proteinCaloriesEl = document.getElementById('proteinCalories');
+        if (proteinCaloriesEl) {
+          proteinCaloriesEl.textContent = Math.round(macroData.proteinCalories).toString();
+        }
+        const proteinGramsEl = document.getElementById('proteinGrams');
+        if (proteinGramsEl) {
+          proteinGramsEl.textContent = `${Math.round(macroData.protein)}g`;
+        }
+
+        // Carbs
+        const carbsCaloriesEl = document.getElementById('carbsCalories');
+        if (carbsCaloriesEl) {
+          carbsCaloriesEl.textContent = Math.round(macroData.carbsCalories).toString();
+        }
+        const carbsGramsEl = document.getElementById('carbsGrams');
+        if (carbsGramsEl) {
+          carbsGramsEl.textContent = `${Math.round(macroData.carbs)}g`;
+        }
+
+        // Fats
+        const fatsCaloriesEl = document.getElementById('fatsCalories');
+        if (fatsCaloriesEl) {
+          fatsCaloriesEl.textContent = Math.round(macroData.fatsCalories).toString();
+        }
+        const fatsGramsEl = document.getElementById('fatsGrams');
+        if (fatsGramsEl) {
+          fatsGramsEl.textContent = `${Math.round(macroData.fats)}g`;
+        }
+
+        // Update date text
+        const dateRangeEl = document.getElementById('dateRange');
+        if (dateRangeEl) {
+          let displayDate;
+          if (this.selectedDate) {
+            displayDate = new Date(this.selectedDate);
+          } else {
+            displayDate = new Date();
+          }
+          dateRangeEl.textContent = displayDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
+        }
+      }
+    }
+
+    // Initialize dashboard when page loads
+    const dashboard = new DailyCalorieDashboard();
+    dashboard.init();
+    
+    // Ensure back link uses the correct date from URL
+    const backLink = document.getElementById('back-to-entries-link');
+    if (backLink) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const dateParam = urlParams.get('date');
+      if (dateParam) {
+        backLink.href = `/entries?date=${dateParam}`;
+        backLink.title = `Back to Show Entries (${dateParam})`;
+        console.log('Updated back link to use date:', dateParam);
+      } else {
+        console.log('No date param in URL, using default backDate:', backLink.dataset.date);
+      }
+    }
+    
+    // Refresh chart when window gains focus (in case data was updated in another tab)
+    window.addEventListener('focus', () => {
+      dashboard.init();
+    });
+  </script>
+</Layout>
+

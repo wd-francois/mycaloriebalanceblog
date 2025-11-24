@@ -1,0 +1,419 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
+
+// Get date from URL parameter
+const dateParam = Astro.url.searchParams.get('date');
+// Format date for back link - use dateParam if available and valid, otherwise use today
+const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+})();
+---
+
+<Layout
+  title="Weight Progress - " + siteConfig.title
+  description="View your weight progress statistics - " + siteConfig.title
+  wideContent={true}
+  showBottomNav={true}
+  showTopNav={false}
+  showFooter={false}
+>
+  <main class="w-full bg-gray-50 flex flex-col min-h-screen">
+    <!-- Top Navigation Header -->
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <div class="max-w-6xl mx-auto px-4 py-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <a
+              href={`/entries?date=${backDate}`}
+              id="back-to-entries-link"
+              class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title={`Back to Show Entries (${backDate})`}
+              data-date={backDate}
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </a>
+            <div class="text-lg font-bold text-gray-900 truncate pr-2">
+              Weight Progress
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 py-6 sm:py-12 bg-gradient-to-br from-green-50 via-white to-emerald-50">
+      <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
+        <!-- Date Display -->
+        <div class="mb-6">
+          <p class="text-gray-600 dark:text-gray-400" id="dateRange">Loading...</p>
+        </div>
+
+      <!-- Weight Progress Chart -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Weight Trend</h2>
+        <div class="h-96">
+          <canvas id="weightChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Current Weight and Statistics -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <!-- Current Weight -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+          <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-2" id="currentWeight">-</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Current Weight</div>
+        </div>
+
+        <!-- Weight Change -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+          <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2" id="weightChange">-</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Total Change</div>
+        </div>
+
+        <!-- Average Weight -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+          <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2" id="avgWeight">-</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Average Weight</div>
+        </div>
+
+        <!-- Measurements Count -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 text-center">
+          <div class="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2" id="measurementsCount">-</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">Measurements</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <script>
+    // Declare Chart.js types
+    declare const Chart: any;
+    
+    // Wait for Chart.js to load
+    function waitForChart() {
+      return new Promise((resolve) => {
+        if (typeof Chart !== 'undefined') {
+          resolve();
+        } else {
+          const checkInterval = setInterval(() => {
+            if (typeof Chart !== 'undefined') {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 50);
+        }
+      });
+    }
+    
+    // Daily Weight Dashboard
+    class DailyWeightDashboard {
+      entries: any;
+      chart: any;
+      selectedDate: string | null;
+      
+      constructor() {
+        this.entries = {};
+        this.chart = null;
+        this.selectedDate = new URLSearchParams(window.location.search).get('date');
+      }
+
+      async init() {
+        await waitForChart();
+        await this.loadData();
+        this.renderChart();
+        this.updateStats();
+      }
+
+      async loadData() {
+        try {
+          // Load entries from localStorage
+          const entriesData = localStorage.getItem('healthEntries');
+          if (entriesData) {
+            const parsed = JSON.parse(entriesData);
+            Object.keys(parsed).forEach(dateKey => {
+              if (Array.isArray(parsed[dateKey])) {
+                this.entries[dateKey] = parsed[dateKey];
+              }
+            });
+          }
+          
+          // Also try to load from IndexedDB and merge
+          if (typeof indexedDB !== 'undefined') {
+            try {
+              const dbName = 'HealthTrackerDB';
+              const request = indexedDB.open(dbName, 2);
+              
+              await new Promise((resolve) => {
+                request.onsuccess = () => {
+                  const db = request.result;
+                  if (db.objectStoreNames.contains('userEntries')) {
+                    const transaction = db.transaction(['userEntries'], 'readonly');
+                    const store = transaction.objectStore('userEntries');
+                    const getAllRequest = store.getAll();
+                    
+                    getAllRequest.onsuccess = () => {
+                      const allEntries = getAllRequest.result || [];
+                      
+                      allEntries.forEach(entry => {
+                        if (entry && entry.date) {
+                          let entryDate;
+                          if (entry.date instanceof Date) {
+                            entryDate = entry.date;
+                          } else if (typeof entry.date === 'string') {
+                            entryDate = new Date(entry.date);
+                          } else {
+                            entryDate = new Date(entry.date);
+                          }
+                          
+                          if (!isNaN(entryDate.getTime())) {
+                            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+                            const dateKey = entryDate.toISOString().split('T')[0];
+                            
+                            if (!this.entries[dateKey]) {
+                              this.entries[dateKey] = [];
+                            }
+                            const exists = this.entries[dateKey].some(e => e.id === entry.id);
+                            if (!exists) {
+                              this.entries[dateKey].push(entry);
+                            }
+                          }
+                        }
+                      });
+                      
+                      resolve();
+                    };
+                    
+                    getAllRequest.onerror = () => resolve();
+                  } else {
+                    resolve();
+                  }
+                  
+                  request.onerror = () => resolve();
+                };
+              });
+            } catch (e) {
+              console.log('IndexedDB error:', e);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+        }
+      }
+
+      getWeightData() {
+        const dates = Object.keys(this.entries).sort();
+        const weightData = dates.map(date => {
+          const dayEntries = this.entries[date] || [];
+          const measurement = dayEntries.find((entry: any) => entry.type === 'measurements' && entry.weight);
+          return { 
+            date, 
+            weight: measurement ? parseFloat(measurement.weight) : null 
+          };
+        }).filter(d => d.weight !== null && !isNaN(d.weight));
+        
+        return weightData;
+      }
+
+      renderChart() {
+        const canvas = document.getElementById('weightChart');
+        if (!canvas) {
+          console.error('Canvas element not found');
+          return;
+        }
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          console.error('Could not get 2d context');
+          return;
+        }
+        
+        const data = this.getWeightData();
+        console.log('Weight data:', data);
+        
+        // Destroy existing chart if it exists
+        if (this.chart) {
+          this.chart.destroy();
+        }
+        
+        if (typeof Chart === 'undefined') {
+          console.error('Chart.js is not loaded');
+          return;
+        }
+        
+        // If no data, show empty state
+        if (data.length === 0) {
+          return;
+        }
+        
+        this.chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.map(d => {
+              const date = new Date(d.date);
+              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }),
+            datasets: [{
+              label: 'Weight',
+              data: data.map(d => d.weight),
+              borderColor: 'rgb(34, 197, 94)',
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              tension: 0.4,
+              fill: true,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: 'rgb(34, 197, 94)',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                  label: function(context) {
+                    const value = context.parsed.y;
+                    // Get unit from settings or default to kg
+                    const unit = 'kg'; // You can get this from settings if needed
+                    return `Weight: ${value} ${unit}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                title: {
+                  display: true,
+                  text: 'Weight (kg)'
+                },
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Date'
+                },
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+      }
+
+      updateStats() {
+        const data = this.getWeightData();
+        
+        // Update date text
+        const dateRangeEl = document.getElementById('dateRange');
+        if (dateRangeEl) {
+          let displayDate;
+          if (this.selectedDate) {
+            displayDate = new Date(this.selectedDate);
+          } else {
+            displayDate = new Date();
+          }
+          dateRangeEl.textContent = displayDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
+        }
+
+        if (data.length === 0) {
+          // Show no data
+          const currentWeightEl = document.getElementById('currentWeight');
+          if (currentWeightEl) currentWeightEl.textContent = '-';
+          
+          const weightChangeEl = document.getElementById('weightChange');
+          if (weightChangeEl) weightChangeEl.textContent = '-';
+          
+          const avgWeightEl = document.getElementById('avgWeight');
+          if (avgWeightEl) avgWeightEl.textContent = '-';
+          
+          const measurementsCountEl = document.getElementById('measurementsCount');
+          if (measurementsCountEl) measurementsCountEl.textContent = '0';
+          
+          return;
+        }
+
+        // Current Weight (most recent)
+        const currentWeight = data[data.length - 1].weight;
+        const currentWeightEl = document.getElementById('currentWeight');
+        if (currentWeightEl) {
+          currentWeightEl.textContent = `${currentWeight.toFixed(1)} kg`;
+        }
+
+        // Weight Change (first to last)
+        const firstWeight = data[0].weight;
+        const lastWeight = data[data.length - 1].weight;
+        const change = lastWeight - firstWeight;
+        const changeText = change > 0 ? `+${change.toFixed(1)} kg` : `${change.toFixed(1)} kg`;
+        const weightChangeEl = document.getElementById('weightChange');
+        if (weightChangeEl) {
+          weightChangeEl.textContent = changeText;
+          weightChangeEl.className = change > 0 
+            ? 'text-3xl font-bold text-red-600 dark:text-red-400 mb-2' 
+            : change < 0 
+            ? 'text-3xl font-bold text-green-600 dark:text-green-400 mb-2'
+            : 'text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2';
+        }
+
+        // Average Weight
+        const avgWeight = data.reduce((sum, d) => sum + d.weight, 0) / data.length;
+        const avgWeightEl = document.getElementById('avgWeight');
+        if (avgWeightEl) {
+          avgWeightEl.textContent = `${avgWeight.toFixed(1)} kg`;
+        }
+
+        // Measurements Count
+        const measurementsCountEl = document.getElementById('measurementsCount');
+        if (measurementsCountEl) {
+          measurementsCountEl.textContent = data.length.toString();
+        }
+      }
+    }
+
+    // Initialize dashboard when page loads
+    const dashboard = new DailyWeightDashboard();
+    dashboard.init();
+    
+    // Refresh when window gains focus
+    window.addEventListener('focus', () => {
+      dashboard.init();
+    });
+    
+    // Ensure back link uses the correct date from URL
+    const backLink = document.getElementById('back-to-entries-link');
+    if (backLink) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const dateParam = urlParams.get('date');
+      if (dateParam) {
+        backLink.href = `/entries?date=${dateParam}`;
+        backLink.title = `Back to Show Entries (${dateParam})`;
+      }
+    }
+  </script>
+</Layout>
+

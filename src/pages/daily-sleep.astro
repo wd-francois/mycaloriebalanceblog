@@ -1,0 +1,409 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
+
+// Get date from URL parameter
+const dateParam = Astro.url.searchParams.get('date');
+// Format date for back link - use dateParam if available and valid, otherwise use today
+const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+})();
+---
+
+<Layout
+  title="Daily Sleep Statistics - " + siteConfig.title
+  description="View your daily sleep statistics - " + siteConfig.title
+  wideContent={true}
+  showBottomNav={true}
+  showTopNav={false}
+  showFooter={false}
+>
+  <main class="w-full bg-gray-50 flex flex-col min-h-screen">
+    <!-- Top Navigation Header -->
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <div class="max-w-6xl mx-auto px-4 py-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <a
+              href={`/entries?date=${backDate}`}
+              id="back-to-entries-link"
+              class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title={`Back to Show Entries (${backDate})`}
+              data-date={backDate}
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </a>
+            <div class="text-lg font-bold text-gray-900 truncate pr-2">
+              Daily Sleep Statistics
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 py-6 sm:py-12 bg-gradient-to-br from-purple-50 via-white to-indigo-50">
+      <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
+        <!-- Date Display -->
+        <div class="mb-6">
+          <p class="text-gray-600 dark:text-gray-400" id="dateRange">Loading...</p>
+        </div>
+
+      <!-- Sleep Statistics Card -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Sleep Details</h2>
+        
+        <!-- Main Sleep Info -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <!-- Sleep Duration -->
+          <div class="text-center p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+            <div class="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2" id="sleepDuration">-</div>
+            <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sleep Duration</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400" id="sleepHours">-</div>
+          </div>
+
+          <!-- Bedtime -->
+          <div class="text-center p-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+            <div class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2" id="bedtime">-</div>
+            <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Bedtime</div>
+          </div>
+
+          <!-- Wake Time -->
+          <div class="text-center p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2" id="waketime">-</div>
+            <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Wake Time</div>
+          </div>
+        </div>
+
+        <!-- Sleep Quality -->
+        <div id="sleepQualitySection" class="hidden">
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Sleep Quality</h3>
+            <div class="flex items-center gap-4">
+              <div class="flex-1">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Quality Rating</span>
+                  <span class="text-sm font-medium text-gray-900 dark:text-white" id="qualityRating">-</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                  <div class="bg-purple-600 h-3 rounded-full transition-all duration-300" id="qualityBar" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div id="sleepNotesSection" class="hidden mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Notes</h3>
+          <p class="text-gray-600 dark:text-gray-400" id="sleepNotes">-</p>
+        </div>
+
+        <!-- No Data Message -->
+        <div id="noDataMessage" class="text-center py-12 hidden">
+          <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No Sleep Data</h3>
+          <p class="text-gray-500 dark:text-gray-400">No sleep entry found for this date.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Daily Sleep Dashboard
+    class DailySleepDashboard {
+      entries: any;
+      selectedDate: string | null;
+      
+      constructor() {
+        this.entries = {};
+        this.selectedDate = new URLSearchParams(window.location.search).get('date');
+        this.init();
+      }
+
+      async init() {
+        await this.loadData();
+        this.updateStats();
+      }
+
+      async loadData() {
+        try {
+          // Load entries from localStorage
+          const entriesData = localStorage.getItem('healthEntries');
+          if (entriesData) {
+            const parsed = JSON.parse(entriesData);
+            Object.keys(parsed).forEach(dateKey => {
+              if (Array.isArray(parsed[dateKey])) {
+                this.entries[dateKey] = parsed[dateKey];
+              }
+            });
+          }
+          
+          // Also try to load from IndexedDB and merge
+          if (typeof indexedDB !== 'undefined') {
+            try {
+              const dbName = 'HealthTrackerDB';
+              const request = indexedDB.open(dbName, 2);
+              
+              await new Promise((resolve) => {
+                request.onsuccess = () => {
+                  const db = request.result;
+                  if (db.objectStoreNames.contains('userEntries')) {
+                    const transaction = db.transaction(['userEntries'], 'readonly');
+                    const store = transaction.objectStore('userEntries');
+                    const getAllRequest = store.getAll();
+                    
+                    getAllRequest.onsuccess = () => {
+                      const allEntries = getAllRequest.result || [];
+                      
+                      allEntries.forEach(entry => {
+                        if (entry && entry.date) {
+                          let entryDate;
+                          if (entry.date instanceof Date) {
+                            entryDate = entry.date;
+                          } else if (typeof entry.date === 'string') {
+                            entryDate = new Date(entry.date);
+                          } else {
+                            entryDate = new Date(entry.date);
+                          }
+                          
+                          if (!isNaN(entryDate.getTime())) {
+                            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+                            const dateKey = entryDate.toISOString().split('T')[0];
+                            
+                            if (!this.entries[dateKey]) {
+                              this.entries[dateKey] = [];
+                            }
+                            const exists = this.entries[dateKey].some(e => e.id === entry.id);
+                            if (!exists) {
+                              this.entries[dateKey].push(entry);
+                            }
+                          }
+                        }
+                      });
+                      
+                      resolve();
+                    };
+                    
+                    getAllRequest.onerror = () => resolve();
+                  } else {
+                    resolve();
+                  }
+                  
+                  request.onerror = () => resolve();
+                };
+              });
+            } catch (e) {
+              console.log('IndexedDB error:', e);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+        }
+      }
+
+      parseTime(timeObj: any) {
+        if (!timeObj) return null;
+        let hour = parseInt(timeObj.hour);
+        if (timeObj.period === 'AM' && hour === 12) hour = 0;
+        if (timeObj.period === 'PM' && hour !== 12) hour += 12;
+        return { hour, minute: parseInt(timeObj.minute) };
+      }
+
+      calculateSleepHours(bedtime: any, waketime: any) {
+        if (!bedtime || !waketime) return 0;
+        
+        const bedtimeParsed = this.parseTime(bedtime);
+        const waketimeParsed = this.parseTime(waketime);
+        
+        if (!bedtimeParsed || !waketimeParsed) return 0;
+        
+        let bedtimeMinutes = bedtimeParsed.hour * 60 + bedtimeParsed.minute;
+        let waketimeMinutes = waketimeParsed.hour * 60 + waketimeParsed.minute;
+        
+        // Handle overnight sleep
+        if (waketimeMinutes < bedtimeMinutes) {
+          waketimeMinutes += 24 * 60;
+        }
+        
+        return (waketimeMinutes - bedtimeMinutes) / 60;
+      }
+
+      formatTime(timeObj: any) {
+        if (!timeObj) return '-';
+        const hour = timeObj.hour;
+        const minute = timeObj.minute.toString().padStart(2, '0');
+        const period = timeObj.period || '';
+        return `${hour}:${minute} ${period}`;
+      }
+
+      formatDuration(hours: number) {
+        if (hours === 0) return '-';
+        const wholeHours = Math.floor(hours);
+        const minutes = Math.round((hours - wholeHours) * 60);
+        
+        if (wholeHours === 0) {
+          return `${minutes}m`;
+        } else if (minutes === 0) {
+          return `${wholeHours}h`;
+        } else {
+          return `${wholeHours}h ${minutes}m`;
+        }
+      }
+
+      getSleepData() {
+        // Get the selected date or today's date
+        let targetDate;
+        if (this.selectedDate) {
+          targetDate = new Date(this.selectedDate);
+        } else {
+          targetDate = new Date();
+        }
+        
+        // Normalize date to YYYY-MM-DD format
+        const year = targetDate.getFullYear();
+        const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+        const day = String(targetDate.getDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
+        
+        // Also try other date formats
+        const dateString = targetDate.toDateString();
+        const isoDate = targetDate.toISOString().split('T')[0];
+        
+        // Get entries for this date
+        const dayEntries = this.entries[dateKey] || this.entries[dateString] || this.entries[isoDate] || [];
+        
+        // Find sleep entry
+        const sleepEntry = dayEntries.find((entry: any) => entry.type === 'sleep');
+        
+        return sleepEntry || null;
+      }
+
+      updateStats() {
+        const sleepData = this.getSleepData();
+        
+        // Update date text
+        const dateRangeEl = document.getElementById('dateRange');
+        if (dateRangeEl) {
+          let displayDate;
+          if (this.selectedDate) {
+            displayDate = new Date(this.selectedDate);
+          } else {
+            displayDate = new Date();
+          }
+          dateRangeEl.textContent = displayDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
+        }
+
+        if (!sleepData) {
+          // Show no data message
+          const noDataEl = document.getElementById('noDataMessage');
+          if (noDataEl) noDataEl.classList.remove('hidden');
+          return;
+        }
+
+        // Hide no data message
+        const noDataEl = document.getElementById('noDataMessage');
+        if (noDataEl) noDataEl.classList.add('hidden');
+
+        // Calculate sleep duration
+        const sleepHours = this.calculateSleepHours(sleepData.bedtime, sleepData.waketime);
+        const durationFormatted = this.formatDuration(sleepHours);
+
+        // Update sleep duration
+        const durationEl = document.getElementById('sleepDuration');
+        if (durationEl) {
+          durationEl.textContent = durationFormatted;
+        }
+
+        const hoursEl = document.getElementById('sleepHours');
+        if (hoursEl) {
+          hoursEl.textContent = sleepHours > 0 ? `${sleepHours.toFixed(1)} hours` : '-';
+        }
+
+        // Update bedtime
+        const bedtimeEl = document.getElementById('bedtime');
+        if (bedtimeEl) {
+          bedtimeEl.textContent = this.formatTime(sleepData.bedtime);
+        }
+
+        // Update wake time
+        const waketimeEl = document.getElementById('waketime');
+        if (waketimeEl) {
+          waketimeEl.textContent = this.formatTime(sleepData.waketime);
+        }
+
+        // Update sleep quality if available
+        if (sleepData.quality) {
+          const qualitySection = document.getElementById('sleepQualitySection');
+          if (qualitySection) qualitySection.classList.remove('hidden');
+
+          const qualityRatingEl = document.getElementById('qualityRating');
+          if (qualityRatingEl) {
+            qualityRatingEl.textContent = sleepData.quality;
+          }
+
+          // Calculate quality percentage (assuming quality is a number 1-10 or similar)
+          const qualityNum = parseFloat(sleepData.quality) || 0;
+          const qualityPercent = Math.min(100, (qualityNum / 10) * 100);
+          
+          const qualityBarEl = document.getElementById('qualityBar');
+          if (qualityBarEl) {
+            setTimeout(() => {
+              qualityBarEl.style.width = `${qualityPercent}%`;
+            }, 100);
+          }
+        } else {
+          const qualitySection = document.getElementById('sleepQualitySection');
+          if (qualitySection) qualitySection.classList.add('hidden');
+        }
+
+        // Update notes if available
+        if (sleepData.notes) {
+          const notesSection = document.getElementById('sleepNotesSection');
+          if (notesSection) notesSection.classList.remove('hidden');
+
+          const notesEl = document.getElementById('sleepNotes');
+          if (notesEl) {
+            notesEl.textContent = sleepData.notes;
+          }
+        } else {
+          const notesSection = document.getElementById('sleepNotesSection');
+          if (notesSection) notesSection.classList.add('hidden');
+        }
+      }
+    }
+
+    // Initialize dashboard when page loads
+    const dashboard = new DailySleepDashboard();
+    
+    // Refresh when window gains focus
+    window.addEventListener('focus', () => {
+      dashboard.init();
+    });
+    
+    // Ensure back link uses the correct date from URL
+    const backLink = document.getElementById('back-to-entries-link');
+    if (backLink) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const dateParam = urlParams.get('date');
+      if (dateParam) {
+        backLink.href = `/entries?date=${dateParam}`;
+        backLink.title = `Back to Show Entries (${dateParam})`;
+      }
+    }
+  </script>
+</Layout>
+

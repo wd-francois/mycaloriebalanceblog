@@ -5,18 +5,7 @@ import AutocompleteInput from './AutocompleteInput';
 import GroupedEntries from './GroupedEntries';
 import healthDB from '../lib/database.js';
 import { SettingsProvider } from '../contexts/SettingsContext.jsx';
-
-
-function formatDate(date) {
-  return date?.toLocaleDateString(undefined, {
-    year: 'numeric', month: 'long', day: 'numeric'
-  });
-}
-
-function formatTime({ hour, minute, period }) {
-  const mm = minute.toString().padStart(2, '0');
-  return `${hour}:${mm} ${period}`;
-}
+import { formatDate, formatTime } from '../lib/utils';
 
 const MAX_PHOTO_SIZE_MB = 5;
 const MAX_PHOTO_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024;
@@ -99,6 +88,8 @@ const DateTimeSelector = () => {
   const uploadInputRef = useRef(null);
   const [photoSaveMessage, setPhotoSaveMessage] = useState('');
   const [photoSaveError, setPhotoSaveError] = useState('');
+  const processedUrlParams = useRef(new Set());
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
 
   const buildPhotoRecord = (entry) => {
     if (!entry?.photo?.dataUrl) return null;
@@ -181,25 +172,51 @@ const DateTimeSelector = () => {
     setIsClient(true);
     if (typeof window === 'undefined') return;
     
-    // Initialize selectedDate on client side
+    // Check URL for date parameter first before setting default date
+    const urlParams = new URLSearchParams(window.location.search);
+    const dateParam = urlParams.get('date');
+    
+    // Initialize selectedDate on client side (only if not in URL)
     if (selectedDate === null) {
-      setSelectedDate(new Date());
+      if (dateParam) {
+        try {
+          const [year, month, day] = dateParam.split('-').map(Number);
+          const urlDate = new Date(year, month - 1, day);
+          if (!isNaN(urlDate.getTime())) {
+            setSelectedDate(new Date(urlDate.getFullYear(), urlDate.getMonth(), urlDate.getDate()));
+          } else {
+            setSelectedDate(new Date());
+          }
+        } catch (error) {
+          setSelectedDate(new Date());
+        }
+      } else {
+        setSelectedDate(new Date());
+      }
     }
     
-    // Load form state
-    try {
-      const savedFormState = localStorage.getItem('healthFormState');
-      if (savedFormState) {
-        const parsed = JSON.parse(savedFormState);
-        setFormState(parsed);
-        setActiveForm(parsed.type || 'meal');
-        
-        // Don't automatically show forms on page load - forms should be hidden by default
-        // Forms will only show when user explicitly clicks the buttons
-        console.log('Loaded form state from localStorage:', parsed);
+    // Check if we have edit/info URL params - if so, don't load form state from localStorage
+    const urlParamsCheck = new URLSearchParams(window.location.search);
+    const hasEditOrInfo = urlParamsCheck.get('edit') || urlParamsCheck.get('info');
+    
+    // Load form state only if not editing/adding info
+    if (!hasEditOrInfo) {
+      try {
+        const savedFormState = localStorage.getItem('healthFormState');
+        if (savedFormState) {
+          const parsed = JSON.parse(savedFormState);
+          setFormState(parsed);
+          setActiveForm(parsed.type || 'meal');
+          
+          // Don't automatically show forms on page load - forms should be hidden by default
+          // Forms will only show when user explicitly clicks the buttons
+          console.log('Loaded form state from localStorage:', parsed);
+        }
+      } catch (error) {
+        console.error('Error loading form state from localStorage:', error);
       }
-    } catch (error) {
-      console.error('Error loading form state from localStorage:', error);
+    } else {
+      console.log('Skipping localStorage form state load - edit/info params detected');
     }
     
     // Load settings
@@ -220,6 +237,28 @@ const DateTimeSelector = () => {
       setTime(getCurrentTimeParts());
     }
   }, [showModal, formState.id]);
+
+  // Open modal when navigating with date and add parameter
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isDBInitialized || showModal) return;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const dateParam = urlParams.get('date');
+    const addParam = urlParams.get('add');
+    
+    // If we have a date and add parameter, open the modal (only if modal is not already open)
+    if (dateParam && addParam === 'true' && selectedDate) {
+      // Use setTimeout to avoid conflicts with other state updates
+      const timer = setTimeout(() => {
+        // Double-check URL params haven't changed (user might have clicked back)
+        const currentParams = new URLSearchParams(window.location.search);
+        if (currentParams.get('add') === 'true') {
+          setShowModal(true);
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isDBInitialized, selectedDate, showModal]);
 
   // Ensure measurements are always enabled
   useEffect(() => {
@@ -326,6 +365,7 @@ const DateTimeSelector = () => {
     
     saveToLocalStorage(entries);
   }, [entries]);
+
 
   // Save form state to localStorage whenever it changes
   useEffect(() => {
@@ -590,11 +630,79 @@ const DateTimeSelector = () => {
 
   function handleDateSelect(date) {
     setSelectedDate(date);
+    // Reset form state to ensure "Add New Entry" is shown, not "Edit"
+    setFormState({
+      id: null,
+      name: '',
+      type: 'meal',
+      sets: [],
+      amount: '',
+      calories: '',
+      protein: '',
+      carbs: '',
+      fats: '',
+      bedtime: { hour: 10, minute: 0, period: 'PM' },
+      waketime: { hour: 6, minute: 0, period: 'AM' },
+      duration: '',
+      intensity: '',
+      quality: '',
+      weight: '',
+      neck: '',
+      shoulders: '',
+      chest: '',
+      waist: '',
+      hips: '',
+      thigh: '',
+      arm: '',
+      calf: '',
+      chestSkinfold: '',
+      abdominalSkinfold: '',
+      thighSkinfold: '',
+      tricepSkinfold: '',
+      subscapularSkinfold: '',
+      suprailiacSkinfold: '',
+      notes: '',
+      photo: null
+    });
+    // Reset activeForm to meal (default) so buttons show in neutral state
+    setActiveForm('meal');
+    // Close any open form inputs
+    setShowMealInput(false);
+    setShowExerciseInput(false);
+    setShowSleepInput(false);
+    setShowMeasurementsInput(false);
     setShowModal(true);
   }
 
-  function closeModal() {
+  function closeModal(e) {
+    // Prevent any default behavior
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Clear URL parameters first to prevent useEffect from reopening modal
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('add') === 'true') {
+        const dateParam = urlParams.get('date');
+        // Navigate to clean URL without add parameter
+        if (dateParam) {
+          window.history.replaceState({}, '', `/?date=${dateParam}`);
+        } else {
+          window.history.replaceState({}, '', '/');
+        }
+      }
+    }
+    
+    // Close the modal
     setShowModal(false);
+    
+    // Reset form inputs to ensure clean state
+    setShowMealInput(false);
+    setShowExerciseInput(false);
+    setShowSleepInput(false);
+    setShowMeasurementsInput(false);
   }
 
   function resetForm() {
@@ -842,9 +950,19 @@ const DateTimeSelector = () => {
   }
 
   function handleEdit(entry) {
+    // Open modal to show the form
+    setShowModal(true);
+    
     if (entry.time) {
       setTime(entry.time);
     }
+    
+    // Set the date from the entry if available
+    if (entry.date) {
+      const entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
+      setSelectedDate(new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate()));
+    }
+    
     setFormState({
       id: entry.id,
       name: entry.name,
@@ -1267,6 +1385,225 @@ const DateTimeSelector = () => {
     setInfoFormData({ notes: '' });
   };
 
+  // Handle URL parameters for edit and info actions
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isDBInitialized) {
+      console.log('URL params check skipped - isDBInitialized:', isDBInitialized);
+      return;
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const dateParam = urlParams.get('date');
+    const editParam = urlParams.get('edit');
+    const infoParam = urlParams.get('info');
+    
+    // Create a unique key for this URL param combination
+    const urlKey = `${dateParam || ''}-${editParam || ''}-${infoParam || ''}`;
+    
+    // Skip if we've already processed these params
+    if (processedUrlParams.current.has(urlKey)) {
+      console.log('URL params already processed, skipping:', urlKey);
+      return;
+    }
+    
+    console.log('URL params check:', { dateParam, editParam, infoParam, entriesCount: Object.keys(entries).length });
+    
+    // Skip if no action params
+    if (!editParam && !infoParam) {
+      console.log('No edit/info params, skipping');
+      return;
+    }
+    
+    // Clear any existing form state to prevent showing old data
+    if (editParam) {
+      // Set loading flag to prevent form from showing old data
+      setIsLoadingEdit(true);
+      // Reset form state and close any open forms immediately
+      setShowMealInput(false);
+      setShowExerciseInput(false);
+      setShowSleepInput(false);
+      setShowMeasurementsInput(false);
+      setShowModal(true);
+    }
+    
+    // Set date from URL if provided
+    if (dateParam) {
+      try {
+        const [year, month, day] = dateParam.split('-').map(Number);
+        const urlDate = new Date(year, month - 1, day);
+        if (!isNaN(urlDate.getTime())) {
+          const normalizedDate = new Date(urlDate.getFullYear(), urlDate.getMonth(), urlDate.getDate());
+          console.log('Setting date from URL:', normalizedDate);
+          setSelectedDate(normalizedDate);
+        }
+      } catch (error) {
+        console.error('Error parsing date from URL:', error);
+      }
+    }
+    
+    // Wait for entries to be loaded before processing edit/info
+    if (Object.keys(entries).length === 0) {
+      console.log('Waiting for entries to load...');
+      return;
+    }
+    
+    // Handle edit action
+    if (editParam) {
+      console.log('Looking for entry with ID:', editParam);
+      // Find the entry across all dates
+      let foundEntry = null;
+      let foundDateKey = null;
+      for (const dateKey in entries) {
+        const entryList = entries[dateKey];
+        console.log(`Checking date ${dateKey}, ${entryList.length} entries`);
+        foundEntry = entryList.find(e => {
+          const entryIdStr = String(e.id);
+          const paramIdStr = String(editParam);
+          const match = entryIdStr === paramIdStr;
+          if (match) {
+            console.log(`Match found! Entry ID: ${entryIdStr}, Param ID: ${paramIdStr}`);
+          }
+          return match;
+        });
+        if (foundEntry) {
+          foundDateKey = dateKey;
+          console.log('Found entry for edit:', foundEntry, 'on date:', dateKey);
+          break;
+        }
+      }
+      
+      if (foundEntry) {
+        console.log('Processing edit for entry:', foundEntry);
+        // Mark as processed immediately
+        processedUrlParams.current.add(urlKey);
+        
+        // Call handleEdit immediately without setTimeout - set form state directly
+        // Close any open forms first
+        setShowMealInput(false);
+        setShowExerciseInput(false);
+        setShowSleepInput(false);
+        setShowMeasurementsInput(false);
+        
+        // Set form state directly (like Library Manager does)
+        if (foundEntry.time) {
+          setTime(foundEntry.time);
+        }
+        
+        // Set the date from the entry if available
+        if (foundEntry.date) {
+          const entryDate = foundEntry.date instanceof Date ? foundEntry.date : new Date(foundEntry.date);
+          setSelectedDate(new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate()));
+        }
+        
+        setFormState({
+          id: foundEntry.id,
+          name: foundEntry.name,
+          type: foundEntry.type,
+          sets: foundEntry.sets || [],
+          amount: foundEntry.amount || '',
+          calories: foundEntry.calories || '',
+          protein: foundEntry.protein || '',
+          carbs: foundEntry.carbs || '',
+          fats: foundEntry.fats || '',
+          bedtime: foundEntry.bedtime || { hour: 10, minute: 0, period: 'PM' },
+          waketime: foundEntry.waketime || { hour: 6, minute: 0, period: 'AM' },
+          duration: foundEntry.duration || '',
+          intensity: foundEntry.intensity || '',
+          quality: foundEntry.quality || '',
+          weight: foundEntry.weight || '',
+          neck: foundEntry.neck || '',
+          shoulders: foundEntry.shoulders || '',
+          chest: foundEntry.chest || '',
+          waist: foundEntry.waist || '',
+          hips: foundEntry.hips || '',
+          thigh: foundEntry.thigh || '',
+          arm: foundEntry.arm || '',
+          calf: foundEntry.calf || '',
+          chestSkinfold: foundEntry.chestSkinfold || '',
+          abdominalSkinfold: foundEntry.abdominalSkinfold || '',
+          thighSkinfold: foundEntry.thighSkinfold || '',
+          tricepSkinfold: foundEntry.tricepSkinfold || '',
+          subscapularSkinfold: foundEntry.subscapularSkinfold || '',
+          suprailiacSkinfold: foundEntry.suprailiacSkinfold || '',
+          notes: foundEntry.notes || '',
+          photo: foundEntry.photo || null
+        });
+        
+        setActiveForm(foundEntry.type);
+        setShowModal(true);
+        
+        // Show the appropriate form input
+        if (foundEntry.type === 'meal') {
+          setShowMealInput(true);
+        } else if (foundEntry.type === 'exercise') {
+          setShowExerciseInput(true);
+        } else if (foundEntry.type === 'sleep') {
+          setShowSleepInput(true);
+        } else if (foundEntry.type === 'measurements') {
+          setShowMeasurementsInput(true);
+        }
+        
+        // Clear loading flag now that form is ready
+        setIsLoadingEdit(false);
+        
+        // Clean up URL
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.delete('edit');
+        window.history.replaceState({}, '', newUrl);
+      } else {
+        console.error('Entry not found for edit ID:', editParam);
+        console.error('Available entries:', entries);
+        // Log all entry IDs for debugging
+        const allEntryIds = [];
+        for (const dateKey in entries) {
+          entries[dateKey].forEach(e => allEntryIds.push({ id: e.id, idType: typeof e.id, name: e.name, date: dateKey }));
+        }
+        console.error('All entry IDs:', allEntryIds);
+      }
+    }
+    
+    // Handle info action
+    if (infoParam) {
+      console.log('Looking for entry with ID:', infoParam);
+      // Find the entry across all dates
+      let foundEntry = null;
+      for (const dateKey in entries) {
+        const entryList = entries[dateKey];
+        console.log(`Checking date ${dateKey}, ${entryList.length} entries`);
+        foundEntry = entryList.find(e => {
+          const entryIdStr = String(e.id);
+          const paramIdStr = String(infoParam);
+          const match = entryIdStr === paramIdStr;
+          if (match) {
+            console.log(`Match found! Entry ID: ${entryIdStr}, Param ID: ${paramIdStr}`);
+          }
+          return match;
+        });
+        if (foundEntry) {
+          console.log('Found entry for info:', foundEntry, 'on date:', dateKey);
+          break;
+        }
+      }
+      
+      if (foundEntry) {
+        console.log('Processing info for entry:', foundEntry);
+        // Mark as processed
+        processedUrlParams.current.add(urlKey);
+        // Use setTimeout to ensure state updates are processed
+        setTimeout(() => {
+          handleInfoClick(foundEntry);
+          // Clean up URL
+          const newUrl = new URL(window.location);
+          newUrl.searchParams.delete('info');
+          window.history.replaceState({}, '', newUrl);
+        }, 300);
+      } else {
+        console.error('Entry not found for info ID:', infoParam);
+        console.error('Available entries:', entries);
+      }
+    }
+  }, [isDBInitialized, entries]);
+
   // Drag and drop handlers
   const handleDragStart = (e, entry) => {
     setDraggedEntry(entry);
@@ -1319,16 +1656,22 @@ const DateTimeSelector = () => {
     return <div>Loading...</div>;
   }
 
+  // Check for edit/info URL params to hide calendar initially
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const hasEditOrInfoParam = urlParams && (urlParams.get('edit') || urlParams.get('info'));
+
   return (
     <div className="w-full">
-      <div className="w-full max-w-sm mx-auto flex flex-col gap-4 px-2 sm:px-0">
-        <div className="flex justify-center">
-          {isClient && <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />}
+      {!hasEditOrInfoParam && (
+        <div className="w-full max-w-sm mx-auto flex flex-col gap-4 px-2 sm:px-0">
+          <div className="flex justify-center">
+            {isClient && <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />}
+          </div>
         </div>
-      </div>
+      )}
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 w-full h-full bg-white flex flex-col">
+      {(showModal || hasEditOrInfoParam) && (
+        <div className="fixed inset-0 z-50 w-full h-full bg-white flex flex-col overflow-hidden">
           {/* Header */}
           <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
             <div className="max-w-4xl mx-auto px-4 py-3">
@@ -1366,191 +1709,197 @@ const DateTimeSelector = () => {
           </div>
 
           {/* Content - Centered vertically between header and bottom nav */}
-          <div className="flex-1 flex items-center justify-center pb-24 overflow-y-auto">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 w-full py-8">
+          <div className="flex-1 overflow-y-auto min-h-0" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 w-full py-4 md:py-8">
               {/* Entry Form */}
-              <div className="w-full max-w-[380px] md:max-w-4xl mx-auto border border-gray-200 rounded-3xl overflow-hidden shadow-lg bg-white p-6 md:p-8 space-y-6">
-                <h2 className="text-xl md:text-2xl font-semibold">
-                  {formState.id == null ? `Add New ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry` : `Edit ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry`}
-                </h2>
+              <div className={`w-full ${(showMealInput || showSleepInput || showMeasurementsInput) ? 'max-w-2xl mx-auto' : 'max-w-[380px] md:max-w-4xl'} ${(showMealInput || showSleepInput || showMeasurementsInput) ? '' : 'border border-gray-200 rounded-3xl overflow-hidden shadow-lg bg-white p-6 md:p-8 space-y-6'}`}>
+                {!(showMealInput || showSleepInput || showMeasurementsInput) && (
+                  <h2 className="text-xl md:text-2xl font-semibold">
+                    {formState.id == null ? 'Add a New Entry' : `Edit ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry`}
+                  </h2>
+                )}
                 
-                <form className="space-y-6">
-                  {/* Desktop Layout: Side by side */}
-                  <div className="md:grid md:grid-cols-2 md:gap-6 md:space-y-0 space-y-6">
-                    {/* Left Column */}
-                    <div className="space-y-6">
-                      {/* Time Picker */}
-                      <div className="bg-gray-50 p-4 md:p-5 rounded-2xl space-y-2">
-                        <label className="text-sm font-medium text-gray-600">Time</label>
-                        <div className="flex items-center gap-3">
-                          <select 
-                            className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
-                            value={time.hour}
-                            onChange={(e) => setTime({ ...time, hour: Number(e.target.value) })}
-                          >
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
-                              <option key={h} value={h}>{h}</option>
-                            ))}
-                          </select>
-                          <select 
-                            className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
-                            value={time.minute}
-                            onChange={(e) => setTime({ ...time, minute: Number(e.target.value) })}
-                          >
-                            {Array.from({ length: 60 }, (_, i) => i).map((m) => (
-                              <option key={m} value={m}>{m.toString().padStart(2, '0')}</option>
-                            ))}
-                          </select>
-                          <select 
-                            className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
-                            value={time.period}
-                            onChange={(e) => setTime({ ...time, period: e.target.value })}
-                          >
-                            <option value="AM">AM</option>
-                            <option value="PM">PM</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-3 gap-3">
-                        {settings.enableMeals && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveForm('meal');
-                              setShowMealInput(true);
-                            }}
-                            className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
-                              activeForm === 'meal'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            Meal
-                          </button>
-                        )}
-                        {settings.enableSleep && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveForm('sleep');
-                              setShowSleepInput(true);
-                            }}
-                            className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
-                              activeForm === 'sleep'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            Sleep
-                          </button>
-                        )}
-                        {settings.enableMeasurements && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveForm('measurements');
-                              setShowMeasurementsInput(true);
-                            }}
-                            className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
-                              activeForm === 'measurements'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            Measure
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Right Column - Photo Upload */}
-                    <div className="border border-gray-200 rounded-2xl p-4 md:p-5 space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-sm md:text-base font-medium text-gray-700">Attach Photo (optional)</p>
-                        {formState.photo && (
-                          <button
-                            type="button"
-                            onClick={removePhoto}
-                            className="text-sm text-red-600 hover:text-red-700 font-medium"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex gap-3">
-                        <button
-                          type="button"
-                          onClick={triggerCameraCapture}
-                          className="flex-1 border border-gray-300 py-3 md:py-4 rounded-xl font-medium text-gray-700 active:scale-[0.97] transition-all hover:bg-gray-50 text-sm md:text-base"
-                        >
-                          📷 Take Photo
-                        </button>
-                        <button
-                          type="button"
-                          onClick={triggerPhotoUpload}
-                          className="flex-1 border border-gray-300 py-3 md:py-4 rounded-xl font-medium text-gray-700 active:scale-[0.97] transition-all hover:bg-gray-50 text-sm md:text-base"
-                        >
-                          ⬆️ Upload Photo
-                        </button>
-                      </div>
-                      {formState.photo && (
-                        <div className="mt-3">
-                          <div className="relative rounded-lg overflow-hidden border border-gray-200">
-                            <img
-                              src={formState.photo.dataUrl}
-                              alt="Entry attachment preview"
-                              className="w-full max-h-80 object-cover"
-                            />
+                <form className={(showMealInput || showSleepInput || showMeasurementsInput) ? '' : 'space-y-6'}>
+                  {/* Desktop Layout: Single column when form is active, side by side otherwise */}
+                  {!(showMealInput || showSleepInput || showMeasurementsInput) && (
+                    <div className={`md:grid md:grid-cols-2 md:gap-6 md:space-y-0 space-y-6`}>
+                      {/* Left Column */}
+                      <div className="space-y-6">
+                        {/* Time Picker */}
+                        <div className="bg-gray-50 p-4 md:p-5 rounded-2xl space-y-2">
+                          <label className="text-sm font-medium text-gray-600">Time</label>
+                          <div className="flex items-center gap-3">
+                            <select 
+                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
+                              value={time.hour}
+                              onChange={(e) => setTime({ ...time, hour: Number(e.target.value) })}
+                            >
+                              {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+                                <option key={h} value={h}>{h}</option>
+                              ))}
+                            </select>
+                            <select 
+                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
+                              value={time.minute}
+                              onChange={(e) => setTime({ ...time, minute: Number(e.target.value) })}
+                            >
+                              {Array.from({ length: 60 }, (_, i) => i).map((m) => (
+                                <option key={m} value={m}>{m.toString().padStart(2, '0')}</option>
+                              ))}
+                            </select>
+                            <select 
+                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
+                              value={time.period}
+                              onChange={(e) => setTime({ ...time, period: e.target.value })}
+                            >
+                              <option value="AM">AM</option>
+                              <option value="PM">PM</option>
+                            </select>
                           </div>
-                          <p className="mt-2 text-xs text-gray-600">
-                            {formState.photo.name ? `${formState.photo.name} • ` : ''}
-                            {new Date(formState.photo.capturedAt).toLocaleString()}
-                          </p>
-                          <div className="mt-3">
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="grid grid-cols-3 gap-3">
+                          {settings.enableMeals && (
                             <button
                               type="button"
-                              onClick={handleSavePhotoToGallery}
-                              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-green-200 bg-green-50 text-green-700 font-medium hover:bg-green-100 transition-colors duration-200 text-sm"
+                              onClick={() => {
+                                setActiveForm('meal');
+                                setShowMealInput(true);
+                              }}
+                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
+                                showMealInput
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                              </svg>
-                              Save Photo to Gallery
+                              Meal
                             </button>
-                            {photoSaveMessage && (
-                              <span className="ml-2 text-sm text-green-600">{photoSaveMessage}</span>
-                            )}
-                            {!photoSaveMessage && photoSaveError && (
-                              <span className="ml-2 text-sm text-red-600">{photoSaveError}</span>
-                            )}
-                          </div>
+                          )}
+                          {settings.enableSleep && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveForm('sleep');
+                                setShowSleepInput(true);
+                              }}
+                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
+                                showSleepInput
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              Sleep
+                            </button>
+                          )}
+                          {settings.enableMeasurements && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveForm('measurements');
+                                setShowMeasurementsInput(true);
+                              }}
+                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
+                                showMeasurementsInput
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              Measure
+                            </button>
+                          )}
                         </div>
-                      )}
+                      </div>
 
-                      <input
-                        ref={cameraInputRef}
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        className="hidden"
-                        onChange={(event) => handlePhotoSelection(event, 'camera')}
-                      />
-                      <input
-                        ref={uploadInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(event) => handlePhotoSelection(event, 'library')}
-                      />
+                      {/* Right Column - Photo Upload */}
+                      {activeForm !== 'sleep' && activeForm !== 'measurements' && (
+                        <div className="border border-gray-200 rounded-2xl p-4 md:p-5 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-sm md:text-base font-medium text-gray-700">Attach Photo (optional)</p>
+                          {formState.photo && (
+                            <button
+                              type="button"
+                              onClick={removePhoto}
+                              className="text-sm text-red-600 hover:text-red-700 font-medium"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={triggerCameraCapture}
+                            className="flex-1 border border-gray-300 py-3 md:py-4 rounded-xl font-medium text-gray-700 active:scale-[0.97] transition-all hover:bg-gray-50 text-sm md:text-base"
+                          >
+                            📷 Take Photo
+                          </button>
+                          <button
+                            type="button"
+                            onClick={triggerPhotoUpload}
+                            className="flex-1 border border-gray-300 py-3 md:py-4 rounded-xl font-medium text-gray-700 active:scale-[0.97] transition-all hover:bg-gray-50 text-sm md:text-base"
+                          >
+                            ⬆️ Upload Photo
+                          </button>
+                        </div>
+                        {formState.photo && (
+                          <div className="mt-3">
+                            <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                              <img
+                                src={formState.photo.dataUrl}
+                                alt="Entry attachment preview"
+                                className="w-full max-h-80 object-cover"
+                              />
+                            </div>
+                            <p className="mt-2 text-xs text-gray-600">
+                              {formState.photo.name ? `${formState.photo.name} • ` : ''}
+                              {new Date(formState.photo.capturedAt).toLocaleString()}
+                            </p>
+                            <div className="mt-3">
+                              <button
+                                type="button"
+                                onClick={handleSavePhotoToGallery}
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-green-200 bg-green-50 text-green-700 font-medium hover:bg-green-100 transition-colors duration-200 text-sm"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Save Photo to Gallery
+                              </button>
+                              {photoSaveMessage && (
+                                <span className="ml-2 text-sm text-green-600">{photoSaveMessage}</span>
+                              )}
+                              {!photoSaveMessage && photoSaveError && (
+                                <span className="ml-2 text-sm text-red-600">{photoSaveError}</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <input
+                          ref={cameraInputRef}
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          onChange={(event) => handlePhotoSelection(event, 'camera')}
+                        />
+                        <input
+                          ref={uploadInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(event) => handlePhotoSelection(event, 'library')}
+                        />
+                      </div>
+                      )}
                     </div>
-                  </div>
+                  )}
 
 
                   {/* Meal Form Fields */}
-                  {settings.enableMeals && activeForm === 'meal' && showMealInput && (
-                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  {settings.enableMeals && activeForm === 'meal' && showMealInput && !isLoadingEdit && (
+                    <div className="pt-6 px-4 pb-6 bg-blue-50 border border-blue-200 rounded-lg">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg font-semibold text-gray-900">Add Meal</h4>
                         <button
@@ -1582,8 +1931,7 @@ const DateTimeSelector = () => {
                               />
                             </div>
                           </div>
-                      </div>
-
+                        </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-amount">
@@ -1660,7 +2008,7 @@ const DateTimeSelector = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 pb-4">
                     <button
                       type="button"
                       onClick={handleSubmit}
@@ -1688,13 +2036,14 @@ const DateTimeSelector = () => {
 
 
                   {/* Sleep Form Fields */}
-                  {settings.enableSleep && activeForm === 'sleep' && showSleepInput && (
-                    <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  {settings.enableSleep && activeForm === 'sleep' && showSleepInput && !isLoadingEdit && (
+                    <div className="pt-6 px-4 pb-4 bg-purple-50 border border-purple-200 rounded-lg">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg font-semibold text-gray-900">Add Sleep</h4>
                         <button
                           onClick={() => {
                             setShowSleepInput(false);
+                            setActiveForm('meal');
                           }}
                           className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
                         >
@@ -1714,7 +2063,7 @@ const DateTimeSelector = () => {
                               <div className="flex flex-col items-center">
                                 <label className="text-xs font-medium text-gray-600 mb-1">Hour</label>
                                 <select
-                                  className="w-16 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                  className="w-16 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.bedtime.hour}
                                   onChange={(e) => setFormState((s) => ({ 
                                     ...s, 
@@ -1730,7 +2079,7 @@ const DateTimeSelector = () => {
                               <div className="flex flex-col items-center">
                                 <label className="text-xs font-medium text-gray-600 mb-1">Minute</label>
                                 <select
-                                  className="w-16 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                  className="w-16 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.bedtime.minute}
                                   onChange={(e) => setFormState((s) => ({ 
                                     ...s, 
@@ -1745,7 +2094,7 @@ const DateTimeSelector = () => {
                               <div className="flex flex-col items-center">
                                 <label className="text-xs font-medium text-gray-600 mb-1">Period</label>
                                 <select
-                                  className="w-20 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                  className="w-20 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.bedtime.period}
                                   onChange={(e) => setFormState((s) => ({ 
                                     ...s, 
@@ -1767,7 +2116,7 @@ const DateTimeSelector = () => {
                               <div className="flex flex-col items-center">
                                 <label className="text-xs font-medium text-gray-600 mb-1">Hour</label>
                                 <select
-                                  className="w-16 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                  className="w-16 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.waketime.hour}
                                   onChange={(e) => setFormState((s) => ({ 
                                     ...s, 
@@ -1783,7 +2132,7 @@ const DateTimeSelector = () => {
                               <div className="flex flex-col items-center">
                                 <label className="text-xs font-medium text-gray-600 mb-1">Minute</label>
                                 <select
-                                  className="w-16 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                  className="w-16 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.waketime.minute}
                                   onChange={(e) => setFormState((s) => ({ 
                                     ...s, 
@@ -1798,7 +2147,7 @@ const DateTimeSelector = () => {
                               <div className="flex flex-col items-center">
                                 <label className="text-xs font-medium text-gray-600 mb-1">Period</label>
                                 <select
-                                  className="w-20 px-3 py-2 text-center border border-gray-300 rounded-md bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                  className="w-20 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.waketime.period}
                                   onChange={(e) => setFormState((s) => ({ 
                                     ...s, 
@@ -1842,6 +2191,7 @@ const DateTimeSelector = () => {
                             type="button"
                             onClick={() => {
                               setShowSleepInput(false);
+                              setActiveForm('meal');
                             }}
                             className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                           >
@@ -1853,8 +2203,8 @@ const DateTimeSelector = () => {
                   )}
 
                   {/* Measurements Form Fields */}
-                  {settings.enableMeasurements && activeForm === 'measurements' && showMeasurementsInput && (
-                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  {settings.enableMeasurements && activeForm === 'measurements' && showMeasurementsInput && !isLoadingEdit && (
+                    <div className="pt-6 px-4 pb-4 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-lg font-semibold text-gray-900">
                           {formState.id == null ? 'Add Body Measurements' : 'Edit Body Measurements'}
@@ -1862,6 +2212,7 @@ const DateTimeSelector = () => {
                         <button
                           onClick={() => {
                             setShowMeasurementsInput(false);
+                            setActiveForm('meal');
                           }}
                           className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
                         >
@@ -1874,7 +2225,7 @@ const DateTimeSelector = () => {
                       <div className="space-y-4">
                         {/* Weight (Required) */}
                         <div>
-                          <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">
+                          <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-2">
                             Weight <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
@@ -1885,10 +2236,10 @@ const DateTimeSelector = () => {
                               min="0"
                               value={formState.weight}
                               onChange={(e) => setFormState(prev => ({ ...prev, weight: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 pr-16"
                               placeholder="Enter your weight"
                             />
-                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                               <span className="text-gray-500 text-sm">{settings.weightUnit}</span>
                             </div>
                           </div>
@@ -1897,7 +2248,7 @@ const DateTimeSelector = () => {
                         {/* Body Measurements */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label htmlFor="neck" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="neck" className="block text-sm font-medium text-gray-700 mb-2">
                               Neck
                             </label>
                             <div className="relative">
@@ -1908,17 +2259,17 @@ const DateTimeSelector = () => {
                                 min="0"
                                 value={formState.neck}
                                 onChange={(e) => setFormState(prev => ({ ...prev, neck: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 pr-16"
                                 placeholder="Neck measurement"
                               />
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                 <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
                               </div>
                             </div>
                           </div>
 
                           <div>
-                            <label htmlFor="chest" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="chest" className="block text-sm font-medium text-gray-700 mb-2">
                               Chest
                             </label>
                             <div className="relative">
@@ -1929,17 +2280,17 @@ const DateTimeSelector = () => {
                                 min="0"
                                 value={formState.chest}
                                 onChange={(e) => setFormState(prev => ({ ...prev, chest: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 pr-16"
                                 placeholder="Chest measurement"
                               />
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                 <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
                               </div>
                             </div>
                           </div>
 
                           <div>
-                            <label htmlFor="arm" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="arm" className="block text-sm font-medium text-gray-700 mb-2">
                               Arm
                             </label>
                             <div className="relative">
@@ -1950,17 +2301,17 @@ const DateTimeSelector = () => {
                                 min="0"
                                 value={formState.arm}
                                 onChange={(e) => setFormState(prev => ({ ...prev, arm: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 pr-16"
                                 placeholder="Arm measurement"
                               />
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                 <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
                               </div>
                             </div>
                           </div>
 
                           <div>
-                            <label htmlFor="waist" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="waist" className="block text-sm font-medium text-gray-700 mb-2">
                               Waist
                             </label>
                             <div className="relative">
@@ -1971,17 +2322,17 @@ const DateTimeSelector = () => {
                                 min="0"
                                 value={formState.waist}
                                 onChange={(e) => setFormState(prev => ({ ...prev, waist: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 pr-16"
                                 placeholder="Waist measurement"
                               />
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                 <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
                               </div>
                             </div>
                           </div>
 
                           <div>
-                            <label htmlFor="thigh" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="thigh" className="block text-sm font-medium text-gray-700 mb-2">
                               Thigh
                             </label>
                             <div className="relative">
@@ -1992,17 +2343,17 @@ const DateTimeSelector = () => {
                                 min="0"
                                 value={formState.thigh}
                                 onChange={(e) => setFormState(prev => ({ ...prev, thigh: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 pr-16"
                                 placeholder="Thigh measurement"
                               />
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                 <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
                               </div>
                             </div>
                           </div>
 
                           <div>
-                            <label htmlFor="shoulders" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="shoulders" className="block text-sm font-medium text-gray-700 mb-2">
                               Shoulders
                             </label>
                             <div className="relative">
@@ -2013,17 +2364,17 @@ const DateTimeSelector = () => {
                                 min="0"
                                 value={formState.shoulders}
                                 onChange={(e) => setFormState(prev => ({ ...prev, shoulders: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 pr-16"
                                 placeholder="Shoulders measurement"
                               />
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                 <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
                               </div>
                             </div>
                           </div>
 
                           <div>
-                            <label htmlFor="calf" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="calf" className="block text-sm font-medium text-gray-700 mb-2">
                               Calf
                             </label>
                             <div className="relative">
@@ -2034,10 +2385,10 @@ const DateTimeSelector = () => {
                                 min="0"
                                 value={formState.calf}
                                 onChange={(e) => setFormState(prev => ({ ...prev, calf: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 pr-16"
                                 placeholder="Calf measurement"
                               />
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                 <span className="text-gray-500 text-sm">{settings.lengthUnit}</span>
                               </div>
                             </div>
@@ -2046,7 +2397,7 @@ const DateTimeSelector = () => {
 
                         {/* Notes */}
                         <div>
-                          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+                          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
                             Notes (Optional)
                           </label>
                           <textarea
@@ -2054,7 +2405,7 @@ const DateTimeSelector = () => {
                             value={formState.notes}
                             onChange={(e) => setFormState(prev => ({ ...prev, notes: e.target.value }))}
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                             placeholder="Add any additional notes about your measurements..."
                           />
                         </div>
@@ -2076,6 +2427,7 @@ const DateTimeSelector = () => {
                             type="button"
                             onClick={() => {
                               setShowMeasurementsInput(false);
+                              setActiveForm('meal');
                             }}
                             className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                           >
@@ -2110,7 +2462,7 @@ const DateTimeSelector = () => {
                 </form>
               </div>
 
-              {/* Show Entries Button */}
+                {/* Show Entries Button */}
               <div className="mt-6 flex justify-center">
                 <a
                   href={`/entries?date=${selectedDate ? (() => {
@@ -2131,7 +2483,7 @@ const DateTimeSelector = () => {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Show Entries
+                  Show Entries ({currentDateEntries.length})
                 </a>
               </div>
             </div>
