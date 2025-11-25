@@ -320,10 +320,14 @@ const DateTimeSelector = () => {
           
           // Convert IndexedDB entries to the format expected by the component
           const formattedEntries = {};
+          console.log('Processing', dbEntries.length, 'entries from IndexedDB');
           dbEntries.forEach(entry => {
-            // Ensure date is a Date object
-            const entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
+            // Ensure date is a Date object and normalize to midnight
+            let entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
+            // Normalize to midnight to avoid timezone issues
+            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
             const dateKey = entryDate.toDateString();
+            
             if (!formattedEntries[dateKey]) {
               formattedEntries[dateKey] = [];
             }
@@ -340,6 +344,8 @@ const DateTimeSelector = () => {
             }
             formattedEntries[dateKey].push(mergedEntry);
           });
+          console.log('Formatted entries:', Object.keys(formattedEntries).length, 'dates');
+          console.log('Date keys:', Object.keys(formattedEntries));
           setEntries(formattedEntries);
         } catch (error) {
           console.error('Error loading entries from IndexedDB:', error);
@@ -357,6 +363,63 @@ const DateTimeSelector = () => {
     
     initializeApp();
   }, []);
+
+  // Reload entries when window gains focus (in case data was updated in another tab)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isDBInitialized) return;
+    
+    const reloadEntries = async () => {
+      try {
+        const dbEntries = await healthDB.getAllUserEntries();
+        console.log('Reloaded entries on focus:', dbEntries.length);
+        
+        // Load photos separately and merge with entries
+        let photoEntries = [];
+        try {
+          photoEntries = await healthDB.getAllPhotoEntries();
+        } catch (photoError) {
+          console.warn('Could not load photo entries:', photoError);
+        }
+        
+        // Create a map of photos by entry ID
+        const photosByEntryId = {};
+        photoEntries.forEach(photoEntry => {
+          const entryId = photoEntry.entryId || photoEntry.id;
+          if (entryId && photoEntry.photo) {
+            photosByEntryId[entryId] = photoEntry.photo;
+          }
+        });
+        
+        // Convert IndexedDB entries to the format expected by the component
+        const formattedEntries = {};
+        dbEntries.forEach(entry => {
+          // Ensure date is a Date object and normalize to midnight
+          let entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
+          entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+          const dateKey = entryDate.toDateString();
+          
+          if (!formattedEntries[dateKey]) {
+            formattedEntries[dateKey] = [];
+          }
+          const entryPhoto = photosByEntryId[entry.id] || entry.photo;
+          const mergedEntry = {
+            ...entry,
+            date: entryDate
+          };
+          if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
+            mergedEntry.photo = entryPhoto;
+          }
+          formattedEntries[dateKey].push(mergedEntry);
+        });
+        setEntries(formattedEntries);
+      } catch (error) {
+        console.error('Error reloading entries:', error);
+      }
+    };
+    
+    window.addEventListener('focus', reloadEntries);
+    return () => window.removeEventListener('focus', reloadEntries);
+  }, [isDBInitialized]);
 
   // Save to localStorage whenever entries change
   useEffect(() => {
@@ -553,6 +616,22 @@ const DateTimeSelector = () => {
     return entries[dateKey] || [];
   }, [entries, selectedDate]);
 
+  // Get entries for today (for Today's Summary card)
+  const todayEntries = useMemo(() => {
+    const today = new Date();
+    // Normalize to midnight to ensure consistent matching
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayKey = normalizedToday.toDateString();
+    const todayEntriesList = entries[todayKey] || [];
+    console.log('Today entries lookup:', {
+      today: normalizedToday.toISOString(),
+      todayKey,
+      foundEntries: todayEntriesList.length,
+      availableKeys: Object.keys(entries)
+    });
+    return todayEntriesList;
+  }, [entries]);
+
   // Group entries by time
   const groupedEntries = useMemo(() => {
     const groups = {};
@@ -627,6 +706,38 @@ const DateTimeSelector = () => {
       return `${totalHours}h ${remainingMinutes}m`;
     }
   }, [currentDateEntries]);
+
+  // Calculate total sleep duration for today (for Today's Summary card)
+  const todaySleepDuration = useMemo(() => {
+    const sleepEntries = todayEntries.filter(entry => entry.type === 'sleep');
+    if (sleepEntries.length === 0) return null;
+    
+    let totalMinutes = 0;
+    sleepEntries.forEach(entry => {
+      if (entry.duration) {
+        // Parse duration string like "8h 30m" or "7h" or "45m"
+        const duration = entry.duration;
+        const hoursMatch = duration.match(/(\d+)h/);
+        const minutesMatch = duration.match(/(\d+)m/);
+        
+        const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+        const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
+        
+        totalMinutes += hours * 60 + minutes;
+      }
+    });
+    
+    const totalHours = Math.floor(totalMinutes / 60);
+    const remainingMinutes = totalMinutes % 60;
+    
+    if (totalHours === 0) {
+      return `${remainingMinutes}m`;
+    } else if (remainingMinutes === 0) {
+      return `${totalHours}h`;
+    } else {
+      return `${totalHours}h ${remainingMinutes}m`;
+    }
+  }, [todayEntries]);
 
   function handleDateSelect(date) {
     setSelectedDate(date);
@@ -1671,25 +1782,25 @@ const DateTimeSelector = () => {
             </div>
             
             {/* Today's Summary Card */}
-            {currentDateEntries.length > 0 && (
+            {todayEntries.length > 0 && (
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Today's Summary</h3>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="text-center p-3 bg-blue-50 rounded-xl">
                     <div className="text-2xl font-bold text-blue-600">
-                      {currentDateEntries.filter(e => e.type === 'meal').length}
+                      {todayEntries.filter(e => e.type === 'meal').length}
                     </div>
                     <div className="text-xs text-gray-600 mt-1">Meals</div>
                   </div>
                   <div className="text-center p-3 bg-purple-50 rounded-xl">
                     <div className="text-2xl font-bold text-purple-600">
-                      {totalSleepDuration || '—'}
+                      {todaySleepDuration || '—'}
                     </div>
                     <div className="text-xs text-gray-600 mt-1">Sleep</div>
                   </div>
                   <div className="text-center p-3 bg-green-50 rounded-xl">
                     <div className="text-2xl font-bold text-green-600">
-                      {currentDateEntries.filter(e => e.type === 'measurements').length}
+                      {todayEntries.filter(e => e.type === 'measurements').length}
                     </div>
                     <div className="text-xs text-gray-600 mt-1">Measured</div>
                   </div>
