@@ -172,28 +172,48 @@ const DateTimeSelector = () => {
     setIsClient(true);
     if (typeof window === 'undefined') return;
     
-    // Check URL for date parameter first before setting default date
-    const urlParams = new URLSearchParams(window.location.search);
-    const dateParam = urlParams.get('date');
-    
-    // Initialize selectedDate on client side (only if not in URL)
-    if (selectedDate === null) {
-      if (dateParam) {
-        try {
-          const [year, month, day] = dateParam.split('-').map(Number);
-          const urlDate = new Date(year, month - 1, day);
-          if (!isNaN(urlDate.getTime())) {
-            setSelectedDate(new Date(urlDate.getFullYear(), urlDate.getMonth(), urlDate.getDate()));
-          } else {
-            setSelectedDate(new Date());
+    // Initialize selectedDate immediately to prevent loading state
+    const initializeDate = () => {
+      try {
+        // Check URL for date parameter first before setting default date
+        const urlParams = new URLSearchParams(window.location.search);
+        const dateParam = urlParams.get('date');
+        
+        if (dateParam) {
+          try {
+            const [year, month, day] = dateParam.split('-').map(Number);
+            const urlDate = new Date(year, month - 1, day);
+            if (!isNaN(urlDate.getTime())) {
+              setSelectedDate(new Date(urlDate.getFullYear(), urlDate.getMonth(), urlDate.getDate()));
+              return;
+            }
+          } catch (error) {
+            console.error('Error parsing date param:', error);
           }
-        } catch (error) {
-          setSelectedDate(new Date());
         }
-      } else {
+        // Default to today's date
+        setSelectedDate(new Date());
+      } catch (error) {
+        console.error('Error initializing date:', error);
+        // Fallback to today's date
         setSelectedDate(new Date());
       }
+    };
+    
+    // Initialize date immediately
+    if (selectedDate === null) {
+      initializeDate();
     }
+    
+    // Also set a timeout fallback in case something goes wrong
+    const timeoutId = setTimeout(() => {
+      if (selectedDate === null) {
+        console.warn('selectedDate still null after timeout, setting to today');
+        setSelectedDate(new Date());
+      }
+    }, 1000);
+    
+    return () => clearTimeout(timeoutId);
     
     // Check if we have edit/info URL params - if so, don't load form state from localStorage
     const urlParamsCheck = new URLSearchParams(window.location.search);
@@ -281,19 +301,39 @@ const DateTimeSelector = () => {
     if (typeof window === 'undefined') return;
     
     const initializeApp = async () => {
+      // First, try to load from localStorage immediately so page can render
+      const savedEntries = loadFromLocalStorage();
+      if (Object.keys(savedEntries).length > 0) {
+        setEntries(savedEntries);
+      }
+      
       try {
-        // Initialize IndexedDB
-        await healthDB.init();
+        // Initialize IndexedDB with timeout
+        const initPromise = healthDB.init();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database initialization timeout')), 10000)
+        );
+        
+        await Promise.race([initPromise, timeoutPromise]).catch(err => {
+          console.warn('Database init timeout or error, using localStorage:', err);
+          throw err;
+        });
         setIsDBInitialized(true);
         
-        // Migrate data from localStorage if needed
-        await healthDB.migrateFromLocalStorage();
+        // Migrate data from localStorage if needed (don't block on this)
+        healthDB.migrateFromLocalStorage().catch(err => 
+          console.warn('Migration failed (non-critical):', err)
+        );
         
-        // Initialize with sample data if empty
-        await healthDB.initializeSampleData();
+        // Initialize with sample data if empty (don't block on this)
+        healthDB.initializeSampleData().catch(err => 
+          console.warn('Sample data initialization failed (non-critical):', err)
+        );
         
-        // Load frequent items
-        await loadFrequentItems();
+        // Load frequent items (don't block on this)
+        loadFrequentItems().catch(err => 
+          console.warn('Loading frequent items failed (non-critical):', err)
+        );
         
         // Load existing data from IndexedDB first, then localStorage as fallback
         try {
@@ -1794,11 +1834,22 @@ const DateTimeSelector = () => {
     }));
   };
 
-  // Don't render on server side or until selectedDate is initialized
-  if (!isClient || selectedDate === null) {
+  // Don't render on server side
+  if (!isClient) {
     return <div>Loading...</div>;
   }
-
+  
+  // Ensure selectedDate is always set (fallback to today if somehow null)
+  // This prevents the page from being stuck on loading
+  if (!selectedDate) {
+    // This should not happen, but if it does, set it immediately and return loading
+    // The useEffect will set it properly on next render
+    if (typeof window !== 'undefined') {
+      setSelectedDate(new Date());
+    }
+    return <div>Loading...</div>;
+  }
+  
   // Check for edit/info URL params to hide calendar initially
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const hasEditOrInfoParam = urlParams && (urlParams.get('edit') || urlParams.get('info'));
