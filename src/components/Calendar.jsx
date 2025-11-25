@@ -96,7 +96,7 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   });
 
   return (
-    <div className="p-3 sm:p-6 border border-gray-200 rounded-xl bg-white text-gray-900 shadow-lg shadow-gray-100/50 w-full max-w-md">
+    <div className="p-3 sm:p-6 text-gray-900 w-full max-w-md">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <button 

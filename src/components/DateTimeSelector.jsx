@@ -1663,17 +1663,47 @@ const DateTimeSelector = () => {
   return (
     <div className="w-full">
       {!hasEditOrInfoParam && (
-        <div className="w-full max-w-sm mx-auto flex flex-col gap-4 px-2 sm:px-0">
-          <div className="flex justify-center">
-            {isClient && <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />}
+        <div className="w-full min-h-[calc(100vh-160px)] h-[calc(100vh-160px)] bg-white flex items-center justify-center">
+          <div className="max-w-sm mx-auto flex flex-col gap-6 px-4 w-full">
+            {/* Calendar Card */}
+            <div>
+              {isClient && <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />}
+            </div>
+            
+            {/* Today's Summary Card */}
+            {currentDateEntries.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Today's Summary</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center p-3 bg-blue-50 rounded-xl">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {currentDateEntries.filter(e => e.type === 'meal').length}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">Meals</div>
+                  </div>
+                  <div className="text-center p-3 bg-purple-50 rounded-xl">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {totalSleepDuration || '—'}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">Sleep</div>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-xl">
+                    <div className="text-2xl font-bold text-green-600">
+                      {currentDateEntries.filter(e => e.type === 'measurements').length}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">Measured</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {(showModal || hasEditOrInfoParam) && (
-        <div className="fixed inset-0 z-50 w-full h-full bg-white flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+        <div className="fixed inset-0 z-50 w-full h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col overflow-hidden">
+          {/* Header with Glassmorphism */}
+          <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm flex-shrink-0">
             <div className="max-w-4xl mx-auto px-4 py-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -1686,7 +1716,7 @@ const DateTimeSelector = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                   </button>
-                  <div className="text-lg font-bold text-gray-900 truncate pr-2">
+                  <div className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate pr-2">
                     {headerText}
                   </div>
                 </div>
@@ -1694,7 +1724,7 @@ const DateTimeSelector = () => {
                   <button
                     type="button"
                     onClick={() => setShowSettings(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors duration-200 border border-blue-100"
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-blue-100 hover:shadow-md"
                     title="Open settings"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1709,12 +1739,12 @@ const DateTimeSelector = () => {
           </div>
 
           {/* Content - Centered vertically between header and bottom nav */}
-          <div className="flex-1 overflow-y-auto min-h-0" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 w-full py-4 md:py-8">
+          <div className={`flex-1 overflow-y-auto min-h-0 ${!(showMealInput || showSleepInput || showMeasurementsInput) ? 'flex items-center justify-center' : ''}`} style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+            <div className={`max-w-4xl mx-auto px-4 sm:px-6 w-full ${!(showMealInput || showSleepInput || showMeasurementsInput) ? '' : 'py-4 md:py-8'}`}>
               {/* Entry Form */}
               <div className={`w-full ${(showMealInput || showSleepInput || showMeasurementsInput) ? 'max-w-2xl mx-auto' : 'max-w-[380px] md:max-w-4xl'} ${(showMealInput || showSleepInput || showMeasurementsInput) ? '' : 'border border-gray-200 rounded-3xl overflow-hidden shadow-lg bg-white p-6 md:p-8 space-y-6'}`}>
                 {!(showMealInput || showSleepInput || showMeasurementsInput) && (
-                  <h2 className="text-xl md:text-2xl font-semibold">
+                  <h2 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {formState.id == null ? 'Add a New Entry' : `Edit ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry`}
                   </h2>
                 )}
@@ -1726,11 +1756,16 @@ const DateTimeSelector = () => {
                       {/* Left Column */}
                       <div className="space-y-6">
                         {/* Time Picker */}
-                        <div className="bg-gray-50 p-4 md:p-5 rounded-2xl space-y-2">
-                          <label className="text-sm font-medium text-gray-600">Time</label>
+                        <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-4 md:p-5 rounded-2xl space-y-2 border border-blue-100">
+                          <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Time
+                          </label>
                           <div className="flex items-center gap-3">
                             <select 
-                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
+                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                               value={time.hour}
                               onChange={(e) => setTime({ ...time, hour: Number(e.target.value) })}
                             >
@@ -1739,7 +1774,7 @@ const DateTimeSelector = () => {
                               ))}
                             </select>
                             <select 
-                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
+                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                               value={time.minute}
                               onChange={(e) => setTime({ ...time, minute: Number(e.target.value) })}
                             >
@@ -1748,7 +1783,7 @@ const DateTimeSelector = () => {
                               ))}
                             </select>
                             <select 
-                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px]"
+                              className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                               value={time.period}
                               onChange={(e) => setTime({ ...time, period: e.target.value })}
                             >
@@ -1769,11 +1804,11 @@ const DateTimeSelector = () => {
                               }}
                               className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
                                 showMealInput
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:shadow-md'
                               }`}
                             >
-                              Meal
+                              🍽️ Meal
                             </button>
                           )}
                           {settings.enableSleep && (
@@ -1785,11 +1820,11 @@ const DateTimeSelector = () => {
                               }}
                               className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
                                 showSleepInput
-                                  ? 'bg-purple-600 text-white'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:shadow-md'
                               }`}
                             >
-                              Sleep
+                              🛌 Sleep
                             </button>
                           )}
                           {settings.enableMeasurements && (
@@ -1801,11 +1836,11 @@ const DateTimeSelector = () => {
                               }}
                               className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
                                 showMeasurementsInput
-                                  ? 'bg-green-600 text-white'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                  ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:shadow-md'
                               }`}
                             >
-                              Measure
+                              📏 Measure
                             </button>
                           )}
                         </div>
@@ -1813,9 +1848,15 @@ const DateTimeSelector = () => {
 
                       {/* Right Column - Photo Upload */}
                       {activeForm !== 'sleep' && activeForm !== 'measurements' && (
-                        <div className="border border-gray-200 rounded-2xl p-4 md:p-5 space-y-3">
+                        <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 md:p-5 space-y-3 bg-gradient-to-br from-gray-50 to-blue-50 hover:border-blue-400 transition-all duration-200">
                         <div className="flex items-start justify-between gap-3">
-                          <p className="text-sm md:text-base font-medium text-gray-700">Attach Photo (optional)</p>
+                          <p className="text-sm md:text-base font-medium text-gray-700 flex items-center gap-2">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Attach Photo (optional)
+                          </p>
                           {formState.photo && (
                             <button
                               type="button"
@@ -1830,16 +1871,16 @@ const DateTimeSelector = () => {
                           <button
                             type="button"
                             onClick={triggerCameraCapture}
-                            className="flex-1 border border-gray-300 py-3 md:py-4 rounded-xl font-medium text-gray-700 active:scale-[0.97] transition-all hover:bg-gray-50 text-sm md:text-base"
+                            className="flex-1 border-2 border-blue-300 py-3 md:py-4 rounded-xl font-medium text-blue-700 bg-white active:scale-[0.97] transition-all hover:bg-blue-50 hover:border-blue-500 hover:shadow-md text-sm md:text-base"
                           >
                             📷 Take Photo
                           </button>
                           <button
                             type="button"
                             onClick={triggerPhotoUpload}
-                            className="flex-1 border border-gray-300 py-3 md:py-4 rounded-xl font-medium text-gray-700 active:scale-[0.97] transition-all hover:bg-gray-50 text-sm md:text-base"
+                            className="flex-1 border-2 border-blue-300 py-3 md:py-4 rounded-xl font-medium text-blue-700 bg-white active:scale-[0.97] transition-all hover:bg-blue-50 hover:border-blue-500 hover:shadow-md text-sm md:text-base"
                           >
-                            ⬆️ Upload Photo
+                            ⬆️ Upload
                           </button>
                         </div>
                         {formState.photo && (
@@ -2462,7 +2503,7 @@ const DateTimeSelector = () => {
                 </form>
               </div>
 
-                {/* Show Entries Button */}
+                {/* View All Entries Button */}
               <div className="mt-6 flex justify-center">
                 <a
                   href={`/entries?date=${selectedDate ? (() => {
@@ -2478,12 +2519,12 @@ const DateTimeSelector = () => {
                     const day = String(today.getDate()).padStart(2, '0');
                     return `${year}-${month}-${day}`;
                   })()}`}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-base font-bold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Show Entries ({currentDateEntries.length})
+                  View All Entries ({currentDateEntries.length})
                 </a>
               </div>
             </div>
