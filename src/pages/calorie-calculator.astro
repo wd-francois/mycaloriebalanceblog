@@ -8,20 +8,57 @@ import { siteConfig } from '@config/site';
   description="Calculate your daily calorie needs using the Mifflin-St Jeor Equation. Get your BMR and TDEE based on your weight, height, age, and activity level."
   showBottomNav={true}
   wideContent={true}
+  showTopNav={false}
+  showFooter={false}
 >
-  <main class="w-full py-8">
-    <!-- Hero Section -->
-    <section class="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 text-center mb-8">
-      <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
-        Calorie Calculator
-      </h1>
-      <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto">
-        Calculate your daily calorie needs. 
-      </p>
-    </section>
+  <main class="w-full bg-gray-50 flex flex-col min-h-screen">
+    <!-- Top Navigation Header -->
+    <div class="bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm sticky top-0 z-10">
+      <div class="max-w-6xl mx-auto px-4 py-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <a
+              href="/daily-calories"
+              class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Back to Daily Calorie Intake"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </a>
+            <div class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate pr-2">
+              Calorie Calculator
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <a
+              href="/settings/"
+              class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-blue-100 hover:shadow-md"
+              title="Open settings"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>Settings</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- Calculator Form -->
-    <section class="max-w-2xl mx-auto px-3 sm:px-4 lg:px-8">
+    <!-- Content -->
+    <div class="flex-1 py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
+        <!-- Hero Section -->
+        <section class="max-w-4xl mx-auto text-center mb-8">
+          <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto">
+            Calculate your daily calorie needs. 
+          </p>
+        </section>
+
+        <!-- Calculator Form -->
+        <section class="max-w-2xl mx-auto">
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 sm:p-8">
         <form id="calorieCalculator" class="space-y-6">
           <!-- Gender Selection -->
@@ -165,20 +202,22 @@ import { siteConfig } from '@config/site';
       </div>
     </section>
 
-    <!-- Information Section -->
-    <section class="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 mt-12">
-      <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 sm:p-8">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">About</h2>
-        
-        <div class="space-y-8">
-          <div>
+        <!-- Information Section -->
+        <section class="max-w-4xl mx-auto mt-12">
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 sm:p-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">About</h2>
+            
+            <div class="space-y-8">
+              <div>
                 <p class="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
                   This calorie calculator is based on the Mifflin-St. Jeor equation, developed in 1990, a widely accepted formula for estimating Basal Metabolic Rate (BMR), the calories burned at rest.
-            </p>
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
-    </section>
+    </div>
   </main>
 
   <style>
@@ -200,6 +239,75 @@ import { siteConfig } from '@config/site';
   </style>
 
   <script>
+    // Function to save calculator data to localStorage
+    function saveCalculatorData(data: any) {
+      try {
+        localStorage.setItem('calorieCalculatorData', JSON.stringify(data));
+      } catch (e) {
+        console.error('Error saving calculator data:', e);
+      }
+    }
+
+    // Function to load calculator data from localStorage
+    function loadCalculatorData() {
+      try {
+        const savedData = localStorage.getItem('calorieCalculatorData');
+        if (savedData) {
+          return JSON.parse(savedData);
+        }
+      } catch (e) {
+        console.error('Error loading calculator data:', e);
+      }
+      return null;
+    }
+
+    // Function to display results
+    function displayResults(data: any) {
+      const bmrResult = document.getElementById('bmr-result');
+      const tdeeResult = document.getElementById('tdee-result');
+      const weightLossCalories = document.getElementById('weight-loss-calories');
+      const maintenanceCalories = document.getElementById('maintenance-calories');
+      const weightGainCalories = document.getElementById('weight-gain-calories');
+      const results = document.getElementById('results');
+      
+      if (bmrResult) bmrResult.textContent = Math.round(data.bmr).toString();
+      if (tdeeResult) tdeeResult.textContent = data.tdee.toString();
+      if (weightLossCalories) weightLossCalories.textContent = data.weightLoss + ' cal/day';
+      if (maintenanceCalories) maintenanceCalories.textContent = data.maintenance + ' cal/day';
+      if (weightGainCalories) weightGainCalories.textContent = data.weightGain + ' cal/day';
+      
+      // Show results
+      if (results) {
+        results.classList.remove('hidden');
+      }
+    }
+
+    // Function to populate form fields
+    function populateForm(data: any) {
+      const genderInput = document.querySelector(`input[name="gender"][value="${data.gender}"]`) as HTMLInputElement;
+      const weightElement = document.getElementById('weight') as HTMLInputElement;
+      const heightElement = document.getElementById('height') as HTMLInputElement;
+      const ageElement = document.getElementById('age') as HTMLInputElement;
+      const activityElement = document.getElementById('activity') as HTMLSelectElement;
+      
+      if (genderInput) genderInput.checked = true;
+      if (weightElement) weightElement.value = data.weight.toString();
+      if (heightElement) heightElement.value = data.height.toString();
+      if (ageElement) ageElement.value = data.age.toString();
+      if (activityElement) activityElement.value = data.activityLevel.toString();
+    }
+
+    // Load saved data on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      const savedData = loadCalculatorData();
+      if (savedData) {
+        // Populate form fields
+        populateForm(savedData);
+        // Display results
+        displayResults(savedData);
+      }
+    });
+
     const form = document.getElementById('calorieCalculator');
     if (form) {
       form.addEventListener('submit', function(e) {
@@ -233,29 +341,35 @@ import { siteConfig } from '@config/site';
         // Calculate TDEE
         const tdee = Math.round(bmr * activityLevel);
         
-        // Display results
-        const bmrResult = document.getElementById('bmr-result');
-        const tdeeResult = document.getElementById('tdee-result');
-        const weightLossCalories = document.getElementById('weight-loss-calories');
-        const maintenanceCalories = document.getElementById('maintenance-calories');
-        const weightGainCalories = document.getElementById('weight-gain-calories');
-        const results = document.getElementById('results');
-        
-        if (bmrResult) bmrResult.textContent = Math.round(bmr).toString();
-        if (tdeeResult) tdeeResult.textContent = tdee.toString();
-        
         // Calculate goal recommendations
         const weightLoss = Math.round(tdee - 500); // 500 calorie deficit
         const maintenance = tdee;
         const weightGain = Math.round(tdee + 500); // 500 calorie surplus
         
-        if (weightLossCalories) weightLossCalories.textContent = weightLoss + ' cal/day';
-        if (maintenanceCalories) maintenanceCalories.textContent = maintenance + ' cal/day';
-        if (weightGainCalories) weightGainCalories.textContent = weightGain + ' cal/day';
+        // Prepare data to save
+        const calculatorData = {
+          gender,
+          weight,
+          height,
+          age,
+          activityLevel,
+          bmr: Math.round(bmr),
+          tdee,
+          weightLoss,
+          maintenance,
+          weightGain,
+          timestamp: new Date().toISOString()
+        };
         
-        // Show results
+        // Save to localStorage
+        saveCalculatorData(calculatorData);
+        
+        // Display results
+        displayResults(calculatorData);
+        
+        // Scroll to results
+        const results = document.getElementById('results');
         if (results) {
-          results.classList.remove('hidden');
           results.scrollIntoView({ behavior: 'smooth' });
         }
       });

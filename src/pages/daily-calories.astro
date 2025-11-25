@@ -71,6 +71,21 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
           <p class="text-gray-600 dark:text-gray-400" id="dateRange">Loading...</p>
         </div>
 
+        <!-- Calorie Calculator Button -->
+        <div class="mb-6">
+          <a
+            href="/calorie-calculator"
+            class="block bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl transition-all duration-200 group"
+          >
+            <div class="w-full bg-blue-600 text-white font-medium py-3 px-4 rounded-lg group-hover:bg-blue-700 transition-colors duration-300 text-center">
+              Calorie Calculator
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 text-center mt-3">
+              Calculate your daily calorie needs
+            </p>
+          </a>
+        </div>
+
       <!-- Daily Calorie Breakdown Chart -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Daily Calorie Breakdown</h2>
@@ -100,6 +115,28 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
               <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Fats</div>
               <div class="text-xs text-gray-500 dark:text-gray-500" id="fatsGrams">0g</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calorie Calculator Goals -->
+      <div id="calorieGoalsSection" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6 hidden">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Your Calorie Goals</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Weight Loss</h3>
+            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1" id="goal-weight-loss">-</p>
+            <p class="text-xs text-gray-600 dark:text-gray-400" id="goal-weight-loss-diff"></p>
+          </div>
+          <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+            <h3 class="text-sm font-medium text-green-800 dark:text-green-300 mb-2">Maintenance</h3>
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400 mb-1" id="goal-maintenance">-</p>
+            <p class="text-xs text-gray-600 dark:text-gray-400" id="goal-maintenance-diff"></p>
+          </div>
+          <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+            <h3 class="text-sm font-medium text-orange-800 dark:text-orange-300 mb-2">Weight Gain</h3>
+            <p class="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1" id="goal-weight-gain">-</p>
+            <p class="text-xs text-gray-600 dark:text-gray-400" id="goal-weight-gain-diff"></p>
           </div>
         </div>
       </div>
@@ -288,21 +325,38 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
       return entries;
     }
     
+    // Function to load calculator data from localStorage
+    function loadCalculatorData() {
+      try {
+        const savedData = localStorage.getItem('calorieCalculatorData');
+        if (savedData) {
+          return JSON.parse(savedData);
+        }
+      } catch (e) {
+        console.error('Error loading calculator data:', e);
+      }
+      return null;
+    }
+
     // Daily Calorie Dashboard
     class DailyCalorieDashboard {
       entries: any;
       chart: any;
       selectedDate: string | null;
+      calculatorData: any;
       
       constructor() {
         this.entries = {};
         this.chart = null;
         this.selectedDate = new URLSearchParams(window.location.search).get('date');
+        this.calculatorData = loadCalculatorData();
       }
 
       async init() {
         try {
           await waitForChart();
+          // Reload calculator data in case it was updated
+          this.calculatorData = loadCalculatorData();
           await this.loadData();
           console.log('Data loaded, rendering chart...');
           this.renderChart();
@@ -542,6 +596,87 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
             month: 'long', 
             day: 'numeric' 
           });
+        }
+
+        // Update calorie goals if calculator data exists
+        this.updateCalorieGoals(macroData.totalCalories);
+      }
+
+      updateCalorieGoals(currentCalories: number) {
+        if (!this.calculatorData) {
+          return;
+        }
+
+        const goalsSection = document.getElementById('calorieGoalsSection');
+        if (!goalsSection) {
+          return;
+        }
+
+        // Show the goals section
+        goalsSection.classList.remove('hidden');
+
+        const weightLoss = this.calculatorData.weightLoss || 0;
+        const maintenance = this.calculatorData.maintenance || 0;
+        const weightGain = this.calculatorData.weightGain || 0;
+
+        // Update weight loss goal
+        const weightLossEl = document.getElementById('goal-weight-loss');
+        const weightLossDiffEl = document.getElementById('goal-weight-loss-diff');
+        if (weightLossEl) {
+          weightLossEl.textContent = weightLoss.toString();
+        }
+        if (weightLossDiffEl) {
+          const diff = currentCalories - weightLoss;
+          if (diff > 0) {
+            weightLossDiffEl.textContent = `+${Math.round(diff)} over goal`;
+            weightLossDiffEl.className = 'text-xs text-red-600 dark:text-red-400';
+          } else if (diff < 0) {
+            weightLossDiffEl.textContent = `${Math.round(Math.abs(diff))} under goal`;
+            weightLossDiffEl.className = 'text-xs text-green-600 dark:text-green-400';
+          } else {
+            weightLossDiffEl.textContent = 'On target';
+            weightLossDiffEl.className = 'text-xs text-gray-600 dark:text-gray-400';
+          }
+        }
+
+        // Update maintenance goal
+        const maintenanceEl = document.getElementById('goal-maintenance');
+        const maintenanceDiffEl = document.getElementById('goal-maintenance-diff');
+        if (maintenanceEl) {
+          maintenanceEl.textContent = maintenance.toString();
+        }
+        if (maintenanceDiffEl) {
+          const diff = currentCalories - maintenance;
+          if (diff > 0) {
+            maintenanceDiffEl.textContent = `+${Math.round(diff)} over goal`;
+            maintenanceDiffEl.className = 'text-xs text-red-600 dark:text-red-400';
+          } else if (diff < 0) {
+            maintenanceDiffEl.textContent = `${Math.round(Math.abs(diff))} under goal`;
+            maintenanceDiffEl.className = 'text-xs text-green-600 dark:text-green-400';
+          } else {
+            maintenanceDiffEl.textContent = 'On target';
+            maintenanceDiffEl.className = 'text-xs text-gray-600 dark:text-gray-400';
+          }
+        }
+
+        // Update weight gain goal
+        const weightGainEl = document.getElementById('goal-weight-gain');
+        const weightGainDiffEl = document.getElementById('goal-weight-gain-diff');
+        if (weightGainEl) {
+          weightGainEl.textContent = weightGain.toString();
+        }
+        if (weightGainDiffEl) {
+          const diff = currentCalories - weightGain;
+          if (diff > 0) {
+            weightGainDiffEl.textContent = `+${Math.round(diff)} over goal`;
+            weightGainDiffEl.className = 'text-xs text-green-600 dark:text-green-400';
+          } else if (diff < 0) {
+            weightGainDiffEl.textContent = `${Math.round(Math.abs(diff))} under goal`;
+            weightGainDiffEl.className = 'text-xs text-red-600 dark:text-red-400';
+          } else {
+            weightGainDiffEl.textContent = 'On target';
+            weightGainDiffEl.className = 'text-xs text-gray-600 dark:text-gray-400';
+          }
         }
       }
     }
