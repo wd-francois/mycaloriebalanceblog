@@ -8,7 +8,14 @@ const currentUrl = Astro.url.pathname;
 
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg">
   <div class="max-w-7xl mx-auto px-4">
-    <div class="flex justify-end items-center py-2 gap-2">
+    <div class="flex justify-between items-center py-2 gap-2">
+      <!-- Heading - Show only on home page -->
+      {currentUrl === '/' && (
+        <h1 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate flex-1 min-w-0">
+          My Calorie Balance Diary
+        </h1>
+      )}
+      <div class="flex justify-end items-center gap-2">
       <!-- Statistics - Hide on main calendar page -->
       {currentUrl !== '/' && (
         <a 
@@ -76,6 +83,7 @@ const currentUrl = Astro.url.pathname;
         </svg>
         <span class={`text-xs font-medium ${currentUrl === '/settings/' ? 'text-blue-600 dark:text-blue-400' : ''}`}>Settings</span>
       </a>
+      </div>
     </div>
   </div>
 </nav>

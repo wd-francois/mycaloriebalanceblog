@@ -28,6 +28,7 @@ export default defineConfig({
         '@styles': path.resolve('./src/styles'),
         '@assets': path.resolve('./src/assets'),
       },
+      dedupe: ['react', 'react-dom'],
     },
     plugins: [],
     server: {

@@ -11,7 +11,9 @@ import DateTimeSelector from '../components/DateTimeSelector.jsx';
   showTopNav={true}
   wideContent={true}
 >
-  <main class="w-full pb-0 flex items-center justify-center min-h-[calc(100vh-160px)]">
-        <DateTimeSelector client:load />
-  </main>
+  <div class="w-full flex flex-col items-center justify-center" style="min-height: calc(100vh - 160px); height: calc(100vh - 160px);">
+    <div class="w-full max-w-sm mx-auto px-4 flex items-center justify-center" style="height: 100%;">
+      <DateTimeSelector client:load />
+    </div>
+  </div>
 </Layout>

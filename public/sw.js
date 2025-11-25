@@ -1,4 +1,4 @@
-// Service Worker for My Calorie Balance Blog
+// Service Worker for My Calorie Balance
 const CACHE_NAME = 'calorie-balance-v5';
 const urlsToCache = [
   '/',

@@ -13,29 +13,42 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
   showBottomNav={true}
   showFooter={false}
   showHeader={false}
+  showTopNav={false}
 >
-  <main class="w-full py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-    <!-- Header Section -->
-    <section class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 mb-8 sm:mb-16">
-      <div class="text-center mb-8 relative">
-        <div class="absolute top-0 right-0">
-          <a
-            href="/"
-            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-            title="Close"
-          >
-            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </a>
+  <main class="w-full bg-gray-50 flex flex-col min-h-screen">
+    <!-- Top Navigation Header -->
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <div class="max-w-6xl mx-auto px-4 py-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <a
+              href="/"
+              class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Back to Calendar"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </a>
+            <div class="text-lg font-bold text-gray-900 truncate pr-2">
+              Meal Library
+            </div>
+          </div>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Meal Library</h1>
-        <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Create and manage your personal database of meals. Add custom items, 
-          set nutrition information, and organize your meals for faster logging.
-        </p>
       </div>
-    </section>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <!-- Header Section -->
+      <section class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 mb-8 sm:mb-16">
+        <div class="text-center mb-8">
+          <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Create and manage your personal database of meals. Add custom items, 
+            set nutrition information, and organize your meals for faster logging.
+          </p>
+        </div>
+      </section>
 
     <!-- Library Section -->
     <section class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 mb-8 sm:mb-16">

@@ -25,10 +25,36 @@ import { siteConfig } from '@config/site';
   description="Learn about our food diary app designed to make tracking your meals simple, fast, and meaningful."
   showBottomNav={true}
   wideContent={true}
+  showTopNav={false}
+  showFooter={false}
 >
-  <main class="w-full py-6 sm:py-10 lg:py-12">
-    <!-- Frequent Questions -->
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 sm:mb-16 lg:mb-20">
+  <main class="w-full bg-gray-50 flex flex-col min-h-screen">
+    <!-- Top Navigation Header -->
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <div class="max-w-6xl mx-auto px-4 py-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <a
+              href="/"
+              class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Back to Calendar"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </a>
+            <div class="text-lg font-bold text-gray-900 truncate pr-2">
+              About
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 py-6 sm:py-10 lg:py-12">
+      <!-- Frequent Questions -->
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 sm:mb-16 lg:mb-20">
       <div class="max-w-3xl mx-auto">
         <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Frequent Questions</h2>
           <div class="divide-y divide-gray-200 dark:divide-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
