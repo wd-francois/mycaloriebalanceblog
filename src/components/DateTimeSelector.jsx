@@ -621,13 +621,45 @@ const DateTimeSelector = () => {
     const today = new Date();
     // Normalize to midnight to ensure consistent matching
     const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayTime = normalizedToday.getTime();
+    
+    // Try multiple date key formats to find entries
     const todayKey = normalizedToday.toDateString();
-    const todayEntriesList = entries[todayKey] || [];
+    const todayISO = normalizedToday.toISOString().split('T')[0];
+    
+    // Try exact match first
+    let todayEntriesList = entries[todayKey] || [];
+    
+    // If no exact match, try ISO format
+    if (todayEntriesList.length === 0) {
+      todayEntriesList = entries[todayISO] || [];
+    }
+    
+    // If still no match, iterate through all entries and find matches by comparing dates
+    if (todayEntriesList.length === 0 && Object.keys(entries).length > 0) {
+      const allTodayEntries = [];
+      Object.keys(entries).forEach(dateKey => {
+        const entriesForDate = entries[dateKey] || [];
+        entriesForDate.forEach(entry => {
+          if (entry.date) {
+            let entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
+            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+            if (entryDate.getTime() === todayTime) {
+              allTodayEntries.push(entry);
+            }
+          }
+        });
+      });
+      todayEntriesList = allTodayEntries;
+    }
+    
     console.log('Today entries lookup:', {
       today: normalizedToday.toISOString(),
       todayKey,
+      todayISO,
       foundEntries: todayEntriesList.length,
-      availableKeys: Object.keys(entries)
+      availableKeys: Object.keys(entries),
+      firstFewKeys: Object.keys(entries).slice(0, 5)
     });
     return todayEntriesList;
   }, [entries]);
@@ -1782,31 +1814,29 @@ const DateTimeSelector = () => {
             </div>
             
             {/* Today's Summary Card */}
-            {todayEntries.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Today's Summary</h3>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="text-center p-3 bg-blue-50 rounded-xl">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {todayEntries.filter(e => e.type === 'meal').length}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">Meals</div>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Today's Summary</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center p-3 bg-blue-50 rounded-xl">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {todayEntries.filter(e => e.type === 'meal').length}
                   </div>
-                  <div className="text-center p-3 bg-purple-50 rounded-xl">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {todaySleepDuration || '—'}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">Sleep</div>
+                  <div className="text-xs text-gray-600 mt-1">Meals</div>
+                </div>
+                <div className="text-center p-3 bg-purple-50 rounded-xl">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {todaySleepDuration || '—'}
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-xl">
-                    <div className="text-2xl font-bold text-green-600">
-                      {todayEntries.filter(e => e.type === 'measurements').length}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">Measured</div>
+                  <div className="text-xs text-gray-600 mt-1">Sleep</div>
+                </div>
+                <div className="text-center p-3 bg-green-50 rounded-xl">
+                  <div className="text-2xl font-bold text-green-600">
+                    {todayEntries.filter(e => e.type === 'measurements').length}
                   </div>
+                  <div className="text-xs text-gray-600 mt-1">Measured</div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
