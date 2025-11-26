@@ -279,7 +279,7 @@ const {
     {showTopNav && <TopNavigation />}
     
     <!-- Main content area with conditional width -->
-    <main class="flex-grow w-full">
+    <main class="flex-grow w-full overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
       <div class={wideContent ? "w-full" : "max-w-5xl mx-auto px-4 sm:px-6"}>
         <slot />
       </div>

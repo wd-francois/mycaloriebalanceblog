@@ -7,20 +7,20 @@ const currentUrl = Astro.url.pathname;
 ---
 
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-  <div class="max-w-7xl mx-auto px-4">
-    <div class="flex justify-between items-center py-3 gap-3">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4">
+    <div class="flex justify-between items-center py-2.5 sm:py-3 gap-2 sm:gap-3">
       <!-- Heading - Show only on home page -->
       {currentUrl === '/' && (
-        <h1 class="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate flex-1 min-w-0">
+        <h1 class="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex-1 min-w-0 pr-2">
           My Calorie Balance Diary
         </h1>
       )}
-      <div class="flex justify-end items-center gap-2">
+      <div class="flex justify-end items-center gap-1.5 sm:gap-2 flex-shrink-0">
       <!-- Statistics - Hide on main calendar page -->
       {currentUrl !== '/' && (
         <a 
           href="/statistics/" 
-          class={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-all duration-200 rounded-lg border ${
+          class={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-1.5 text-xs sm:text-sm font-medium transition-all duration-200 rounded-lg border ${
             currentUrl === '/statistics/' 
               ? 'text-blue-600 bg-blue-50 border-blue-100 shadow-md' 
               : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50 border-blue-100 hover:shadow-md'
@@ -40,7 +40,7 @@ const currentUrl = Astro.url.pathname;
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" 
             />
           </svg>
-          <span>Stats</span>
+          <span class="hidden sm:inline">Stats</span>
         </a>
       )}
 
@@ -73,7 +73,7 @@ const currentUrl = Astro.url.pathname;
             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
           />
         </svg>
-        <span>Settings</span>
+        <span>My Settings</span>
       </a>
       </div>
     </div>

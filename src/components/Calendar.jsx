@@ -96,45 +96,45 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   });
 
   return (
-    <div className="p-3 sm:p-6 text-gray-900 w-full max-w-md">
+    <div className="p-2 sm:p-3 md:p-6 text-gray-900 w-full max-w-md">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
         <button 
           onClick={goPrevMonth} 
-          className="p-2 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
+          className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
           aria-label="Previous month"
         >
-          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h2 className="text-lg sm:text-xl font-bold text-gray-900 text-center px-2">{monthLabel}</h2>
+        <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 text-center px-1 sm:px-2">{monthLabel}</h2>
         <button 
           onClick={goNextMonth} 
-          className="p-2 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
+          className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
           aria-label="Next month"
         >
-          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
       </div>
 
       {/* Weekday labels */}
-      <div className="grid grid-cols-7 gap-1 text-center text-xs sm:text-sm font-semibold text-gray-600 mb-2 sm:mb-3">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-[10px] sm:text-xs md:text-sm font-semibold text-gray-600 mb-1.5 sm:mb-2 md:mb-3">
         {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="py-1 sm:py-2 px-1">{label}</div>
+          <div key={label} className="py-0.5 sm:py-1 md:py-2 px-0.5 sm:px-1">{label}</div>
         ))}
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {monthMatrix.map((week) =>
           week.map((cell) => {
             const isSelected = cell.key === selectedKey;
             const isTodayDate = isToday(cell.date);
             
-            const baseClasses = 'py-2 sm:py-3 px-1 rounded-lg cursor-pointer select-none transition-all duration-200 relative touch-manipulation min-h-[32px] sm:min-h-[36px] flex items-center justify-center';
+            const baseClasses = 'py-1.5 sm:py-2 md:py-3 px-0.5 sm:px-1 rounded-lg cursor-pointer select-none transition-all duration-200 relative touch-manipulation min-h-[28px] sm:min-h-[32px] md:min-h-[36px] flex items-center justify-center';
             let stateClasses = '';
             
             if (isSelected) {
@@ -181,12 +181,12 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                   }
                 }}
               >
-                <div className="flex flex-col items-center justify-center min-h-[2.5rem] gap-1">
-                  <span className={`font-medium ${isTodayDate && !isSelected ? 'text-blue-700' : ''}`}>
+                <div className="flex flex-col items-center justify-center min-h-[1.75rem] sm:min-h-[2rem] md:min-h-[2.5rem] gap-0.5 sm:gap-1">
+                  <span className={`text-sm sm:text-base font-medium ${isTodayDate && !isSelected ? 'text-blue-700' : ''}`}>
                     {cell.dayNumber}
                   </span>
                   {hasEntries && (
-                    <div className={`w-1.5 h-1.5 rounded-full ${
+                    <div className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${
                       isSelected 
                         ? 'bg-white' 
                         : isTodayDate 

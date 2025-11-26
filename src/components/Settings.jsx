@@ -190,6 +190,7 @@ Please format your response clearly so I can easily update my meal entry.`,
     <>
       <style dangerouslySetInnerHTML={{ __html: radioStyles }} />
       <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">App Settings</h4>
 
       <div className="space-y-8">
         {settingGroups.map((group, groupIndex) => (
@@ -197,59 +198,77 @@ Please format your response clearly so I can easily update my meal entry.`,
             <h4 className="text-lg font-medium text-gray-900 mb-4">{group.title}</h4>
             <div className="space-y-4">
               {group.settings.map((setting) => (
-                <div key={setting.key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700">
-                      {setting.label}
-                    </label>
-                    <p className="text-sm text-gray-500">{setting.description}</p>
-                  </div>
-                  <div className="sm:ml-4 flex justify-end sm:justify-start">
-                    {setting.type === 'toggle' ? (
-                      /* Toggle Switch */
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settings[setting.key]}
-                          onChange={(e) => updateSetting(setting.key, e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="responsive-toggle bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:transition-all peer-checked:bg-blue-600"></div>
+                <div key={setting.key}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700">
+                        {setting.label}
                       </label>
-                    ) : (
-                      <>
-                        {/* Mobile: Checkboxes */}
-                        <div className="flex flex-wrap gap-2 sm:hidden">
-                          {unitOptions[setting.key].map((option) => (
-                            <label key={option.value} className="flex items-center gap-1 text-sm">
-                              <input
-                                type="radio"
-                                name={setting.key}
-                                value={option.value}
-                                checked={settings[setting.key] === option.value}
-                                onChange={(e) => updateSetting(setting.key, e.target.value)}
-                                className="responsive-radio text-blue-600 border-gray-300 focus:ring-blue-500"
-                              />
-                              <span className="text-xs">{option.label}</span>
-                            </label>
-                          ))}
-                        </div>
-                        
-                        {/* Desktop: Select dropdown */}
-                        <select
-                          value={settings[setting.key]}
-                          onChange={(e) => updateSetting(setting.key, e.target.value)}
-                          className="hidden sm:block px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm"
-                        >
-                          {unitOptions[setting.key].map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </>
-                    )}
+                      <p className="text-sm text-gray-500">{setting.description}</p>
+                    </div>
+                    <div className="sm:ml-4 flex justify-end sm:justify-start">
+                      {setting.type === 'toggle' ? (
+                        /* Toggle Switch */
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settings[setting.key]}
+                            onChange={(e) => updateSetting(setting.key, e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="responsive-toggle bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                      ) : (
+                        <>
+                          {/* Mobile: Checkboxes */}
+                          <div className="flex flex-wrap gap-2 sm:hidden">
+                            {unitOptions[setting.key].map((option) => (
+                              <label key={option.value} className="flex items-center gap-1 text-sm">
+                                <input
+                                  type="radio"
+                                  name={setting.key}
+                                  value={option.value}
+                                  checked={settings[setting.key] === option.value}
+                                  onChange={(e) => updateSetting(setting.key, e.target.value)}
+                                  className="responsive-radio text-blue-600 border-gray-300 focus:ring-blue-500"
+                                />
+                                <span className="text-xs">{option.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                          
+                          {/* Desktop: Select dropdown */}
+                          <select
+                            value={settings[setting.key]}
+                            onChange={(e) => updateSetting(setting.key, e.target.value)}
+                            className="hidden sm:block px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm"
+                          >
+                            {unitOptions[setting.key].map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </>
+                      )}
+                    </div>
                   </div>
+                  {/* Custom URL Input - Show directly below AI Service */}
+                  {setting.key === 'aiService' && settings.aiService === 'custom' && (
+                    <div className="mt-4 ml-0 sm:ml-0">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Custom AI Service URL
+                      </label>
+                      <p className="text-sm text-gray-500 mb-3">Enter the base URL for your custom AI service. The prompt will be appended as a query parameter.</p>
+                      <input
+                        type="url"
+                        value={settings.aiCustomUrl}
+                        onChange={(e) => updateSetting('aiCustomUrl', e.target.value)}
+                        placeholder="https://your-ai-service.com/?q="
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -261,23 +280,6 @@ Please format your response clearly so I can easily update my meal entry.`,
       <div className="border-b border-gray-200 pb-6">
         <h4 className="text-lg font-medium text-gray-900 mb-4">Custom AI Settings</h4>
         
-        {/* Custom URL Input */}
-        {settings.aiService === 'custom' && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Custom AI Service URL
-            </label>
-            <p className="text-sm text-gray-500 mb-3">Enter the base URL for your custom AI service. The prompt will be appended as a query parameter.</p>
-            <input
-              type="url"
-              value={settings.aiCustomUrl}
-              onChange={(e) => updateSetting('aiCustomUrl', e.target.value)}
-              placeholder="https://your-ai-service.com/?q="
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        )}
-
         {/* Custom Prompt Template Editor */}
         {settings.aiRequestFormat === 'custom' && (
           <div className="mb-6">
