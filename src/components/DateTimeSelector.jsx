@@ -274,15 +274,15 @@ const DateTimeSelector = () => {
     
     // If we have a date and add parameter, open the modal (only if modal is not already open)
     if (dateParam && addParam === 'true' && selectedDate) {
-      // Use setTimeout to avoid conflicts with other state updates
-      const timer = setTimeout(() => {
+      // Use requestAnimationFrame to open immediately on next frame, avoiding calendar flash
+      const frameId = requestAnimationFrame(() => {
         // Double-check URL params haven't changed (user might have clicked back)
         const currentParams = new URLSearchParams(window.location.search);
         if (currentParams.get('add') === 'true') {
           setShowModal(true);
         }
-      }, 100);
-      return () => clearTimeout(timer);
+      });
+      return () => cancelAnimationFrame(frameId);
     }
   }, [isDBInitialized, selectedDate, showModal]);
 

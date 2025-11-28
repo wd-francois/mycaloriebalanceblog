@@ -584,6 +584,24 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
               />
+              
+              {/* Make A New Entry Button */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <a
+                  href={`/?date=${dateStr}&add=true`}
+                  onClick={(e) => {
+                    // Use replace for faster navigation without adding to history
+                    e.preventDefault();
+                    window.location.replace(`/?date=${dateStr}&add=true`);
+                  }}
+                  className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-95"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add a New Entry
+                </a>
+              </div>
               </>
             ) : (
               !loading && entriesLoaded && filteredDateEntries.length === 0 ? (
@@ -592,16 +610,21 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                   <h3 className="mt-2 text-sm font-medium text-gray-900">No entries for this date</h3>
-                  <p className="mt-1 text-sm text-gray-500">Add your first entry from the calendar page</p>
+                  <p className="mt-1 text-sm text-gray-500">Add your first entry to get started</p>
                   <div className="mt-6">
                     <a
-                      href="/"
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
+                      href={`/?date=${dateStr}&add=true`}
+                      onClick={(e) => {
+                        // Use replace for faster navigation without adding to history
+                        e.preventDefault();
+                        window.location.replace(`/?date=${dateStr}&add=true`);
+                      }}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
-                      Go to Calendar
+                      Add a New Entry
                     </a>
                   </div>
                 </div>
