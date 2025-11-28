@@ -534,8 +534,10 @@ const DailyEntriesContent = ({ date: dateParam }) => {
             {/* Show entries if filtered entries exist */}
             {filteredDateEntries.length > 0 ? (
               <>
-                {/* Action Buttons */}
-                <div className="flex items-center justify-end gap-3 mb-6 pb-6 border-b border-gray-200">
+                {/* Heading and Action Buttons */}
+                <div className="flex items-center justify-between gap-3 mb-6 pb-6 border-b border-gray-200">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Today's Entries</h2>
+                  <div className="flex items-center gap-2 md:gap-3">
                   <a
                     href={`/daily-calories?date=${dateStr}`}
                     className="flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
@@ -567,6 +569,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                     </svg>
                     <span className="whitespace-nowrap">Export</span>
                   </button>
+                  </div>
                 </div>
                 <GroupedEntries
                   key={`${dateStr}-${filteredDateEntries.length}`}
