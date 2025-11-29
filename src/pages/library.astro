@@ -15,29 +15,29 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
   showHeader={false}
   showTopNav={false}
 >
-  <main class="w-full bg-gray-50 flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+  <main class="library-page w-full bg-gray-50 dark:bg-gray-900 flex flex-col min-h-screen overflow-y-auto text-gray-900 dark:text-gray-100" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
     <!-- Top Navigation Header -->
-    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+    <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-10">
       <div class="max-w-6xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-3">
             <a
               href="/"
-              class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              class="flex items-center justify-center p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               title="Back to Calendar"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </a>
-            <div class="text-lg font-bold text-gray-900 truncate pr-2">
+            <div class="text-lg font-bold text-gray-900 dark:text-white truncate pr-2">
               Meal Library
             </div>
           </div>
           <div class="flex items-center gap-2">
             <a
               href="/settings/"
-              class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-blue-100 hover:shadow-md"
+              class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200 border border-blue-100 dark:border-blue-900/50 hover:shadow-md"
               title="Open settings"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,11 +52,11 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
     </div>
 
     <!-- Content -->
-    <div class="flex-1 py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div class="flex-1 py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:bg-gray-900">
       <!-- Header Section -->
       <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-16">
         <div class="text-center mb-8">
-          <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Create and manage your personal database of meals. Add custom items, 
             set nutrition information, and organize your meals for faster logging.
           </p>
@@ -65,7 +65,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
 
     <!-- Library Section -->
     <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-16">
-      <div class="bg-white rounded-2xl shadow-xl shadow-gray-100/50 p-4 sm:p-6 lg:p-8">
+      <div class="library-card bg-white dark:bg-gray-900 rounded-2xl shadow-xl shadow-gray-100/50 dark:shadow-black/40 p-4 sm:p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
         <LibraryManager client:load />
       </div>
     </section>
@@ -74,16 +74,16 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
     <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-16">
       <div class="grid grid-cols-1 gap-6">
         <!-- Meal Library Features -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg shadow-gray-100/50 dark:shadow-black/40 p-6 border border-gray-100 dark:border-gray-700">
           <div class="flex items-center mb-4">
-            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center mr-3">
+              <svg class="w-5 h-5 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900">Meal Library</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Meal Library</h3>
           </div>
-          <ul class="text-sm text-gray-600 space-y-2">
+          <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
             <li>• Add custom meals with nutrition data</li>
             <li>• Set calories, protein, carbs, and fats</li>
             <li>• Organize by categories (Fruit, Protein, etc.)</li>
@@ -101,4 +101,45 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
   <!-- PWA Components -->
   <PWAInstallPrompt client:load />
   <OfflineIndicator client:load />
+  
+  <style>
+    /* Hard override to guarantee contrast in dark mode on library page */
+    .dark .library-page {
+      background: #020617;
+      color: #e5e7eb;
+    }
+    .dark .library-page .library-card {
+      background: #020617;
+      color: #e5e7eb;
+    }
+    .dark .library-page a {
+      color: #93c5fd;
+    }
+    /* Force meal card backgrounds to be very dark in dark mode - target all instances */
+    .dark .meal-card-item,
+    .dark .library-card .meal-card-item,
+    .dark .library-page .meal-card-item,
+    .dark [class*="meal-card-item"] {
+      background-color: #030712 !important; /* gray-950 - very dark */
+      background: #030712 !important; /* double override */
+      border-color: #1e3a8a !important; /* blue-900 for border */
+    }
+    /* Override bg-blue-50 and bg-green-50 classes specifically in dark mode */
+    .dark .meal-card-item.bg-blue-50,
+    .dark .meal-card-item.bg-green-50 {
+      background-color: #030712 !important;
+      background: #030712 !important;
+    }
+    /* Also target by the grid structure */
+    .dark .library-card .grid > div {
+      background-color: #030712 !important;
+      background: #030712 !important;
+    }
+    /* Nuclear option - target any div with rounded-lg and border inside library-card in dark mode */
+    .dark .library-card div[class*="rounded-lg"][class*="border"] {
+      background-color: #030712 !important;
+      background: #030712 !important;
+    }
+    /* Keep text colors as they are (white/light) - don't override */
+  </style>
 </Layout>

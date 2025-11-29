@@ -383,8 +383,10 @@ body {
 
 /* Apply Tailwind utility classes based on our CSS variables */
 .bg-white { background-color: var(--color-bg-base); }
+.bg-gray-50 { background-color: var(--color-bg-muted); }
 .dark .bg-gray-900 { background-color: var(--color-bg-base); }
 .text-gray-900 { color: var(--color-text-base); }
+.text-gray-600 { color: var(--color-text-muted); }
 .dark .text-white { color: var(--color-text-base); }
 .text-gray-500 { color: var(--color-text-muted); }
 .dark .text-gray-400 { color: var(--color-text-muted); }
@@ -402,4 +404,20 @@ body {
     background-color: var(--background);
     color: var(--foreground);
   }
+}
+
+/* Force meal card backgrounds to be very dark in dark mode */
+.dark .meal-card-item {
+  background-color: #030712 !important;
+  background: #030712 !important;
+  border-color: #1e3a8a !important;
+}
+.dark .meal-card-item.bg-blue-50,
+.dark .meal-card-item.bg-green-50 {
+  background-color: #030712 !important;
+  background: #030712 !important;
+}
+.dark .library-card div[class*="rounded-lg"][class*="border"][class*="p-4"] {
+  background-color: #030712 !important;
+  background: #030712 !important;
 }

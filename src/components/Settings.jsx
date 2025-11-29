@@ -186,25 +186,111 @@ Please format your response clearly so I can easily update my meal entry.`,
     }
   ];
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Check theme on mount and when it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    checkTheme();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  // Dark mode toggle handler
+  const handleThemeToggle = () => {
+    if (typeof window === 'undefined') return;
+    
+    const isDark = document.documentElement.classList.contains('dark');
+    if (isDark) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDarkMode(true);
+    }
+  };
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: radioStyles }} />
-      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">App Settings</h4>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto">
+        <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">App Settings</h4>
+
+        {/* Dark Mode Toggle */}
+        <div className="mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Dark Mode
+              </label>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
+            </div>
+            <button
+              onClick={handleThemeToggle}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 text-gray-700 dark:text-gray-300"
+            >
+              {/* Moon icon (light mode) */}
+              <svg
+                className={`w-5 h-5 ${!isDarkMode ? 'text-gray-700' : 'hidden'}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+              {/* Sun icon (dark mode) */}
+              <svg
+                className={`w-5 h-5 text-amber-500 ${isDarkMode ? '' : 'hidden'}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <span className="text-sm font-medium">
+                {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+              </span>
+            </button>
+          </div>
+        </div>
 
       <div className="space-y-8">
         {settingGroups.map((group, groupIndex) => (
-          <div key={groupIndex} className="border-b border-gray-200 pb-6 last:border-b-0">
-            <h4 className="text-lg font-medium text-gray-900 mb-4">{group.title}</h4>
+          <div key={groupIndex} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{group.title}</h4>
             <div className="space-y-4">
               {group.settings.map((setting) => (
                 <div key={setting.key}>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         {setting.label}
                       </label>
-                      <p className="text-sm text-gray-500">{setting.description}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{setting.description}</p>
                     </div>
                     <div className="sm:ml-4 flex justify-end sm:justify-start">
                       {setting.type === 'toggle' ? (

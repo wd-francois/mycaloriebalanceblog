@@ -294,19 +294,19 @@ const LibraryManager = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Loading library...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+        <span className="ml-2 text-gray-600 dark:text-gray-300">Loading library...</span>
       </div>
     );
   }
 
   // Don't render on server side
   if (!isClient) {
-    return <div>Loading...</div>;
+    return <div className="text-gray-900 dark:text-gray-100">Loading...</div>;
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full text-gray-900 dark:text-gray-100">
       {/* Tabs */}
       <div className="mb-6">
         <div className="border-b border-gray-200 dark:border-gray-700">
@@ -351,10 +351,10 @@ const LibraryManager = () => {
         {currentItems.map((item) => (
           <div
             key={item.id}
-            className={`p-4 rounded-lg border ${
+            className={`meal-card-item p-4 rounded-lg border ${
               activeTab === 'exercises'
-                ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700'
-                : 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700'
+                ? 'bg-green-50 border-green-200 dark:bg-gray-950 dark:border-green-700'
+                : 'bg-blue-50 border-blue-200 dark:bg-gray-950 dark:border-blue-700'
             }`}
           >
             <div className="flex justify-between items-center">
