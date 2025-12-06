@@ -230,9 +230,20 @@ class HealthDatabase {
 
   // User Entries Methods
   async saveUserEntry(entry) {
-    const transaction = this.db.transaction(['userEntries'], 'readwrite');
-    const store = transaction.objectStore('userEntries');
-    return store.put(entry);
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['userEntries'], 'readwrite');
+      const store = transaction.objectStore('userEntries');
+      
+      // Ensure entry has proper date format for indexing
+      const entryToSave = {
+        ...entry,
+        date: entry.date instanceof Date ? entry.date.toISOString() : entry.date
+      };
+      
+      const request = store.put(entryToSave);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
   }
 
   async getUserEntries(date) {
@@ -259,9 +270,14 @@ class HealthDatabase {
   }
 
   async deleteUserEntry(id) {
-    const transaction = this.db.transaction(['userEntries'], 'readwrite');
-    const store = transaction.objectStore('userEntries');
-    return store.delete(id);
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['userEntries'], 'readwrite');
+      const store = transaction.objectStore('userEntries');
+      
+      const request = store.delete(id);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
   }
 
   async removePhotoFromUserEntry(entryId) {

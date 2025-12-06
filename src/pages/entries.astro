@@ -16,6 +16,6 @@ const date = dateParam || new Date().toISOString().split('T')[0];
   showTopNav={false}
   showFooter={false}
 >
-  <DailyEntries client:load date={date} key={date} />
+  <DailyEntries client:load date={date} />
 </Layout>
 

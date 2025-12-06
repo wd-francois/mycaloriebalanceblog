@@ -77,13 +77,15 @@ Please format your response clearly so I can easily update my meal entry.`,
     aiRequestFormat: 'detailed',
     aiLanguage: 'english'
   });
-  
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   useEffect(() => {
     // Ensure we're on the client side before doing anything
     if (typeof window === 'undefined') return;
-    
+
     setIsClient(true);
-    
+
     // Load settings from localStorage on mount
     const savedSettings = localStorage.getItem('healthTrackerSettings');
     if (savedSettings) {
@@ -96,18 +98,54 @@ Please format your response clearly so I can easily update my meal entry.`,
     }
   }, []);
 
+  // Check theme on mount and when it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    checkTheme();
+
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   const updateSetting = (key, value) => {
     // Only update if we're on the client side
     if (typeof window === 'undefined') return;
-    
+
     setSettings(prev => {
       const newSettings = { ...prev, [key]: value };
-      
+
       // Save to localStorage
       localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
-      
+
       return newSettings;
     });
+  };
+
+  // Dark mode toggle handler
+  const handleThemeToggle = () => {
+    if (typeof window === 'undefined') return;
+
+    const isDark = document.documentElement.classList.contains('dark');
+    if (isDark) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDarkMode(true);
+    }
   };
 
   // Show loading state if not on client side yet
@@ -186,44 +224,6 @@ Please format your response clearly so I can easily update my meal entry.`,
     }
   ];
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  // Check theme on mount and when it changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const checkTheme = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
-    };
-    
-    checkTheme();
-    
-    // Watch for theme changes
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-    
-    return () => observer.disconnect();
-  }, []);
-
-  // Dark mode toggle handler
-  const handleThemeToggle = () => {
-    if (typeof window === 'undefined') return;
-    
-    const isDark = document.documentElement.classList.contains('dark');
-    if (isDark) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-      setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-      setIsDarkMode(true);
-    }
-  };
-
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: radioStyles }} />
@@ -278,149 +278,149 @@ Please format your response clearly so I can easily update my meal entry.`,
           </div>
         </div>
 
-      <div className="space-y-8">
-        {settingGroups.map((group, groupIndex) => (
-          <div key={groupIndex} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
-            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{group.title}</h4>
-            <div className="space-y-4">
-              {group.settings.map((setting) => (
-                <div key={setting.key}>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {setting.label}
-                      </label>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{setting.description}</p>
-                    </div>
-                    <div className="sm:ml-4 flex justify-end sm:justify-start">
-                      {setting.type === 'toggle' ? (
-                        /* Toggle Switch */
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={settings[setting.key]}
-                            onChange={(e) => updateSetting(setting.key, e.target.checked)}
-                            className="sr-only peer"
-                          />
-                          <div className="responsive-toggle bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:transition-all peer-checked:bg-blue-600"></div>
+        <div className="space-y-8">
+          {settingGroups.map((group, groupIndex) => (
+            <div key={groupIndex} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
+              <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{group.title}</h4>
+              <div className="space-y-4">
+                {group.settings.map((setting) => (
+                  <div key={setting.key}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {setting.label}
                         </label>
-                      ) : (
-                        <>
-                          {/* Mobile: Checkboxes */}
-                          <div className="flex flex-wrap gap-2 sm:hidden">
-                            {unitOptions[setting.key].map((option) => (
-                              <label key={option.value} className="flex items-center gap-1 text-sm">
-                                <input
-                                  type="radio"
-                                  name={setting.key}
-                                  value={option.value}
-                                  checked={settings[setting.key] === option.value}
-                                  onChange={(e) => updateSetting(setting.key, e.target.value)}
-                                  className="responsive-radio text-blue-600 border-gray-300 focus:ring-blue-500"
-                                />
-                                <span className="text-xs">{option.label}</span>
-                              </label>
-                            ))}
-                          </div>
-                          
-                          {/* Desktop: Select dropdown */}
-                          <select
-                            value={settings[setting.key]}
-                            onChange={(e) => updateSetting(setting.key, e.target.value)}
-                            className="hidden sm:block px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm"
-                          >
-                            {unitOptions[setting.key].map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </>
-                      )}
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{setting.description}</p>
+                      </div>
+                      <div className="sm:ml-4 flex justify-end sm:justify-start">
+                        {setting.type === 'toggle' ? (
+                          /* Toggle Switch */
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={settings[setting.key]}
+                              onChange={(e) => updateSetting(setting.key, e.target.checked)}
+                              className="sr-only peer"
+                            />
+                            <div className="responsive-toggle bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:transition-all peer-checked:bg-blue-600"></div>
+                          </label>
+                        ) : (
+                          <>
+                            {/* Mobile: Checkboxes */}
+                            <div className="flex flex-wrap gap-2 sm:hidden">
+                              {unitOptions[setting.key].map((option) => (
+                                <label key={option.value} className="flex items-center gap-1 text-sm">
+                                  <input
+                                    type="radio"
+                                    name={setting.key}
+                                    value={option.value}
+                                    checked={settings[setting.key] === option.value}
+                                    onChange={(e) => updateSetting(setting.key, e.target.value)}
+                                    className="responsive-radio text-blue-600 border-gray-300 focus:ring-blue-500"
+                                  />
+                                  <span className="text-xs">{option.label}</span>
+                                </label>
+                              ))}
+                            </div>
+
+                            {/* Desktop: Select dropdown */}
+                            <select
+                              value={settings[setting.key]}
+                              onChange={(e) => updateSetting(setting.key, e.target.value)}
+                              className="hidden sm:block px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm"
+                            >
+                              {unitOptions[setting.key].map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </>
+                        )}
+                      </div>
                     </div>
+                    {/* Custom URL Input - Show directly below AI Service */}
+                    {setting.key === 'aiService' && settings.aiService === 'custom' && (
+                      <div className="mt-4 ml-0 sm:ml-0">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Custom AI Service URL
+                        </label>
+                        <p className="text-sm text-gray-500 mb-3">Enter the base URL for your custom AI service. The prompt will be appended as a query parameter.</p>
+                        <input
+                          type="url"
+                          value={settings.aiCustomUrl}
+                          onChange={(e) => updateSetting('aiCustomUrl', e.target.value)}
+                          placeholder="https://your-ai-service.com/?q="
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
                   </div>
-                  {/* Custom URL Input - Show directly below AI Service */}
-                  {setting.key === 'aiService' && settings.aiService === 'custom' && (
-                    <div className="mt-4 ml-0 sm:ml-0">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Custom AI Service URL
-                      </label>
-                      <p className="text-sm text-gray-500 mb-3">Enter the base URL for your custom AI service. The prompt will be appended as a query parameter.</p>
-                      <input
-                        type="url"
-                        value={settings.aiCustomUrl}
-                        onChange={(e) => updateSetting('aiCustomUrl', e.target.value)}
-                        placeholder="https://your-ai-service.com/?q="
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Custom AI Settings */}
-      <div className="border-b border-gray-200 pb-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Custom AI Settings</h4>
-        
-        {/* Custom Prompt Template Editor */}
-        {settings.aiRequestFormat === 'custom' && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Custom Prompt Template
-            </label>
-            <p className="text-sm text-gray-500 mb-3">
-              Use placeholders: {'{mealName}'}, {'{amount}'}, {'{calories}'}, {'{protein}'}, {'{carbs}'}, {'{fats}'}
-            </p>
-            <textarea
-              value={settings.aiPromptTemplate}
-              onChange={(e) => updateSetting('aiPromptTemplate', e.target.value)}
-              rows={8}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-              placeholder="Enter your custom prompt template..."
-            />
-          </div>
-        )}
+        {/* Custom AI Settings */}
+        <div className="border-b border-gray-200 pb-6">
+          <h4 className="text-lg font-medium text-gray-900 mb-4">Custom AI Settings</h4>
 
-        {/* Prompt Preview */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h5 className="text-sm font-medium text-gray-700 mb-2">Prompt Preview</h5>
-          <p className="text-xs text-gray-500 mb-3">This is how your AI prompt will look with sample data:</p>
-          <div className="bg-white border border-gray-200 rounded p-3 text-sm font-mono text-gray-700 whitespace-pre-wrap">
-            {settings.aiPromptTemplate
-              .replace(/{mealName}/g, 'Chicken Breast')
-              .replace(/{amount}/g, '200g')
-              .replace(/{calories}/g, 'not specified')
-              .replace(/{protein}/g, 'not specified')
-              .replace(/{carbs}/g, 'not specified')
-              .replace(/{fats}/g, 'not specified')}
+          {/* Custom Prompt Template Editor */}
+          {settings.aiRequestFormat === 'custom' && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Custom Prompt Template
+              </label>
+              <p className="text-sm text-gray-500 mb-3">
+                Use placeholders: {'{mealName}'}, {'{amount}'}, {'{calories}'}, {'{protein}'}, {'{carbs}'}, {'{fats}'}, {'{fibre}'}, {'{other}'}
+              </p>
+              <textarea
+                value={settings.aiPromptTemplate}
+                onChange={(e) => updateSetting('aiPromptTemplate', e.target.value)}
+                rows={8}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                placeholder="Enter your custom prompt template..."
+              />
+            </div>
+          )}
+
+          {/* Prompt Preview */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h5 className="text-sm font-medium text-gray-700 mb-2">Prompt Preview</h5>
+            <p className="text-xs text-gray-500 mb-3">This is how your AI prompt will look with sample data:</p>
+            <div className="bg-white border border-gray-200 rounded p-3 text-sm font-mono text-gray-700 whitespace-pre-wrap">
+              {settings.aiPromptTemplate
+                .replace(/{mealName}/g, 'Chicken Breast')
+                .replace(/{amount}/g, '200g')
+                .replace(/{calories}/g, 'not specified')
+                .replace(/{protein}/g, 'not specified')
+                .replace(/{carbs}/g, 'not specified')
+                .replace(/{fats}/g, 'not specified')}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-800">
-                Settings Saved Automatically
-              </h3>
-              <div className="mt-2 text-sm text-blue-700">
-                <p>Your preferences are automatically saved and will be applied to all forms and displays throughout the application.</p>
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  Settings Saved Automatically
+                </h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <p>Your preferences are automatically saved and will be applied to all forms and displays throughout the application.</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

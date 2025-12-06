@@ -133,7 +133,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
   <script>
     // Daily Sleep Dashboard
     class DailySleepDashboard {
-      entries: any;
+      entries: Record<string, any[]>;
       selectedDate: string | null;
       
       constructor() {
@@ -166,7 +166,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
               const dbName = 'HealthTrackerDB';
               const request = indexedDB.open(dbName, 2);
               
-              await new Promise((resolve) => {
+              await new Promise<void>((resolve) => {
                 request.onsuccess = () => {
                   const db = request.result;
                   if (db.objectStoreNames.contains('userEntries')) {
@@ -195,7 +195,8 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
                             if (!this.entries[dateKey]) {
                               this.entries[dateKey] = [];
                             }
-                            const exists = this.entries[dateKey].some(e => e.id === entry.id);
+                            
+                            const exists = this.entries[dateKey].some((e: any) => e.id === entry.id);
                             if (!exists) {
                               this.entries[dateKey].push(entry);
                             }
@@ -413,7 +414,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
       const urlParams = new URLSearchParams(window.location.search);
       const dateParam = urlParams.get('date');
       if (dateParam) {
-        backLink.href = `/entries?date=${dateParam}`;
+        (backLink as HTMLAnchorElement).href = `/entries?date=${dateParam}`;
         backLink.title = `Back to Show Entries (${dateParam})`;
       }
     }

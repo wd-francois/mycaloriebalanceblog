@@ -17,6 +17,8 @@ const LibraryManager = () => {
     protein: '',
     carbs: '',
     fats: '',
+    fibre: '',
+    other: '',
     notes: '',
     description: '',
     category: '',
@@ -153,6 +155,8 @@ const LibraryManager = () => {
       protein: '',
       carbs: '',
       fats: '',
+      fibre: '',
+      other: '',
       description: '',
       category: '',
       defaultSets: '',
@@ -172,6 +176,8 @@ const LibraryManager = () => {
       protein: item.protein || '',
       carbs: item.carbs || '',
       fats: item.fats || '',
+      fibre: item.fibre || '',
+      other: item.other || '',
       notes: item.notes || '',
       description: item.description || '',
       category: item.category || '',
@@ -516,6 +522,30 @@ const LibraryManager = () => {
                     onChange={(e) => setFormData({ ...formData, fats: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     placeholder="e.g., 10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Fibre (g)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.fibre}
+                    onChange={(e) => setFormData({ ...formData, fibre: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="e.g., 5"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Other
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.other}
+                    onChange={(e) => setFormData({ ...formData, other: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="e.g., Additional notes or nutrients"
                   />
                 </div>
               </div>

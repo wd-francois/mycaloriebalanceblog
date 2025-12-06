@@ -114,7 +114,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
     
     // Wait for Chart.js to load
     function waitForChart() {
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         if (typeof Chart !== 'undefined') {
           resolve();
         } else {
@@ -130,7 +130,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
     
     // Daily Weight Dashboard
     class DailyWeightDashboard {
-      entries: any;
+      entries: Record<string, any[]>;
       chart: any;
       selectedDate: string | null;
       
@@ -166,7 +166,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
               const dbName = 'HealthTrackerDB';
               const request = indexedDB.open(dbName, 2);
               
-              await new Promise((resolve) => {
+              await new Promise<void>((resolve) => {
                 request.onsuccess = () => {
                   const db = request.result;
                   if (db.objectStoreNames.contains('userEntries')) {
@@ -195,7 +195,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
                             if (!this.entries[dateKey]) {
                               this.entries[dateKey] = [];
                             }
-                            const exists = this.entries[dateKey].some(e => e.id === entry.id);
+                            const exists = this.entries[dateKey].some((e: any) => e.id === entry.id);
                             if (!exists) {
                               this.entries[dateKey].push(entry);
                             }
@@ -232,13 +232,13 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
             date, 
             weight: measurement ? parseFloat(measurement.weight) : null 
           };
-        }).filter(d => d.weight !== null && !isNaN(d.weight));
+        }).filter(d => d.weight !== null && !isNaN(d.weight)) as { date: string, weight: number }[];
         
         return weightData;
       }
 
       renderChart() {
-        const canvas = document.getElementById('weightChart');
+        const canvas = document.getElementById('weightChart') as HTMLCanvasElement | null;
         if (!canvas) {
           console.error('Canvas element not found');
           return;
@@ -255,7 +255,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
         
         // Destroy existing chart if it exists
         if (this.chart) {
-          this.chart.destroy();
+          (this.chart as any).destroy();
         }
         
         if (typeof Chart === 'undefined') {
@@ -301,7 +301,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
                 mode: 'index',
                 intersect: false,
                 callbacks: {
-                  label: function(context) {
+                  label: function(context: any) {
                     const value = context.parsed.y;
                     // Get unit from settings or default to kg
                     const unit = 'kg'; // You can get this from settings if needed
@@ -418,7 +418,7 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
     });
     
     // Ensure back link uses the correct date from URL
-    const backLink = document.getElementById('back-to-entries-link');
+    const backLink = document.getElementById('back-to-entries-link') as HTMLAnchorElement | null;
     if (backLink) {
       const urlParams = new URLSearchParams(window.location.search);
       const dateParam = urlParams.get('date');

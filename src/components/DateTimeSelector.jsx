@@ -6,46 +6,13 @@ import GroupedEntries from './GroupedEntries';
 import healthDB from '../lib/database.js';
 import { SettingsProvider } from '../contexts/SettingsContext.jsx';
 import { formatDate, formatTime } from '../lib/utils';
+import { getCurrentTimeParts, calculateSleepDuration } from '../lib/dateUtils';
+import { exportToJSON, exportToCSV, exportToPDF } from '../lib/exportUtils';
+import { useHealthData } from '../hooks/useHealthData';
+import { useFormState } from '../hooks/useFormState';
+import { usePhotoManagement } from '../hooks/usePhotoManagement';
 
-const MAX_PHOTO_SIZE_MB = 5;
-const MAX_PHOTO_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024;
 
-function calculateSleepDuration(bedtime, waketime) {
-  // Convert to 24-hour format for calculation
-  const bedHour24 = bedtime.period === 'AM' ? (bedtime.hour === 12 ? 0 : bedtime.hour) : (bedtime.hour === 12 ? 12 : bedtime.hour + 12);
-  const wakeHour24 = waketime.period === 'AM' ? (waketime.hour === 12 ? 0 : waketime.hour) : (waketime.hour === 12 ? 12 : waketime.hour + 12);
-  
-  const bedMinutes = bedHour24 * 60 + bedtime.minute;
-  const wakeMinutes = wakeHour24 * 60 + waketime.minute;
-  
-  // Handle overnight sleep (bedtime PM, waketime AM)
-  let totalMinutes;
-  if (bedtime.period === 'PM' && waketime.period === 'AM') {
-    totalMinutes = (24 * 60 - bedMinutes) + wakeMinutes;
-  } else {
-    totalMinutes = wakeMinutes - bedMinutes;
-  }
-  
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  
-  if (hours === 0) {
-    return `${minutes}m`;
-  } else if (minutes === 0) {
-    return `${hours}h`;
-  } else {
-    return `${hours}h ${minutes}m`;
-  }
-}
-
-function getCurrentTimeParts() {
-  const now = new Date();
-  const hours24 = now.getHours();
-  const hour = hours24 % 12 || 12;
-  const minute = now.getMinutes();
-  const period = hours24 >= 12 ? 'PM' : 'AM';
-  return { hour, minute, period };
-}
 
 const DateTimeSelector = () => {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -53,18 +20,19 @@ const DateTimeSelector = () => {
   const [showModal, setShowModal] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
-  // Entries state - store entries per date (meals, exercises, sleep)
-  const [entries, setEntries] = useState({});
-  const [formState, setFormState] = useState({ id: null, name: '', type: 'meal', sets: [], amount: '', calories: '', protein: '', carbs: '', fats: '', bedtime: { hour: 10, minute: 0, period: 'PM' }, waketime: { hour: 6, minute: 0, period: 'AM' }, weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '', thigh: '', arm: '', calf: '', chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '', tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '', notes: '', photo: null });
-  const [formError, setFormError] = useState('');
+  // Entries state managed by useHealthData hook
+  const { entries, loading, isDBInitialized, addEntry, updateEntry, deleteEntry } = useHealthData();
+
+  // Library state
   const [librarySuccessMessage, setLibrarySuccessMessage] = useState('');
-  const [formSuccessMessage, setFormSuccessMessage] = useState('');
-  const [activeForm, setActiveForm] = useState('meal');
+
+  // Form visibility state
   const [showMealInput, setShowMealInput] = useState(false);
   const [showExerciseInput, setShowExerciseInput] = useState(false);
   const [showSleepInput, setShowSleepInput] = useState(false);
   const [showMeasurementsInput, setShowMeasurementsInput] = useState(false);
-  const [isDBInitialized, setIsDBInitialized] = useState(false);
+
+  // Other state
   const [frequentItems, setFrequentItems] = useState({ food: [], exercise: [] });
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -84,107 +52,99 @@ const DateTimeSelector = () => {
     enableQuickAddExercise: true,
     enableMeals: true
   });
-  const cameraInputRef = useRef(null);
-  const uploadInputRef = useRef(null);
-  const [photoSaveMessage, setPhotoSaveMessage] = useState('');
-  const [photoSaveError, setPhotoSaveError] = useState('');
   const processedUrlParams = useRef(new Set());
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
 
-  const buildPhotoRecord = (entry) => {
-    if (!entry?.photo?.dataUrl) return null;
-    const entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
-    const timestamp = entry.photo?.capturedAt ? new Date(entry.photo.capturedAt) : entryDate;
-
-    return {
-      id: entry.id,
-      entryId: entry.id,
-      date: entryDate.toISOString(),
-      time: entry.time,
-      type: entry.type,
-      name: entry.name,
-      photo: entry.photo,
-      timestamp: timestamp.toISOString()
-    };
-  };
-
-  const syncPhotoEntry = async (entry, hadPhotoBefore = false) => {
-    if (!isDBInitialized || !entry) return;
-
+  // Auto-add to library function (needed by useFormState)
+  const addToLibrary = async (entry) => {
     try {
-      if (entry.photo?.dataUrl) {
-        const photoRecord = buildPhotoRecord(entry);
-        if (photoRecord) {
-          await healthDB.savePhotoEntry(photoRecord);
+      if (!isDBInitialized) return;
+
+      if (entry.type === 'meal') {
+        const foodData = {
+          name: entry.name,
+          amount: entry.amount || '',
+          calories: entry.calories || '',
+          protein: entry.protein || '',
+          carbs: entry.carbs || '',
+          fats: entry.fats || ''
+        };
+
+        const existingFoods = await healthDB.getFoodItems(entry.name, 100);
+        const isDuplicate = existingFoods.some(food =>
+          food.name.toLowerCase() === entry.name.toLowerCase() &&
+          food.calories === foodData.calories &&
+          food.protein === foodData.protein
+        );
+
+        if (!isDuplicate) {
+          await healthDB.saveFoodItem(foodData);
+          console.log('Food added to database library:', entry.name);
         }
-      } else if (hadPhotoBefore) {
-        await healthDB.deletePhotoEntry(entry.id);
+      } else if (entry.type === 'exercise') {
+        const exerciseData = {
+          name: entry.name,
+          defaultSets: entry.sets?.length || 1,
+          defaultReps: entry.sets?.[0]?.reps || '',
+          defaultLoad: entry.sets?.[0]?.load || ''
+        };
+
+        const existingExercises = await healthDB.getExerciseItems(entry.name, 100);
+        const isDuplicate = existingExercises.some(ex =>
+          ex.name.toLowerCase() === entry.name.toLowerCase()
+        );
+
+        if (!isDuplicate) {
+          await healthDB.saveExerciseItem(exerciseData);
+          console.log('Exercise added to database library:', entry.name);
+        }
       }
     } catch (error) {
-      console.error('Error syncing entry photo:', error);
+      console.error('Error adding to library:', error);
     }
   };
 
+  // Form state managed by useFormState hook
+  const {
+    formState,
+    setFormState,
+    formError,
+    setFormError,
+    formSuccessMessage,
+    activeForm,
+    setActiveForm,
+    handleSubmit,
+    handleSubmitWithData,
+    loadEntryForEdit
+  } = useFormState(addEntry, updateEntry, addToLibrary);
 
-  // Local storage functions
-  const saveToLocalStorage = (data) => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
-    
-    try {
-      localStorage.setItem('healthEntries', JSON.stringify(data));
-    } catch (error) {
-      console.error('Error saving to localStorage:', error);
-    }
-  };
+  // Photo management handled by usePhotoManagement hook
+  const {
+    photoSaveMessage,
+    photoSaveError,
+    cameraInputRef,
+    uploadInputRef,
+    handlePhotoSelection,
+    removePhoto,
+    triggerCameraCapture,
+    triggerPhotoUpload,
+    handleSavePhotoToGallery
+  } = usePhotoManagement(formState, setFormState, setFormError);
 
-  const loadFromLocalStorage = () => {
-    // Only run on client side
-    if (typeof window === 'undefined') return {};
-    
-    try {
-      // Try new key first, then fallback to old key for migration
-      let saved = localStorage.getItem('healthEntries');
-      if (!saved) {
-        saved = localStorage.getItem('mealEntries');
-      }
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Convert date strings back to Date objects
-        const converted = {};
-        Object.keys(parsed).forEach(dateKey => {
-          // Check if parsed[dateKey] is an array before mapping
-          if (Array.isArray(parsed[dateKey])) {
-            converted[dateKey] = parsed[dateKey].map(entry => ({
-              ...entry,
-              date: entry.date ? new Date(entry.date) : new Date(),
-              type: entry.type || 'meal' // Default to meal for backward compatibility
-            }));
-          } else {
-            // If it's not an array, skip it or convert to array format
-            console.warn(`Skipping non-array entry for dateKey: ${dateKey}`, parsed[dateKey]);
-          }
-        });
-        return converted;
-      }
-    } catch (error) {
-      console.error('Error loading from localStorage:', error);
-    }
-    return {};
-  };
+
 
   // Load form state and settings from localStorage on mount
   useEffect(() => {
     setIsClient(true);
     if (typeof window === 'undefined') return;
-    
+
     // Initialize selectedDate immediately to prevent loading state
     const initializeDate = () => {
       try {
         // Check URL for date parameter first before setting default date
         const urlParams = new URLSearchParams(window.location.search);
         const dateParam = urlParams.get('date');
-        
+
         if (dateParam) {
           try {
             const [year, month, day] = dateParam.split('-').map(Number);
@@ -205,12 +165,12 @@ const DateTimeSelector = () => {
         setSelectedDate(new Date());
       }
     };
-    
+
     // Initialize date immediately
     if (selectedDate === null) {
       initializeDate();
     }
-    
+
     // Also set a timeout fallback in case something goes wrong
     const timeoutId = setTimeout(() => {
       if (selectedDate === null) {
@@ -218,13 +178,13 @@ const DateTimeSelector = () => {
         setSelectedDate(new Date());
       }
     }, 1000);
-    
+
     return () => clearTimeout(timeoutId);
-    
+
     // Check if we have edit/info URL params - if so, don't load form state from localStorage
     const urlParamsCheck = new URLSearchParams(window.location.search);
     const hasEditOrInfo = urlParamsCheck.get('edit') || urlParamsCheck.get('info');
-    
+
     // Load form state only if not editing/adding info
     if (!hasEditOrInfo) {
       try {
@@ -233,7 +193,7 @@ const DateTimeSelector = () => {
           const parsed = JSON.parse(savedFormState);
           setFormState(parsed);
           setActiveForm(parsed.type || 'meal');
-          
+
           // Don't automatically show forms on page load - forms should be hidden by default
           // Forms will only show when user explicitly clicks the buttons
           console.log('Loaded form state from localStorage:', parsed);
@@ -244,7 +204,7 @@ const DateTimeSelector = () => {
     } else {
       console.log('Skipping localStorage form state load - edit/info params detected');
     }
-    
+
     // Load settings
     try {
       const savedSettings = localStorage.getItem('healthTrackerSettings');
@@ -267,11 +227,11 @@ const DateTimeSelector = () => {
   // Open modal when navigating with date and add parameter
   useEffect(() => {
     if (typeof window === 'undefined' || !isDBInitialized || showModal) return;
-    
+
     const urlParams = new URLSearchParams(window.location.search);
     const dateParam = urlParams.get('date');
     const addParam = urlParams.get('add');
-    
+
     // If we have a date and add parameter, open the modal (only if modal is not already open)
     if (dateParam && addParam === 'true' && selectedDate) {
       // Use requestAnimationFrame to open immediately on next frame, avoiding calendar flash
@@ -289,7 +249,7 @@ const DateTimeSelector = () => {
   // Ensure measurements are always enabled
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     setSettings(prev => {
       if (!prev.enableMeasurements) {
         const updatedSettings = { ...prev, enableMeasurements: true };
@@ -302,185 +262,23 @@ const DateTimeSelector = () => {
   }, []);
 
   // Initialize database and load data on component mount
-  useEffect(() => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
-    
-    const initializeApp = async () => {
-      // First, try to load from localStorage immediately so page can render
-      const savedEntries = loadFromLocalStorage();
-      if (Object.keys(savedEntries).length > 0) {
-        setEntries(savedEntries);
-      }
-      
-      try {
-        // Initialize IndexedDB with timeout
-        const initPromise = healthDB.init();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Database initialization timeout')), 10000)
-        );
-        
-        await Promise.race([initPromise, timeoutPromise]).catch(err => {
-          console.warn('Database init timeout or error, using localStorage:', err);
-          throw err;
-        });
-        setIsDBInitialized(true);
-        
-        // Migrate data from localStorage if needed (don't block on this)
-        healthDB.migrateFromLocalStorage().catch(err => 
-          console.warn('Migration failed (non-critical):', err)
-        );
-        
-        // Initialize with sample data if empty (don't block on this)
-        healthDB.initializeSampleData().catch(err => 
-          console.warn('Sample data initialization failed (non-critical):', err)
-        );
-        
-        // Load frequent items (don't block on this)
-        loadFrequentItems().catch(err => 
-          console.warn('Loading frequent items failed (non-critical):', err)
-        );
-        
-        // Load existing data from IndexedDB first, then localStorage as fallback
-        try {
-          const dbEntries = await healthDB.getAllUserEntries();
-          console.log('Loaded entries from IndexedDB:', dbEntries);
-          
-          // Load photos separately and merge with entries
-          let photoEntries = [];
-          try {
-            photoEntries = await healthDB.getAllPhotoEntries();
-            console.log('Loaded photo entries:', photoEntries);
-          } catch (photoError) {
-            console.warn('Could not load photo entries:', photoError);
-          }
-          
-          // Create a map of photos by entry ID for quick lookup
-          const photosByEntryId = {};
-          photoEntries.forEach(photoEntry => {
-            const entryId = photoEntry.entryId || photoEntry.id;
-            if (entryId && photoEntry.photo) {
-              photosByEntryId[entryId] = photoEntry.photo;
-            }
-          });
-          
-          // Convert IndexedDB entries to the format expected by the component
-          const formattedEntries = {};
-          console.log('Processing', dbEntries.length, 'entries from IndexedDB');
-          dbEntries.forEach(entry => {
-            // Ensure date is a Date object and normalize to midnight
-            let entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
-            // Normalize to midnight to avoid timezone issues
-            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-            const dateKey = entryDate.toDateString();
-            
-            if (!formattedEntries[dateKey]) {
-              formattedEntries[dateKey] = [];
-            }
-            // Merge photo if it exists in photoEntries (prioritize photoEntries over entry.photo)
-            const entryPhoto = photosByEntryId[entry.id] || entry.photo;
-            // Update the entry with the proper Date object and merged photo
-            const mergedEntry = {
-              ...entry,
-              date: entryDate
-            };
-            // Only add photo property if it exists
-            if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
-              mergedEntry.photo = entryPhoto;
-            }
-            formattedEntries[dateKey].push(mergedEntry);
-          });
-          console.log('Formatted entries:', Object.keys(formattedEntries).length, 'dates');
-          console.log('Date keys:', Object.keys(formattedEntries));
-          setEntries(formattedEntries);
-        } catch (error) {
-          console.error('Error loading entries from IndexedDB:', error);
-          // Fallback to localStorage
-          const savedEntries = loadFromLocalStorage();
-          setEntries(savedEntries);
-        }
-      } catch (error) {
-        console.error('Error initializing database:', error);
-        // Fallback to localStorage only
-        const savedEntries = loadFromLocalStorage();
-        setEntries(savedEntries);
-      }
-    };
-    
-    initializeApp();
-  }, []);
+  // Database initialization and data loading handled by useHealthData hook
 
-  // Reload entries when window gains focus (in case data was updated in another tab)
+  // Load frequent items when database is initialized
   useEffect(() => {
-    if (typeof window === 'undefined' || !isDBInitialized) return;
-    
-    const reloadEntries = async () => {
-      try {
-        const dbEntries = await healthDB.getAllUserEntries();
-        console.log('Reloaded entries on focus:', dbEntries.length);
-        
-        // Load photos separately and merge with entries
-        let photoEntries = [];
-        try {
-          photoEntries = await healthDB.getAllPhotoEntries();
-        } catch (photoError) {
-          console.warn('Could not load photo entries:', photoError);
-        }
-        
-        // Create a map of photos by entry ID
-        const photosByEntryId = {};
-        photoEntries.forEach(photoEntry => {
-          const entryId = photoEntry.entryId || photoEntry.id;
-          if (entryId && photoEntry.photo) {
-            photosByEntryId[entryId] = photoEntry.photo;
-          }
-        });
-        
-        // Convert IndexedDB entries to the format expected by the component
-        const formattedEntries = {};
-        dbEntries.forEach(entry => {
-          // Ensure date is a Date object and normalize to midnight
-          let entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
-          entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-          const dateKey = entryDate.toDateString();
-          
-          if (!formattedEntries[dateKey]) {
-            formattedEntries[dateKey] = [];
-          }
-          const entryPhoto = photosByEntryId[entry.id] || entry.photo;
-          const mergedEntry = {
-            ...entry,
-            date: entryDate
-          };
-          if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
-            mergedEntry.photo = entryPhoto;
-          }
-          formattedEntries[dateKey].push(mergedEntry);
-        });
-        setEntries(formattedEntries);
-      } catch (error) {
-        console.error('Error reloading entries:', error);
-      }
-    };
-    
-    window.addEventListener('focus', reloadEntries);
-    return () => window.removeEventListener('focus', reloadEntries);
+    if (isDBInitialized) {
+      loadFrequentItems();
+    }
   }, [isDBInitialized]);
 
-  // Save to localStorage whenever entries change
-  useEffect(() => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
-    
-    saveToLocalStorage(entries);
-  }, [entries]);
+  // Entries saving handled by useHealthData hook
 
 
   // Save form state to localStorage whenever it changes
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
-    
+
     try {
       console.log('Saving form state to localStorage:', formState);
       localStorage.setItem('healthFormState', JSON.stringify(formState));
@@ -491,142 +289,7 @@ const DateTimeSelector = () => {
   }, [formState]);
 
 
-  // Export data functions
-  const exportToJSON = () => {
-    try {
-      // Create a more readable export format
-      const exportData = {
-        exportDate: new Date().toISOString(),
-        totalDates: Object.keys(entries).length,
-        totalEntries: Object.values(entries).reduce((sum, dateEntries) => sum + dateEntries.length, 0),
-        entries: entries
-      };
-      
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `health-entries-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting to JSON:', error);
-      alert('Failed to export to JSON. Please try again.');
-    }
-  };
 
-  const exportToCSV = () => {
-    if (!selectedDate) return;
-    try {
-      // Get entries for the selected date only
-      const dateKey = selectedDate.toDateString();
-      const dailyEntries = entries[dateKey] || [];
-      
-      if (dailyEntries.length === 0) {
-        alert('No entries found for the selected date.');
-        return;
-      }
-      
-      // Create CSV header
-      let csvContent = 'Date,Time,Type,Name,Amount,Sets,Reps,Load,Duration,Notes\n';
-      
-      // Add entries for the selected date only
-      dailyEntries.forEach(entry => {
-        const date = new Date(entry.date);
-        const formattedDate = date.toLocaleDateString();
-        const formattedTime = formatTime(entry.time);
-        const name = entry.name.replace(/"/g, '""'); // Escape quotes for CSV
-        const amount = entry.amount || '';
-        const sets = entry.sets || '';
-        const reps = entry.reps || '';
-        const load = entry.load || '';
-        const duration = entry.duration || '';
-        const notes = (entry.notes || '').replace(/"/g, '""'); // Escape quotes for CSV
-        
-        csvContent += `"${formattedDate}","${formattedTime}","${entry.type}","${name}","${amount}","${sets}","${reps}","${load}","${duration}","${notes}"\n`;
-      });
-      
-      const dataBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `daily-entries-${selectedDate.toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting to CSV:', error);
-      alert('Failed to export to CSV. Please try again.');
-    }
-  };
-
-    const exportToPDF = async () => {
-    try {
-      // Create PDF content using jsPDF
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
-      
-      // Add title
-      doc.setFontSize(20);
-      doc.text('Health Entries Report', 20, 20);
-      
-      // Add export info
-      doc.setFontSize(12);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 35);
-      doc.text(`Total Dates: ${Object.keys(entries).length}`, 20, 45);
-      doc.text(`Total Entries: ${Object.values(entries).reduce((sum, dateEntries) => sum + dateEntries.length, 0)}`, 20, 55);
-      
-      // Add entries
-      let yPosition = 75;
-      doc.setFontSize(14);
-      doc.text('Health Entries:', 20, yPosition);
-      yPosition += 10;
-      
-      Object.keys(entries).forEach(dateKey => {
-        const date = new Date(entries[dateKey][0].date);
-        const formattedDate = date.toLocaleDateString();
-        
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text(formattedDate, 20, yPosition);
-        yPosition += 8;
-        
-        doc.setFont(undefined, 'normal');
-        entries[dateKey].forEach(entry => {
-          const formattedTime = formatTime(entry.time);
-          let entryText = `${formattedTime} - ${entry.type.toUpperCase()}: ${entry.name}`;
-          if (entry.amount) entryText += ` (${entry.amount})`;
-          if (entry.sets) entryText += ` - ${entry.sets} sets`;
-          if (entry.reps) entryText += ` x ${entry.reps} reps`;
-          if (entry.load) entryText += ` @ ${entry.load}`;
-          if (entry.duration) entryText += ` (${entry.duration})`;
-          if (entry.notes) entryText += ` - Notes: ${entry.notes}`;
-          
-          // Check if we need a new page
-          if (yPosition > 250) {
-            doc.addPage();
-            yPosition = 20;
-          }
-          
-          doc.text(entryText, 30, yPosition);
-          yPosition += 6;
-        });
-        
-        yPosition += 5;
-      });
-      
-      // Save the PDF
-      doc.save(`health-entries-${new Date().toISOString().split('T')[0]}.pdf`);
-    } catch (error) {
-      console.error('Error exporting to PDF:', error);
-      alert('Failed to export to PDF. Please try again. Please ensure jsPDF is installed.');
-    }
-  };
 
   const headerText = useMemo(() => {
     if (!selectedDate) return '';
@@ -643,7 +306,7 @@ const DateTimeSelector = () => {
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
-      
+
       return () => {
         // Restore scroll position
         document.body.style.position = '';
@@ -668,19 +331,19 @@ const DateTimeSelector = () => {
     // Normalize to midnight to ensure consistent matching
     const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const todayTime = normalizedToday.getTime();
-    
+
     // Try multiple date key formats to find entries
     const todayKey = normalizedToday.toDateString();
     const todayISO = normalizedToday.toISOString().split('T')[0];
-    
+
     // Try exact match first
     let todayEntriesList = entries[todayKey] || [];
-    
+
     // If no exact match, try ISO format
     if (todayEntriesList.length === 0) {
       todayEntriesList = entries[todayISO] || [];
     }
-    
+
     // If still no match, iterate through all entries and find matches by comparing dates
     if (todayEntriesList.length === 0 && Object.keys(entries).length > 0) {
       const allTodayEntries = [];
@@ -698,7 +361,7 @@ const DateTimeSelector = () => {
       });
       todayEntriesList = allTodayEntries;
     }
-    
+
     console.log('Today entries lookup:', {
       today: normalizedToday.toISOString(),
       todayKey,
@@ -720,20 +383,20 @@ const DateTimeSelector = () => {
       }
       groups[timeKey].push(entry);
     });
-    
+
     // Sort groups by time
     const sortedGroups = Object.keys(groups).sort((a, b) => {
       const timeA = groups[a][0].time;
       const timeB = groups[b][0].time;
-      
+
       // Convert to 24-hour format for comparison
       const hourA = timeA.period === 'AM' ? (timeA.hour === 12 ? 0 : timeA.hour) : (timeA.hour === 12 ? 12 : timeA.hour + 12);
       const hourB = timeB.period === 'AM' ? (timeB.hour === 12 ? 0 : timeB.hour) : (timeB.hour === 12 ? 12 : timeB.hour + 12);
-      
+
       if (hourA !== hourB) return hourA - hourB;
       return timeA.minute - timeB.minute;
     });
-    
+
     return sortedGroups.map(timeKey => ({
       time: timeKey,
       entries: groups[timeKey]
@@ -757,7 +420,7 @@ const DateTimeSelector = () => {
   const totalSleepDuration = useMemo(() => {
     const sleepEntries = currentDateEntries.filter(entry => entry.type === 'sleep');
     if (sleepEntries.length === 0) return null;
-    
+
     let totalMinutes = 0;
     sleepEntries.forEach(entry => {
       if (entry.duration) {
@@ -765,17 +428,17 @@ const DateTimeSelector = () => {
         const duration = entry.duration;
         const hoursMatch = duration.match(/(\d+)h/);
         const minutesMatch = duration.match(/(\d+)m/);
-        
+
         const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
         const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
-        
+
         totalMinutes += hours * 60 + minutes;
       }
     });
-    
+
     const totalHours = Math.floor(totalMinutes / 60);
     const remainingMinutes = totalMinutes % 60;
-    
+
     if (totalHours === 0) {
       return `${remainingMinutes}m`;
     } else if (remainingMinutes === 0) {
@@ -789,7 +452,7 @@ const DateTimeSelector = () => {
   const todaySleepDuration = useMemo(() => {
     const sleepEntries = todayEntries.filter(entry => entry.type === 'sleep');
     if (sleepEntries.length === 0) return null;
-    
+
     let totalMinutes = 0;
     sleepEntries.forEach(entry => {
       if (entry.duration) {
@@ -797,17 +460,17 @@ const DateTimeSelector = () => {
         const duration = entry.duration;
         const hoursMatch = duration.match(/(\d+)h/);
         const minutesMatch = duration.match(/(\d+)m/);
-        
+
         const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
         const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
-        
+
         totalMinutes += hours * 60 + minutes;
       }
     });
-    
+
     const totalHours = Math.floor(totalMinutes / 60);
     const remainingMinutes = totalMinutes % 60;
-    
+
     if (totalHours === 0) {
       return `${remainingMinutes}m`;
     } else if (remainingMinutes === 0) {
@@ -869,7 +532,7 @@ const DateTimeSelector = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     // Clear URL parameters first to prevent useEffect from reopening modal
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -883,10 +546,10 @@ const DateTimeSelector = () => {
         }
       }
     }
-    
+
     // Close the modal
     setShowModal(false);
-    
+
     // Reset form inputs to ensure clean state
     setShowMealInput(false);
     setShowExerciseInput(false);
@@ -894,416 +557,7 @@ const DateTimeSelector = () => {
     setShowMeasurementsInput(false);
   }
 
-  function resetForm() {
-    // Reset all form data to initial state
-    setFormState({ 
-      id: null, 
-      name: '', 
-      type: 'meal', 
-      sets: [], 
-      amount: '', 
-      calories: '', 
-      protein: '', 
-      carbs: '', 
-      fats: '', 
-      bedtime: { hour: 10, minute: 0, period: 'PM' }, 
-      waketime: { hour: 6, minute: 0, period: 'AM' }, 
-      weight: '', 
-      neck: '', 
-      shoulders: '', 
-      chest: '', 
-      waist: '', 
-      hips: '', 
-      thigh: '', 
-      arm: '', 
-      calf: '', 
-      chestSkinfold: '', 
-      abdominalSkinfold: '', 
-      thighSkinfold: '', 
-      tricepSkinfold: '', 
-      subscapularSkinfold: '', 
-      suprailiacSkinfold: '', 
-      notes: '', 
-      photo: null
-    });
-    setFormError('');
-    
-    // Hide all forms after successful submission
-    setShowMealInput(false);
-    setShowExerciseInput(false);
-    setShowSleepInput(false);
-    setShowMeasurementsInput(false);
-    
-    // Show success message
-    setFormSuccessMessage('Entry saved successfully! Form cleared for next entry.');
-    setTimeout(() => {
-      setFormSuccessMessage('');
-    }, 3000);
-  }
 
-
-  function handleSubmit(e) {
-    if (e && e.preventDefault) {
-      e.preventDefault();
-    }
-    handleSubmitWithData(formState);
-  }
-
-  async function handleSubmitWithData(data) {
-    console.log('handleSubmitWithData called with:', data);
-    setFormError('');
-
-    const name = activeForm === 'measurements' ? 'Body Measurements' : 
-                 activeForm === 'sleep' ? 'Sleep' : data.name.trim();
-
-    // Add validation back for meal entries (not sleep or measurements)
-    if (!name && activeForm === 'meal') {
-      console.log('Validation failed: Meal name is required');
-      setFormError('Meal name is required.');
-      return;
-    }
-    
-    console.log('Validation passed, proceeding with entry creation');
-
-    // Validate measurements
-    if (activeForm === 'measurements') {
-      if (!data.weight || !data.weight.toString().trim()) {
-        setFormError('Weight is required for measurements.');
-        return;
-      }
-      if (isNaN(parseFloat(data.weight)) || parseFloat(data.weight) <= 0) {
-        setFormError('Please enter a valid weight.');
-        return;
-      }
-    }
-
-    if (!selectedDate) {
-      console.error('Cannot save entry: selectedDate is null or undefined');
-      return;
-    }
-    
-    // Normalize date to ensure consistent storage
-    const normalizedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-    if (isNaN(normalizedDate.getTime())) {
-      console.error('Cannot save entry: invalid date', selectedDate);
-      return;
-    }
-    
-    const dateKey = normalizedDate.toDateString();
-
-    if (data.id == null) {
-      // Add new entry
-      const generatedId = data.photo?.tempId || Date.now();
-      const newEntry = {
-        id: generatedId,
-        name,
-        type: activeForm,
-        date: normalizedDate, // Use normalized date
-        time,
-        ...(activeForm === 'exercise' && { sets: data.sets }),
-        ...(activeForm === 'meal' && { 
-          amount: data.amount,
-          calories: data.calories,
-          protein: data.protein,
-          carbs: data.carbs,
-          fats: data.fats
-        }),
-        ...(activeForm === 'sleep' && { bedtime: data.bedtime, waketime: data.waketime, duration: calculateSleepDuration(data.bedtime, data.waketime) }),
-        ...(activeForm === 'measurements' && { 
-          weight: parseFloat(data.weight),
-          neck: data.neck ? parseFloat(data.neck) : null,
-          shoulders: data.shoulders ? parseFloat(data.shoulders) : null,
-          chest: data.chest ? parseFloat(data.chest) : null,
-          waist: data.waist ? parseFloat(data.waist) : null,
-          hips: data.hips ? parseFloat(data.hips) : null,
-          thigh: data.thigh ? parseFloat(data.thigh) : null,
-          arm: data.arm ? parseFloat(data.arm) : null,
-          calf: data.calf ? parseFloat(data.calf) : null,
-          chestSkinfold: data.chestSkinfold ? parseFloat(data.chestSkinfold) : null,
-          abdominalSkinfold: data.abdominalSkinfold ? parseFloat(data.abdominalSkinfold) : null,
-          thighSkinfold: data.thighSkinfold ? parseFloat(data.thighSkinfold) : null,
-          tricepSkinfold: data.tricepSkinfold ? parseFloat(data.tricepSkinfold) : null,
-          subscapularSkinfold: data.subscapularSkinfold ? parseFloat(data.subscapularSkinfold) : null,
-          suprailiacSkinfold: data.suprailiacSkinfold ? parseFloat(data.suprailiacSkinfold) : null,
-          notes: data.notes
-        }),
-        ...(data.photo ? { photo: data.photo } : {})
-      };
-      setEntries((prev) => {
-        const existingEntries = prev[dateKey] || [];
-        let updatedEntries;
-        
-        if (activeForm === 'measurements') {
-          // For measurements, insert at the top or below sleep entries
-          const sleepEntries = existingEntries.filter(entry => entry.type === 'sleep');
-          const nonSleepEntries = existingEntries.filter(entry => entry.type !== 'sleep');
-          
-          if (sleepEntries.length > 0) {
-            // Insert measurements after sleep entries
-            updatedEntries = [...sleepEntries, newEntry, ...nonSleepEntries];
-          } else {
-            // Insert measurements at the top
-            updatedEntries = [newEntry, ...nonSleepEntries];
-          }
-        } else {
-          // For other entries, add to the end
-          updatedEntries = [...existingEntries, newEntry];
-        }
-        
-        const newEntries = {
-          ...prev,
-          [dateKey]: updatedEntries
-        };
-        console.log('Updating entries:', newEntries);
-        return newEntries;
-      });
-
-      // Save to IndexedDB
-      try {
-        if (isDBInitialized) {
-          await healthDB.saveUserEntry(newEntry);
-          console.log('Entry saved to IndexedDB:', newEntry);
-          await syncPhotoEntry(newEntry, false);
-        }
-      } catch (error) {
-        console.error('Error saving entry to IndexedDB:', error);
-      }
-
-      // Auto-add to library for new meals and exercises
-      if (activeForm === 'meal' || activeForm === 'exercise') {
-        addToLibrary(newEntry);
-      }
-
-      resetForm();
-    } else {
-      // Update existing
-      const existingEntriesForDate = entries[dateKey] || [];
-      const previousEntry = existingEntriesForDate.find(e => e.id === data.id);
-      const hadPhotoBefore = !!previousEntry?.photo;
-      
-      const updatedEntry = {
-        id: data.id,
-        name, 
-        type: activeForm,
-        date: normalizedDate, // Use normalized date (same as for new entries) 
-        time,
-        ...(activeForm === 'exercise' && { sets: data.sets }),
-        ...(activeForm === 'meal' && { 
-          amount: data.amount,
-          calories: data.calories,
-          protein: data.protein,
-          carbs: data.carbs,
-          fats: data.fats
-        }),
-        ...(activeForm === 'sleep' && { bedtime: data.bedtime, waketime: data.waketime, duration: calculateSleepDuration(data.bedtime, data.waketime) }),
-        ...(activeForm === 'measurements' && { 
-          weight: parseFloat(data.weight),
-          neck: data.neck ? parseFloat(data.neck) : null,
-          shoulders: data.shoulders ? parseFloat(data.shoulders) : null,
-          chest: data.chest ? parseFloat(data.chest) : null,
-          waist: data.waist ? parseFloat(data.waist) : null,
-          hips: data.hips ? parseFloat(data.hips) : null,
-          thigh: data.thigh ? parseFloat(data.thigh) : null,
-          arm: data.arm ? parseFloat(data.arm) : null,
-          calf: data.calf ? parseFloat(data.calf) : null,
-          chestSkinfold: data.chestSkinfold ? parseFloat(data.chestSkinfold) : null,
-          abdominalSkinfold: data.abdominalSkinfold ? parseFloat(data.abdominalSkinfold) : null,
-          thighSkinfold: data.thighSkinfold ? parseFloat(data.thighSkinfold) : null,
-          tricepSkinfold: data.tricepSkinfold ? parseFloat(data.tricepSkinfold) : null,
-          subscapularSkinfold: data.subscapularSkinfold ? parseFloat(data.subscapularSkinfold) : null,
-          suprailiacSkinfold: data.suprailiacSkinfold ? parseFloat(data.suprailiacSkinfold) : null,
-          notes: data.notes
-        }),
-        ...(data.photo ? { photo: data.photo } : {})
-      };
-
-      setEntries((prev) => ({
-        ...prev,
-        [dateKey]: (prev[dateKey] || []).map((e) => 
-          e.id === data.id ? updatedEntry : e
-        )
-      }));
-
-      // Save to IndexedDB
-      try {
-        if (isDBInitialized) {
-          await healthDB.saveUserEntry(updatedEntry);
-          console.log('Entry updated in IndexedDB:', updatedEntry);
-          await syncPhotoEntry(updatedEntry, hadPhotoBefore);
-        }
-      } catch (error) {
-        console.error('Error updating entry in IndexedDB:', error);
-      }
-      resetForm();
-    }
-  }
-
-  function handleEdit(entry) {
-    // Open modal to show the form
-    setShowModal(true);
-    
-    if (entry.time) {
-      setTime(entry.time);
-    }
-    
-    // Set the date from the entry if available
-    if (entry.date) {
-      const entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
-      setSelectedDate(new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate()));
-    }
-    
-    setFormState({
-      id: entry.id,
-      name: entry.name,
-      type: entry.type,
-      sets: entry.sets || [],
-      amount: entry.amount || '',
-      calories: entry.calories || '',
-      protein: entry.protein || '',
-      carbs: entry.carbs || '',
-      fats: entry.fats || '',
-      bedtime: entry.bedtime || { hour: 10, minute: 0, period: 'PM' },
-      waketime: entry.waketime || { hour: 6, minute: 0, period: 'AM' },
-      duration: entry.duration || '',
-      intensity: entry.intensity || '',
-      quality: entry.quality || '',
-      weight: entry.weight || '',
-      neck: entry.neck || '',
-      shoulders: entry.shoulders || '',
-      chest: entry.chest || '',
-      waist: entry.waist || '',
-      hips: entry.hips || '',
-      thigh: entry.thigh || '',
-      arm: entry.arm || '',
-      calf: entry.calf || '',
-      chestSkinfold: entry.chestSkinfold || '',
-      abdominalSkinfold: entry.abdominalSkinfold || '',
-      thighSkinfold: entry.thighSkinfold || '',
-      tricepSkinfold: entry.tricepSkinfold || '',
-      subscapularSkinfold: entry.subscapularSkinfold || '',
-      suprailiacSkinfold: entry.suprailiacSkinfold || '',
-      notes: entry.notes || '',
-      photo: entry.photo || null
-    });
-    setActiveForm(entry.type);
-    if (entry.type === 'meal') {
-      setShowMealInput(true);
-    } else if (entry.type === 'exercise') {
-      setShowExerciseInput(true);
-    } else if (entry.type === 'sleep') {
-      setShowSleepInput(true);
-    } else if (entry.type === 'measurements') {
-      setShowMeasurementsInput(true);
-    }
-  }
-
-  const handlePhotoSelection = (event, source) => {
-    const file = event.target?.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      setFormError('Please select an image file.');
-      event.target.value = '';
-      return;
-    }
-
-    if (file.size > MAX_PHOTO_BYTES) {
-      setFormError(`Please choose an image smaller than ${MAX_PHOTO_SIZE_MB}MB.`);
-      event.target.value = '';
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === 'string' ? reader.result : '';
-      if (!result) {
-        setFormError('Unable to read the selected photo. Please try again.');
-        return;
-      }
-      const generatedId = formState.id || Date.now();
-      setFormState(prev => ({
-        ...prev,
-        photo: {
-          dataUrl: result,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          source,
-          capturedAt: new Date().toISOString(),
-          tempId: generatedId
-        }
-      }));
-      setFormError('');
-      setPhotoSaveMessage('');
-      setPhotoSaveError('');
-    };
-    reader.onerror = () => {
-      setFormError('Unable to read the selected photo. Please try again.');
-    };
-    reader.readAsDataURL(file);
-    event.target.value = '';
-  };
-
-  const removePhoto = () => {
-    setFormState(prev => ({ ...prev, photo: null }));
-    setPhotoSaveMessage('');
-    setPhotoSaveError('');
-  };
-
-  const triggerCameraCapture = () => {
-    cameraInputRef.current?.click();
-  };
-
-  const triggerPhotoUpload = () => {
-    uploadInputRef.current?.click();
-  };
-
-  const handleSavePhotoToGallery = async () => {
-    if (!formState.photo?.dataUrl) {
-      setPhotoSaveError('Attach a photo before saving to the gallery.');
-      return;
-    }
-
-    if (!selectedDate) {
-      setPhotoSaveError('Select a date before saving the photo.');
-      return;
-    }
-
-    if (!isDBInitialized) {
-      setPhotoSaveError('Storage is still initializing. Please try again in a moment.');
-      return;
-    }
-
-    const entryId = formState.id || formState.photo.tempId || Date.now();
-    const normalizedPhoto = {
-      ...formState.photo,
-      tempId: entryId
-    };
-
-    setFormState(prev => ({
-      ...prev,
-      photo: normalizedPhoto
-    }));
-
-    const tempEntry = {
-      id: entryId,
-      name: formState.name?.trim() || 'Untitled entry',
-      type: activeForm,
-      date: selectedDate,
-      time,
-      photo: normalizedPhoto
-    };
-
-    try {
-      await syncPhotoEntry(tempEntry, false);
-      setPhotoSaveMessage('Photo saved to gallery.');
-      setPhotoSaveError('');
-      setTimeout(() => setPhotoSaveMessage(''), 3000);
-    } catch (error) {
-      console.error('Error saving photo to gallery:', error);
-      setPhotoSaveError('Unable to save photo right now. Please try again.');
-    }
-  };
 
   // Functions to handle individual sets
   function addSet() {
@@ -1316,7 +570,7 @@ const DateTimeSelector = () => {
   function updateSet(index, field, value) {
     setFormState(prev => ({
       ...prev,
-      sets: prev.sets.map((set, i) => 
+      sets: prev.sets.map((set, i) =>
         i === index ? { ...set, [field]: value } : set
       )
     }));
@@ -1331,58 +585,38 @@ const DateTimeSelector = () => {
 
   function handleDelete(id) {
     if (!selectedDate) return;
-    const dateKey = selectedDate.toDateString();
-    setEntries((prev) => ({
-      ...prev,
-      [dateKey]: (prev[dateKey] || []).filter((e) => e.id !== id)
-    }));
+    deleteEntry(id, selectedDate);
     if (formState.id === id) {
       resetForm();
-    }
-
-    if (isDBInitialized) {
-      healthDB.deletePhotoEntry(id).catch(error => {
-        console.error('Error deleting entry photo:', error);
-      });
     }
   }
 
   // Handle autocomplete selection
   const handleAutocompleteSelect = (item) => {
-    if (activeForm === 'exercise' && item.defaultSets && item.defaultReps) {
+    if (activeForm === 'meal' && item) {
+      // Populate meal form with library item data
+      setFormState(prev => ({
+        ...prev,
+        name: item.name || prev.name,
+        amount: item.amount || prev.amount,
+        calories: item.calories || prev.calories,
+        protein: item.protein || prev.protein,
+        carbs: item.carbs || prev.carbs,
+        fats: item.fats || prev.fats,
+        fibre: item.fibre || prev.fibre,
+        other: item.other || prev.other
+      }));
+    } else if (activeForm === 'exercise' && item.defaultSets && item.defaultReps) {
       // Create a default set with the exercise's default values
       const defaultSet = {
         reps: item.defaultReps.toString(),
         load: item.defaultLoad || ''
       };
-      
+
       setFormState(prev => ({
         ...prev,
         sets: [defaultSet]
       }));
-    }
-  };
-
-
-  // Load frequent items
-  const loadFrequentItems = async () => {
-    try {
-      const [foodItems, exerciseItems] = await Promise.all([
-        healthDB.getFoodItems('', 5),
-        healthDB.getExerciseItems('', 5)
-      ]);
-      
-      setFrequentItems({
-        food: foodItems || [],
-        exercise: exerciseItems || []
-      });
-    } catch (error) {
-      console.error('Error loading frequent items:', error);
-      // Set empty arrays as fallback
-      setFrequentItems({
-        food: [],
-        exercise: []
-      });
     }
   };
 
@@ -1394,7 +628,7 @@ const DateTimeSelector = () => {
         reps: item.defaultReps.toString(),
         load: item.defaultLoad || ''
       };
-      
+
       setFormState(prev => ({
         ...prev,
         name: item.name,
@@ -1408,7 +642,7 @@ const DateTimeSelector = () => {
         type: type
       }));
     }
-    
+
     if (type === 'meal') {
       setActiveForm('meal');
       setShowMealInput(true);
@@ -1428,86 +662,34 @@ const DateTimeSelector = () => {
   const updateSetting = (key, value) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
-    
+
     // Only run on client side
     if (typeof window !== 'undefined') {
       localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
     }
   };
 
-  // Auto-add to library function
-  const addToLibrary = async (entry) => {
+
+
+  // Load frequent items
+  const loadFrequentItems = async () => {
     try {
-        if (entry.type === 'meal') {
-          const mealData = {
-            name: entry.name,
-            calories: entry.calories || null,
-            protein: entry.protein || null,
-            carbs: entry.carbs || null,
-            fats: entry.fats || null,
-            category: 'Meal',
-            description: `Auto-added from food logger`
-          };
+      const [foodItems, exerciseItems] = await Promise.all([
+        healthDB.getFoodItems('', 5),
+        healthDB.getExerciseItems('', 5)
+      ]);
 
-        // Try IndexedDB first, fallback to localStorage
-        try {
-          // Import healthDB dynamically to avoid circular imports
-          const { default: healthDB } = await import('../lib/database.js');
-          if (healthDB.db) {
-            await healthDB.addFoodItem(mealData);
-            console.log('Meal added to IndexedDB library:', entry.name);
-          } else {
-            throw new Error('IndexedDB not available');
-          }
-        } catch (indexedDBError) {
-          // Fallback to localStorage
-          const currentMeals = JSON.parse(localStorage.getItem('mealLibrary') || '[]');
-          const newMeal = { id: Date.now(), ...mealData };
-          currentMeals.push(newMeal);
-          localStorage.setItem('mealLibrary', JSON.stringify(currentMeals));
-          console.log('Meal added to localStorage library:', entry.name);
-        }
-        
-        // Show success message
-        setLibrarySuccessMessage(`"${entry.name}" added to meal library!`);
-        setTimeout(() => setLibrarySuccessMessage(''), 3000);
-      } else if (entry.type === 'exercise') {
-        const exerciseData = {
-          name: entry.name,
-          description: `Auto-added from food logger`,
-          category: 'General',
-          defaultSets: 3,
-          defaultReps: 10,
-          muscleGroups: '',
-          difficulty: 'Beginner'
-        };
-
-        // Try IndexedDB first, fallback to localStorage
-        try {
-          // Import healthDB dynamically to avoid circular imports
-          const { default: healthDB } = await import('../lib/database.js');
-          if (healthDB.db) {
-            await healthDB.addExerciseItem(exerciseData);
-            console.log('Exercise added to IndexedDB library:', entry.name);
-          } else {
-            throw new Error('IndexedDB not available');
-          }
-        } catch (indexedDBError) {
-          // Fallback to localStorage
-          const currentExercises = JSON.parse(localStorage.getItem('exerciseLibrary') || '[]');
-          const newExercise = { id: Date.now(), ...exerciseData };
-          currentExercises.push(newExercise);
-          localStorage.setItem('exerciseLibrary', JSON.stringify(currentExercises));
-          console.log('Exercise added to localStorage library:', entry.name);
-        }
-        
-        // Show success message
-        setLibrarySuccessMessage(`"${entry.name}" added to exercise library!`);
-        setTimeout(() => setLibrarySuccessMessage(''), 3000);
-      }
+      setFrequentItems({
+        food: foodItems || [],
+        exercise: exerciseItems || []
+      });
     } catch (error) {
-      console.error('Error adding to library:', error);
-      // Don't show error to user as this is a background operation
+      console.error('Error loading frequent items:', error);
+      // Set empty arrays as fallback
+      setFrequentItems({
+        food: [],
+        exercise: []
+      });
     }
   };
 
@@ -1515,7 +697,7 @@ const DateTimeSelector = () => {
     try {
       const currentFrequentItems = frequentItems[type];
       const isCurrentlyFrequent = currentFrequentItems.some(frequentItem => frequentItem.id === item.id);
-      
+
       if (isCurrentlyFrequent) {
         // Remove from frequent items
         const updatedFrequentItems = currentFrequentItems.filter(frequentItem => frequentItem.id !== item.id);
@@ -1549,23 +731,23 @@ const DateTimeSelector = () => {
     setShowInfoModal(true);
   };
 
-  const handleInfoSave = () => {
+  const handleInfoSave = async () => {
     if (!selectedEntry || !selectedDate) return;
 
-    const dateKey = selectedDate.toDateString();
-    setEntries((prev) => ({
-      ...prev,
-      [dateKey]: (prev[dateKey] || []).map((e) => 
-        e.id === selectedEntry.id ? { 
-          ...e, 
-          notes: infoFormData.notes
-        } : e
-      )
-    }));
-    
-    setShowInfoModal(false);
-    setSelectedEntry(null);
-    setInfoFormData({ notes: '' });
+    try {
+      // Update the entry with new notes
+      const updatedEntry = {
+        ...selectedEntry,
+        notes: infoFormData.notes
+      };
+      await updateEntry(updatedEntry);
+
+      setShowInfoModal(false);
+      setSelectedEntry(null);
+      setInfoFormData({ notes: '' });
+    } catch (error) {
+      console.error('Error saving info:', error);
+    }
   };
 
   const handleInfoCancel = () => {
@@ -1580,29 +762,29 @@ const DateTimeSelector = () => {
       console.log('URL params check skipped - isDBInitialized:', isDBInitialized);
       return;
     }
-    
+
     const urlParams = new URLSearchParams(window.location.search);
     const dateParam = urlParams.get('date');
     const editParam = urlParams.get('edit');
     const infoParam = urlParams.get('info');
-    
+
     // Create a unique key for this URL param combination
     const urlKey = `${dateParam || ''}-${editParam || ''}-${infoParam || ''}`;
-    
+
     // Skip if we've already processed these params
     if (processedUrlParams.current.has(urlKey)) {
       console.log('URL params already processed, skipping:', urlKey);
       return;
     }
-    
+
     console.log('URL params check:', { dateParam, editParam, infoParam, entriesCount: Object.keys(entries).length });
-    
+
     // Skip if no action params
     if (!editParam && !infoParam) {
       console.log('No edit/info params, skipping');
       return;
     }
-    
+
     // Clear any existing form state to prevent showing old data
     if (editParam) {
       // Set loading flag to prevent form from showing old data
@@ -1614,7 +796,7 @@ const DateTimeSelector = () => {
       setShowMeasurementsInput(false);
       setShowModal(true);
     }
-    
+
     // Set date from URL if provided
     if (dateParam) {
       try {
@@ -1629,13 +811,13 @@ const DateTimeSelector = () => {
         console.error('Error parsing date from URL:', error);
       }
     }
-    
+
     // Wait for entries to be loaded before processing edit/info
     if (Object.keys(entries).length === 0) {
       console.log('Waiting for entries to load...');
       return;
     }
-    
+
     // Handle edit action
     if (editParam) {
       console.log('Looking for entry with ID:', editParam);
@@ -1660,30 +842,30 @@ const DateTimeSelector = () => {
           break;
         }
       }
-      
+
       if (foundEntry) {
         console.log('Processing edit for entry:', foundEntry);
         // Mark as processed immediately
         processedUrlParams.current.add(urlKey);
-        
+
         // Call handleEdit immediately without setTimeout - set form state directly
         // Close any open forms first
         setShowMealInput(false);
         setShowExerciseInput(false);
         setShowSleepInput(false);
         setShowMeasurementsInput(false);
-        
+
         // Set form state directly (like Library Manager does)
         if (foundEntry.time) {
           setTime(foundEntry.time);
         }
-        
+
         // Set the date from the entry if available
         if (foundEntry.date) {
           const entryDate = foundEntry.date instanceof Date ? foundEntry.date : new Date(foundEntry.date);
           setSelectedDate(new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate()));
         }
-        
+
         setFormState({
           id: foundEntry.id,
           name: foundEntry.name,
@@ -1717,10 +899,10 @@ const DateTimeSelector = () => {
           notes: foundEntry.notes || '',
           photo: foundEntry.photo || null
         });
-        
+
         setActiveForm(foundEntry.type);
         setShowModal(true);
-        
+
         // Show the appropriate form input
         if (foundEntry.type === 'meal') {
           setShowMealInput(true);
@@ -1731,10 +913,10 @@ const DateTimeSelector = () => {
         } else if (foundEntry.type === 'measurements') {
           setShowMeasurementsInput(true);
         }
-        
+
         // Clear loading flag now that form is ready
         setIsLoadingEdit(false);
-        
+
         // Clean up URL
         const newUrl = new URL(window.location);
         newUrl.searchParams.delete('edit');
@@ -1750,7 +932,7 @@ const DateTimeSelector = () => {
         console.error('All entry IDs:', allEntryIds);
       }
     }
-    
+
     // Handle info action
     if (infoParam) {
       console.log('Looking for entry with ID:', infoParam);
@@ -1773,7 +955,7 @@ const DateTimeSelector = () => {
           break;
         }
       }
-      
+
       if (foundEntry) {
         console.log('Processing info for entry:', foundEntry);
         // Mark as processed
@@ -1810,41 +992,19 @@ const DateTimeSelector = () => {
     e.dataTransfer.dropEffect = 'move';
   };
 
+  // Note: Drag and drop reordering is temporarily disabled as it requires
+  // additional implementation with the centralized data hook
   const handleDrop = (e, targetEntry) => {
     e.preventDefault();
-    
-    if (!draggedEntry || draggedEntry.id === targetEntry.id || !selectedDate) {
-      return;
-    }
-
-    const dateKey = selectedDate.toDateString();
-    const currentEntries = entries[dateKey] || [];
-    
-    // Find indices of dragged and target entries
-    const draggedIndex = currentEntries.findIndex(entry => entry.id === draggedEntry.id);
-    const targetIndex = currentEntries.findIndex(entry => entry.id === targetEntry.id);
-    
-    if (draggedIndex === -1 || targetIndex === -1) {
-      return;
-    }
-
-    // Create new array with reordered entries
-    const newEntries = [...currentEntries];
-    const [draggedItem] = newEntries.splice(draggedIndex, 1);
-    newEntries.splice(targetIndex, 0, draggedItem);
-
-    // Update entries
-    setEntries(prev => ({
-      ...prev,
-      [dateKey]: newEntries
-    }));
+    // TODO: Implement reordering with useHealthData hook
+    console.log('Drag and drop reordering is currently disabled');
   };
 
   // Don't render on server side
   if (!isClient) {
     return <div>Loading...</div>;
   }
-  
+
   // Ensure selectedDate is always set (fallback to today if somehow null)
   // This prevents the page from being stuck on loading
   if (!selectedDate) {
@@ -1855,7 +1015,7 @@ const DateTimeSelector = () => {
     }
     return <div>Loading...</div>;
   }
-  
+
   // Check for edit/info URL params to hide calendar initially
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const hasEditOrInfoParam = urlParams && (urlParams.get('edit') || urlParams.get('info'));
@@ -1869,7 +1029,7 @@ const DateTimeSelector = () => {
             <div>
               {isClient && <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />}
             </div>
-            
+
             {/* Today's Summary Card */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4">
               <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Today's Summary</h3>
@@ -1946,7 +1106,7 @@ const DateTimeSelector = () => {
                     {formState.id == null ? 'Add a New Entry' : `Edit ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry`}
                   </h2>
                 )}
-                
+
                 <form className={(showMealInput || showSleepInput || showMeasurementsInput) ? '' : 'space-y-6'}>
                   {/* Desktop Layout: Single column when form is active, side by side otherwise */}
                   {!(showMealInput || showSleepInput || showMeasurementsInput) && (
@@ -1962,7 +1122,7 @@ const DateTimeSelector = () => {
                             Time
                           </label>
                           <div className="flex items-center gap-3">
-                            <select 
+                            <select
                               className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                               value={time.hour}
                               onChange={(e) => setTime({ ...time, hour: Number(e.target.value) })}
@@ -1971,7 +1131,7 @@ const DateTimeSelector = () => {
                                 <option key={h} value={h}>{h}</option>
                               ))}
                             </select>
-                            <select 
+                            <select
                               className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                               value={time.minute}
                               onChange={(e) => setTime({ ...time, minute: Number(e.target.value) })}
@@ -1980,7 +1140,7 @@ const DateTimeSelector = () => {
                                 <option key={m} value={m}>{m.toString().padStart(2, '0')}</option>
                               ))}
                             </select>
-                            <select 
+                            <select
                               className="p-3 rounded-xl bg-white border border-gray-200 flex-1 text-sm md:text-base min-h-[48px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                               value={time.period}
                               onChange={(e) => setTime({ ...time, period: e.target.value })}
@@ -2000,11 +1160,10 @@ const DateTimeSelector = () => {
                                 setActiveForm('meal');
                                 setShowMealInput(true);
                               }}
-                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
-                                showMealInput
-                                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:shadow-md'
-                              }`}
+                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${showMealInput
+                                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:shadow-md'
+                                }`}
                             >
                               🍽️ Meal
                             </button>
@@ -2016,11 +1175,10 @@ const DateTimeSelector = () => {
                                 setActiveForm('sleep');
                                 setShowSleepInput(true);
                               }}
-                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
-                                showSleepInput
-                                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:shadow-md'
-                              }`}
+                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${showSleepInput
+                                ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:shadow-md'
+                                }`}
                             >
                               🛌 Sleep
                             </button>
@@ -2032,11 +1190,10 @@ const DateTimeSelector = () => {
                                 setActiveForm('measurements');
                                 setShowMeasurementsInput(true);
                               }}
-                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${
-                                showMeasurementsInput
-                                  ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:shadow-md'
-                              }`}
+                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${showMeasurementsInput
+                                ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:shadow-md'
+                                }`}
                             >
                               📏 Measure
                             </button>
@@ -2047,90 +1204,90 @@ const DateTimeSelector = () => {
                       {/* Right Column - Photo Upload */}
                       {activeForm !== 'sleep' && activeForm !== 'measurements' && (
                         <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 md:p-5 space-y-3 bg-gradient-to-br from-gray-50 to-blue-50 hover:border-blue-400 transition-all duration-200">
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="text-sm md:text-base font-medium text-gray-700 flex items-center gap-2">
-                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            Attach Photo (optional)
-                          </p>
-                          {formState.photo && (
-                            <button
-                              type="button"
-                              onClick={removePhoto}
-                              className="text-sm text-red-600 hover:text-red-700 font-medium"
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                        <div className="flex gap-3">
-                          <button
-                            type="button"
-                            onClick={triggerCameraCapture}
-                            className="flex-1 border-2 border-blue-300 py-3 md:py-4 rounded-xl font-medium text-blue-700 bg-white active:scale-[0.97] transition-all hover:bg-blue-50 hover:border-blue-500 hover:shadow-md text-sm md:text-base"
-                          >
-                            📷 Take Photo
-                          </button>
-                          <button
-                            type="button"
-                            onClick={triggerPhotoUpload}
-                            className="flex-1 border-2 border-blue-300 py-3 md:py-4 rounded-xl font-medium text-blue-700 bg-white active:scale-[0.97] transition-all hover:bg-blue-50 hover:border-blue-500 hover:shadow-md text-sm md:text-base"
-                          >
-                            ⬆️ Upload
-                          </button>
-                        </div>
-                        {formState.photo && (
-                          <div className="mt-3">
-                            <div className="relative rounded-lg overflow-hidden border border-gray-200">
-                              <img
-                                src={formState.photo.dataUrl}
-                                alt="Entry attachment preview"
-                                className="w-full max-h-80 object-cover"
-                              />
-                            </div>
-                            <p className="mt-2 text-xs text-gray-600">
-                              {formState.photo.name ? `${formState.photo.name} • ` : ''}
-                              {new Date(formState.photo.capturedAt).toLocaleString()}
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="text-sm md:text-base font-medium text-gray-700 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              Attach Photo (optional)
                             </p>
-                            <div className="mt-3">
+                            {formState.photo && (
                               <button
                                 type="button"
-                                onClick={handleSavePhotoToGallery}
-                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-green-200 bg-green-50 text-green-700 font-medium hover:bg-green-100 transition-colors duration-200 text-sm"
+                                onClick={removePhoto}
+                                className="text-sm text-red-600 hover:text-red-700 font-medium"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                Save Photo to Gallery
+                                Remove
                               </button>
-                              {photoSaveMessage && (
-                                <span className="ml-2 text-sm text-green-600">{photoSaveMessage}</span>
-                              )}
-                              {!photoSaveMessage && photoSaveError && (
-                                <span className="ml-2 text-sm text-red-600">{photoSaveError}</span>
-                              )}
-                            </div>
+                            )}
                           </div>
-                        )}
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={triggerCameraCapture}
+                              className="flex-1 border-2 border-blue-300 py-3 md:py-4 rounded-xl font-medium text-blue-700 bg-white active:scale-[0.97] transition-all hover:bg-blue-50 hover:border-blue-500 hover:shadow-md text-sm md:text-base"
+                            >
+                              📷 Take Photo
+                            </button>
+                            <button
+                              type="button"
+                              onClick={triggerPhotoUpload}
+                              className="flex-1 border-2 border-blue-300 py-3 md:py-4 rounded-xl font-medium text-blue-700 bg-white active:scale-[0.97] transition-all hover:bg-blue-50 hover:border-blue-500 hover:shadow-md text-sm md:text-base"
+                            >
+                              ⬆️ Upload
+                            </button>
+                          </div>
+                          {formState.photo && (
+                            <div className="mt-3">
+                              <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                                <img
+                                  src={formState.photo.dataUrl}
+                                  alt="Entry attachment preview"
+                                  className="w-full max-h-80 object-cover"
+                                />
+                              </div>
+                              <p className="mt-2 text-xs text-gray-600">
+                                {formState.photo.name ? `${formState.photo.name} • ` : ''}
+                                {new Date(formState.photo.capturedAt).toLocaleString()}
+                              </p>
+                              <div className="mt-3">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSavePhotoToGallery(selectedDate, time, activeForm, isDBInitialized, addEntry)}
+                                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-green-200 bg-green-50 text-green-700 font-medium hover:bg-green-100 transition-colors duration-200 text-sm"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  Save Photo to Gallery
+                                </button>
+                                {photoSaveMessage && (
+                                  <span className="ml-2 text-sm text-green-600">{photoSaveMessage}</span>
+                                )}
+                                {!photoSaveMessage && photoSaveError && (
+                                  <span className="ml-2 text-sm text-red-600">{photoSaveError}</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
 
-                        <input
-                          ref={cameraInputRef}
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          className="hidden"
-                          onChange={(event) => handlePhotoSelection(event, 'camera')}
-                        />
-                        <input
-                          ref={uploadInputRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(event) => handlePhotoSelection(event, 'library')}
-                        />
-                      </div>
+                          <input
+                            ref={cameraInputRef}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            className="hidden"
+                            onChange={(event) => handlePhotoSelection(event, 'camera')}
+                          />
+                          <input
+                            ref={uploadInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(event) => handlePhotoSelection(event, 'library')}
+                          />
+                        </div>
                       )}
                     </div>
                   )}
@@ -2245,20 +1402,48 @@ const DateTimeSelector = () => {
                               onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                             />
                           </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-fibre">
+                              Fibre (g)
+                            </label>
+                            <input
+                              id="meal-fibre"
+                              type="number"
+                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                              placeholder="e.g., 5"
+                              value={formState.fibre}
+                              onChange={(e) => setFormState((s) => ({ ...s, fibre: e.target.value }))}
+                              onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-other">
+                              Other
+                            </label>
+                            <input
+                              id="meal-other"
+                              type="text"
+                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                              placeholder="e.g., Additional notes or nutrients"
+                              value={formState.other}
+                              onChange={(e) => setFormState((s) => ({ ...s, other: e.target.value }))}
+                              onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                            />
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-3 pb-4">
-                    <button
-                      type="button"
-                      onClick={handleSubmit}
-                      className="inline-flex items-center px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
+                          <button
+                            type="button"
+                            onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowExerciseInput, setShowSleepInput, setShowMeasurementsInput })}
+                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
                             {formState.id == null ? 'Add Meal Entry' : 'Save Changes'}
                           </button>
-                          
+
                           <button
                             type="button"
                             onClick={() => {
@@ -2304,8 +1489,8 @@ const DateTimeSelector = () => {
                                 <select
                                   className="w-16 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.bedtime.hour}
-                                  onChange={(e) => setFormState((s) => ({ 
-                                    ...s, 
+                                  onChange={(e) => setFormState((s) => ({
+                                    ...s,
                                     bedtime: { ...s.bedtime, hour: Number(e.target.value) }
                                   }))}
                                 >
@@ -2320,8 +1505,8 @@ const DateTimeSelector = () => {
                                 <select
                                   className="w-16 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.bedtime.minute}
-                                  onChange={(e) => setFormState((s) => ({ 
-                                    ...s, 
+                                  onChange={(e) => setFormState((s) => ({
+                                    ...s,
                                     bedtime: { ...s.bedtime, minute: Number(e.target.value) }
                                   }))}
                                 >
@@ -2335,8 +1520,8 @@ const DateTimeSelector = () => {
                                 <select
                                   className="w-20 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.bedtime.period}
-                                  onChange={(e) => setFormState((s) => ({ 
-                                    ...s, 
+                                  onChange={(e) => setFormState((s) => ({
+                                    ...s,
                                     bedtime: { ...s.bedtime, period: e.target.value }
                                   }))}
                                 >
@@ -2346,7 +1531,7 @@ const DateTimeSelector = () => {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               Wake Time
@@ -2357,8 +1542,8 @@ const DateTimeSelector = () => {
                                 <select
                                   className="w-16 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.waketime.hour}
-                                  onChange={(e) => setFormState((s) => ({ 
-                                    ...s, 
+                                  onChange={(e) => setFormState((s) => ({
+                                    ...s,
                                     waketime: { ...s.waketime, hour: Number(e.target.value) }
                                   }))}
                                 >
@@ -2373,8 +1558,8 @@ const DateTimeSelector = () => {
                                 <select
                                   className="w-16 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.waketime.minute}
-                                  onChange={(e) => setFormState((s) => ({ 
-                                    ...s, 
+                                  onChange={(e) => setFormState((s) => ({
+                                    ...s,
                                     waketime: { ...s.waketime, minute: Number(e.target.value) }
                                   }))}
                                 >
@@ -2388,8 +1573,8 @@ const DateTimeSelector = () => {
                                 <select
                                   className="w-20 px-3 py-2 text-center border border-gray-300 rounded-lg bg-white text-gray-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
                                   value={formState.waketime.period}
-                                  onChange={(e) => setFormState((s) => ({ 
-                                    ...s, 
+                                  onChange={(e) => setFormState((s) => ({
+                                    ...s,
                                     waketime: { ...s.waketime, period: e.target.value }
                                   }))}
                                 >
@@ -2400,7 +1585,7 @@ const DateTimeSelector = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Sleep Duration Display */}
                         <div className="bg-white border border-purple-200 rounded-lg p-4">
                           <div className="text-center">
@@ -2413,11 +1598,11 @@ const DateTimeSelector = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
-                            onClick={handleSubmit}
+                            onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowExerciseInput, setShowSleepInput, setShowMeasurementsInput })}
                             className="inline-flex items-center px-6 py-3 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2425,7 +1610,7 @@ const DateTimeSelector = () => {
                             </svg>
                             {formState.id == null ? 'Add Sleep Entry' : 'Save Changes'}
                           </button>
-                          
+
                           <button
                             type="button"
                             onClick={() => {
@@ -2438,7 +1623,7 @@ const DateTimeSelector = () => {
                           </button>
                         </div>
                       </div>
-                  </div>
+                    </div>
                   )}
 
                   {/* Measurements Form Fields */}
@@ -2460,7 +1645,7 @@ const DateTimeSelector = () => {
                           </svg>
                         </button>
                       </div>
-                      
+
                       <div className="space-y-4">
                         {/* Weight (Required) */}
                         <div>
@@ -2653,7 +1838,7 @@ const DateTimeSelector = () => {
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
-                            onClick={handleSubmit}
+                            onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowExerciseInput, setShowSleepInput, setShowMeasurementsInput })}
                             className="inline-flex items-center px-6 py-3 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2661,7 +1846,7 @@ const DateTimeSelector = () => {
                             </svg>
                             {formState.id == null ? 'Add Measurements' : 'Save Changes'}
                           </button>
-                          
+
                           <button
                             type="button"
                             onClick={() => {
@@ -2677,19 +1862,19 @@ const DateTimeSelector = () => {
                     </div>
                   )}
 
-                  
+
                   {formError && (
                     <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                       {formError}
                     </div>
                   )}
-                  
+
                   {formSuccessMessage && (
                     <div className="px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
                       {formSuccessMessage}
                     </div>
                   )}
-                  
+
                   {librarySuccessMessage && (
                     <div className="px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2701,7 +1886,7 @@ const DateTimeSelector = () => {
                 </form>
               </div>
 
-                {/* View All Entries Button */}
+              {/* View All Entries Button */}
               <div className="mt-6 flex justify-center">
                 <a
                   href={`/entries?date=${selectedDate ? (() => {
@@ -2822,7 +2007,7 @@ const DateTimeSelector = () => {
                       <label htmlFor="weightUnit" className="block text-sm font-medium text-gray-700 mb-1">
                         Weight Unit
                       </label>
-                      
+
                       {/* Mobile: Radio buttons */}
                       <div className="flex gap-3 sm:hidden">
                         <label className="flex items-center gap-1 text-sm">
@@ -2848,7 +2033,7 @@ const DateTimeSelector = () => {
                           <span className="text-xs">Kilograms (kg)</span>
                         </label>
                       </div>
-                      
+
                       {/* Desktop: Select dropdown */}
                       <select
                         id="weightUnit"
@@ -2864,7 +2049,7 @@ const DateTimeSelector = () => {
                       <label htmlFor="lengthUnit" className="block text-sm font-medium text-gray-700 mb-1">
                         Length Unit (Girth)
                       </label>
-                      
+
                       {/* Mobile: Radio buttons */}
                       <div className="flex gap-3 sm:hidden">
                         <label className="flex items-center gap-1 text-sm">
@@ -2890,7 +2075,7 @@ const DateTimeSelector = () => {
                           <span className="text-xs">Centimeters (cm)</span>
                         </label>
                       </div>
-                      
+
                       {/* Desktop: Select dropdown */}
                       <select
                         id="lengthUnit"
@@ -2913,7 +2098,7 @@ const DateTimeSelector = () => {
                       <label htmlFor="dateFormat" className="block text-sm font-medium text-gray-700 mb-1">
                         Date Format
                       </label>
-                      
+
                       {/* Mobile: Radio buttons */}
                       <div className="flex gap-3 sm:hidden">
                         <label className="flex items-center gap-1 text-sm">
@@ -2939,7 +2124,7 @@ const DateTimeSelector = () => {
                           <span className="text-xs">DD/MM/YYYY</span>
                         </label>
                       </div>
-                      
+
                       {/* Desktop: Select dropdown */}
                       <select
                         id="dateFormat"
@@ -2955,7 +2140,7 @@ const DateTimeSelector = () => {
                       <label htmlFor="timeFormat" className="block text-sm font-medium text-gray-700 mb-1">
                         Time Format
                       </label>
-                      
+
                       {/* Mobile: Radio buttons */}
                       <div className="flex gap-3 sm:hidden">
                         <label className="flex items-center gap-1 text-sm">
@@ -2981,7 +2166,7 @@ const DateTimeSelector = () => {
                           <span className="text-xs">24h</span>
                         </label>
                       </div>
-                      
+
                       {/* Desktop: Select dropdown */}
                       <select
                         id="timeFormat"

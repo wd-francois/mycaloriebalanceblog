@@ -11,13 +11,14 @@ export const siteConfig = {
   author: "Your Name",
   description: "A calorie tracking and fitness management application",
   ogImage: "/images/og-image.png",
-  
+
   // Noindex settings
   noindex: {
     tags: false,
     categories: false,
   },
-  
+
   // Params
   copyright: "Copyright © 2025",
+  postsPerPage: 6,
 };

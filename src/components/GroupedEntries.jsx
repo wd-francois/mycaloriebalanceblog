@@ -254,19 +254,21 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                         </div>
                         
                         {/* Additional info based on entry type */}
-                        {entry.type === 'meal' && (entry.amount || entry.calories || entry.protein || entry.carbs || entry.fats) && (
+                        {entry.type === 'meal' && (entry.amount || entry.calories || entry.protein || entry.carbs || entry.fats || entry.fibre || entry.other) && (
                           <div className="mt-2 text-sm text-gray-600 space-y-1">
                             {entry.amount && (
                               <div>Amount: {entry.amount}</div>
                             )}
                             
                             
-                            {(entry.calories || entry.protein || entry.carbs || entry.fats) && (
+                            {(entry.calories || entry.protein || entry.carbs || entry.fats || entry.fibre || entry.other) && (
                               <div className="flex flex-wrap gap-3 text-xs">
                                 {entry.calories && <span>🔥 {entry.calories} cal</span>}
                                 {entry.protein && <span>🥩 {entry.protein}g protein</span>}
                                 {entry.carbs && <span>🍞 {entry.carbs}g carbs</span>}
                                 {entry.fats && <span>🥑 {entry.fats}g fats</span>}
+                                {entry.fibre && <span>🌾 {entry.fibre}g fibre</span>}
+                                {entry.other && <span>📝 {entry.other}</span>}
                               </div>
                             )}
                           </div>

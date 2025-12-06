@@ -1,0 +1,365 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
+---
+
+<Layout
+  title={"Help - " + siteConfig.title}
+  description={"Learn how to use " + siteConfig.title + " - Help and user guide"}
+  wideContent={true}
+  showBottomNav={true}
+  showTopNav={true}
+  showFooter={false}
+  showHeader={false}
+>
+  <main class="w-full bg-gray-50 dark:bg-gray-900 flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+    <div class="flex-1 py-6 sm:py-12">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Help &amp; User Guide
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Learn how to use all the features of My Calorie Balance Diary
+          </p>
+        </div>
+
+        <div class="divide-y divide-gray-200 dark:divide-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+          <details class="group p-4" open>
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">About My Calorie Balance</span>
+              </div>
+              <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </summary>
+            <div class="mt-3 ml-[52px] text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p>My Calorie Balance is a simple and flexible diary that helps you stay in control of your daily calorie balance. You decide exactly what you want to track and how much detail to include, whether it’s meals, activity, specific calories, goals, sleep habits, measurements, notes, or even photos.</p>
+            </div>
+          </details>
+
+          <details class="group p-4">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </div>
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">Home</span>
+              </div>
+              <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </summary>
+            <div class="mt-3 ml-[52px] space-y-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p class="font-medium text-gray-900 dark:text-white">Overview:</p>
+              <p>The Home page is your main calendar view where you can see and manage all your daily entries.</p>
+              <p class="font-medium mt-4 text-gray-900 dark:text-white">How to use:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>Select a date on the calendar to view or add entries for that day</li>
+                <li>Click on a date to see all your meals, sleep, and other entries</li>
+                <li>Add new entries by clicking the date and selecting the type of entry you want to create</li>
+                <li>View your daily calorie intake by clicking on a date and navigating to the calorie breakdown</li>
+                <li>All entries are automatically saved and organized by date and time</li>
+              </ul>
+            </div>
+          </details>
+
+          <details class="group p-4">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">Library</span>
+              </div>
+              <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </summary>
+            <div class="mt-3 ml-[52px] space-y-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p class="font-medium text-gray-900 dark:text-white">Overview:</p>
+              <p>The Library is your personal database of frequently used meals and foods. Save time by storing your favorite items with their nutrition information.</p>
+              <p class="font-medium mt-4 text-gray-900 dark:text-white">How to use:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>Click "Add to Library" to create a new meal entry</li>
+                <li>Enter the meal name, amount, and nutrition information (calories, protein, carbs, fats)</li>
+                <li>When logging meals on the Home page, use the autocomplete to quickly select items from your library</li>
+                <li>Edit or delete library items by clicking the edit or delete buttons on each card</li>
+                <li>Use the info button to view detailed nutrition information for any item</li>
+                <li>The AI button helps you get accurate nutrition information for your meals</li>
+              </ul>
+            </div>
+          </details>
+
+          <details class="group p-4">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h2l1-2h6l1 2h2a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                    <circle cx="12" cy="13" r="3" stroke-width="2" />
+                  </svg>
+                </div>
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">Gallery</span>
+              </div>
+              <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </summary>
+            <div class="mt-3 ml-[52px] space-y-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p class="font-medium text-gray-900 dark:text-white">Overview:</p>
+              <p>The Gallery displays all photos you have attached to your entries. View your progress photos, meal pictures, and other images in one place.</p>
+              <p class="font-medium mt-4 text-gray-900 dark:text-white">How to use:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>All photos attached to your entries automatically appear in the gallery</li>
+                <li>Browse through your photos to see your progress over time</li>
+                <li>Photos are organized by date and linked to their original entries</li>
+                <li>Click on any photo to view it in full size</li>
+                <li>Use the camera feature when creating entries to add photos directly</li>
+              </ul>
+            </div>
+          </details>
+
+          <details class="group p-4">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.42 15.17L17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
+                  </svg>
+                </div>
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">Tools</span>
+              </div>
+              <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </summary>
+            <div class="mt-3 ml-[52px] space-y-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p class="font-medium text-gray-900 dark:text-white">Overview:</p>
+              <p>The Tools page provides helpful calculators and converters to assist with your nutrition tracking and health goals.</p>
+              <p class="font-medium mt-4 text-gray-900 dark:text-white">Available tools:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li><strong>Calorie Calculator:</strong> Calculate your daily calorie needs based on your goals (weight loss, maintenance, or weight gain)</li>
+                <li><strong>Protein Calculator:</strong> Calculate protein per calorie ratios for foods and meals</li>
+                <li><strong>Kilojoule Converter:</strong> Convert between kilojoules (kJ) and kilocalories (kcal)</li>
+                <li><strong>Portion Guide:</strong> Visual guides for portion sizes and serving recommendations</li>
+              </ul>
+              <p class="font-medium mt-4 text-gray-900 dark:text-white">How to use:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>Select any tool from the Tools page</li>
+                <li>Enter your information in the calculator forms</li>
+                <li>View your results and use them to set goals or track your nutrition</li>
+                <li>Save your calorie goals to see them in your daily tracking</li>
+              </ul>
+            </div>
+          </details>
+
+          <details class="group p-4">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">My Settings</span>
+              </div>
+              <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </summary>
+            <div class="mt-3 ml-[52px] space-y-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p class="font-medium text-gray-900 dark:text-white">Overview:</p>
+              <p>My Settings allows you to customize the app to match your preferences, including units, date formats, and theme options.</p>
+              <p class="font-medium mt-4 text-gray-900 dark:text-white">Available settings:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li><strong>Weight and Measurements:</strong> Choose between pounds/kg for weight and inches/cm for measurements</li>
+                <li><strong>Date and Time:</strong> Set your preferred date format (MM/DD/YYYY or DD/MM/YYYY) and time format (12-hour or 24-hour)</li>
+                <li><strong>Dark Mode:</strong> Toggle between light and dark theme for comfortable viewing</li>
+                <li><strong>AI Assistant:</strong> Configure AI service preferences for nutrition queries</li>
+              </ul>
+              <p class="font-medium mt-4 text-gray-900 dark:text-white">How to use:</p>
+              <ul class="list-disc list-inside space-y-2 ml-4">
+                <li>Navigate to Settings from the top navigation bar</li>
+                <li>Select your preferred options from each category</li>
+                <li>Changes are saved automatically</li>
+                <li>Your preferences will be applied throughout the app</li>
+                <li>Use the dark mode toggle to switch themes instantly</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+
+        <!-- Frequent Questions -->
+        <section class="mt-12 mb-8">
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Frequent Questions</h2>
+          <div class="divide-y divide-gray-200 dark:divide-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+            <details class="group p-4" open>
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">How do I use the camera to add photos?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                You can attach photos to any entry using the camera feature. Your photos are saved with the entry and appear in your personal gallery whenever you view it. Perfect for food pics, progress shots, or anything you want to remember visually!
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">How do I log a meal with nutrition info?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                How do I log a meal?
+                Click a date on the calendar, select "Add Meal", then fill in the meal name and amount (e.g., "1 cup"). You can optionally add nutrition details like calories, protein, carbs, and fats, but these aren't required. Use the autocomplete to quickly select from your food library.
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">How do I log sleep?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                Click a date on the calendar, select "Add Sleep", then set your bedtime and wake time. The app will automatically calculate your sleep duration. You can add notes about sleep quality if desired.
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">What is the food library?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                Your personal database of frequently used foods and meals. Click "Manage Library" to add, edit, or delete items. The autocomplete will suggest items from your library as you type, making data entry much faster.
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">How are entries grouped by time?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                All entries for the same time (e.g., 8:00 AM) are automatically grouped together under a single time header. This keeps your log organized and makes it easy to see what you did at specific times. Click the time header to collapse or expand each group. You can have multiple meals or sleep entries at the same time.
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">How do I manage my data?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                Use the Library to manage your food items, Settings to customize units and preferences, and Export to backup your data. All your entries are automatically saved and can be edited or deleted as needed.
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">How do I add notes to entries?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                Click the information (i) button next to any entry to add notes or additional details. This is useful for tracking how you felt, intensity levels, or any other observations.
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">Where is my data stored?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                All data is stored locally in your browser using IndexedDB, which is more reliable than regular storage. Your data stays private and is not sent to any servers. Use the Export feature to backup your data.
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">How do I export my data?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                Use the export functionality to backup your data in JSON, CSV, or PDF formats. This includes all your entries with nutrition and sleep details.
+              </div>
+            </details>
+            <details class="group p-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4">
+                <span class="text-lg font-semibold text-gray-900 dark:text-white">How do I add this app to my home screen?</span>
+                <svg class="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </summary>
+              <div class="mt-3 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                <div class="space-y-3">
+                  <div>
+                    <strong>📱 For Android devices:</strong>
+                    <ol class="list-decimal list-inside mt-1 space-y-1 ml-2">
+                      <li>Open this website in Chrome browser</li>
+                      <li>Tap the menu button (three dots) in the top right</li>
+                      <li>Select "Add to Home screen" or "Install app"</li>
+                      <li>Tap "Add" to confirm</li>
+                    </ol>
+                  </div>
+                  <div>
+                    <strong>🍎 For iOS devices (iPhone/iPad):</strong>
+                    <ol class="list-decimal list-inside mt-1 space-y-1 ml-2">
+                      <li>Open this website in Safari browser</li>
+                      <li>Tap the Share button (square with arrow up)</li>
+                      <li>Scroll down and tap "Add to Home Screen"</li>
+                      <li>Tap "Add" to confirm</li>
+                    </ol>
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    💡 Once installed, the app will work like a native app with its own icon on your home screen!
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <div class="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-6">
+          <h3 class="text-xl font-semibold text-blue-900 dark:text-blue-200 mb-4">Quick Tips</h3>
+          <ul class="space-y-2 text-blue-800 dark:text-blue-300">
+            <li>• All your data is stored locally on your device for privacy</li>
+            <li>• Use the bottom navigation to quickly switch between main pages</li>
+            <li>• Entries can be edited or deleted at any time</li>
+            <li>• Photos are automatically saved with your entries</li>
+            <li>• Export your data regularly to keep a backup</li>
+            <li>• The app works offline - no internet connection required</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+
+
+
+
+
+

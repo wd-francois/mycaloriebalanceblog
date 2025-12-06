@@ -99,6 +99,72 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
             </div>
           </div>
         </div>
+
+
+        <!-- Calorie Comparison Section -->
+        <div id="calorieComparisonSection" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6 hidden">
+          <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Goal Comparison</h4>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">See how your daily intake compares to your goals</p>
+          
+          <div class="space-y-4">
+            <!-- Weight Loss Comparison -->
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">Weight Loss Goal</h3>
+                <span class="text-xs text-gray-600 dark:text-gray-400" id="weightloss-goal-display">- cal/day</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="flex-1">
+                  <div class="h-2 bg-blue-200 dark:bg-blue-900/40 rounded-full overflow-hidden">
+                    <div id="weightloss-progress-bar" class="h-full transition-all duration-500 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+                <div class="text-right min-w-[100px]">
+                  <p class="text-lg font-bold" id="weightloss-difference">-</p>
+                  <p class="text-xs text-gray-600 dark:text-gray-400" id="weightloss-status">-</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Maintenance Comparison -->
+            <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-medium text-green-800 dark:text-green-300">Maintenance Goal</h3>
+                <span class="text-xs text-gray-600 dark:text-gray-400" id="maintenance-goal-display">- cal/day</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="flex-1">
+                  <div class="h-2 bg-green-200 dark:bg-green-900/40 rounded-full overflow-hidden">
+                    <div id="maintenance-progress-bar" class="h-full transition-all duration-500 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+                <div class="text-right min-w-[100px]">
+                  <p class="text-lg font-bold" id="maintenance-difference">-</p>
+                  <p class="text-xs text-gray-600 dark:text-gray-400" id="maintenance-status">-</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weight Gain Comparison -->
+            <div class="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-medium text-orange-800 dark:text-orange-300">Weight Gain Goal</h3>
+                <span class="text-xs text-gray-600 dark:text-gray-400" id="weightgain-goal-display">- cal/day</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="flex-1">
+                  <div class="h-2 bg-orange-200 dark:bg-orange-900/40 rounded-full overflow-hidden">
+                    <div id="weightgain-progress-bar" class="h-full transition-all duration-500 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+                <div class="text-right min-w-[100px]">
+                  <p class="text-lg font-bold" id="weightgain-difference">-</p>
+                  <p class="text-xs text-gray-600 dark:text-gray-400" id="weightgain-status">-</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -112,7 +178,7 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
     
     // Wait for Chart.js to load
     function waitForChart() {
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         if (typeof Chart !== 'undefined') {
           resolve();
         } else {
@@ -128,7 +194,7 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
     
     // Database helper functions (simplified version for script tag)
     async function loadEntriesFromDB() {
-      const entries = {};
+      const entries: Record<string, any[]> = {};
       
       console.log('Starting to load entries...');
       
@@ -205,7 +271,7 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
           const dbName = 'HealthTrackerDB';
           const request = indexedDB.open(dbName, 2);
           
-          await new Promise((resolve, reject) => {
+          await new Promise<void>((resolve, reject) => {
             request.onsuccess = () => {
               const db = request.result;
               console.log('IndexedDB opened, object stores:', Array.from(db.objectStoreNames));
@@ -421,7 +487,7 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
       }
 
       renderChart() {
-        const canvas = document.getElementById('calorieChart');
+        const canvas = document.getElementById('calorieChart') as HTMLCanvasElement | null;
         if (!canvas) {
           console.error('Canvas element not found');
           return;
@@ -438,7 +504,7 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
         
         // Destroy existing chart if it exists
         if (this.chart) {
-          this.chart.destroy();
+          (this.chart as any).destroy();
         }
         
         if (typeof Chart === 'undefined') {
@@ -499,7 +565,7 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
               },
               tooltip: {
                 callbacks: {
-                  label: function(context) {
+                  label: function(context: any) {
                     const label = context.label || '';
                     const value = context.parsed || 0;
                     const totalGrams = proteinGrams + carbsGrams + fatsGrams;
@@ -556,6 +622,12 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
             day: 'numeric' 
           });
         }
+
+        // Update calorie goals comparison after stats are updated
+        // Use setTimeout to ensure the DOM has been updated with new values
+        setTimeout(() => {
+          displayCalorieGoals();
+        }, 100);
       }
     }
 
@@ -563,8 +635,127 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
     const dashboard = new DailyCalorieDashboard();
     dashboard.init();
     
+    // Function to load calculator data from localStorage
+    function loadCalculatorData() {
+      try {
+        const savedData = localStorage.getItem('calorieCalculatorData');
+        if (savedData) {
+          return JSON.parse(savedData);
+        }
+      } catch (e) {
+        console.error('Error loading calculator data:', e);
+      }
+      return null;
+    }
+
+    // Function to display calorie goals and comparison
+    function displayCalorieGoals() {
+      const calculatorData = loadCalculatorData();
+      
+      if (!calculatorData) {
+        return;
+      }
+
+      const weightLoss = calculatorData.weightLoss || 0;
+      const maintenance = calculatorData.maintenance || 0;
+      const weightGain = calculatorData.weightGain || 0;
+
+      // Get total calories from the dashboard
+      const totalCaloriesEl = document.getElementById('totalCalories');
+      const totalCalories = totalCaloriesEl ? parseInt(totalCaloriesEl.textContent) || 0 : 0;
+
+      // Update comparison section
+      updateCalorieComparison(totalCalories, weightLoss, maintenance, weightGain);
+    }
+
+    // Function to update calorie comparison
+    function updateCalorieComparison(totalCalories: number, weightLossGoal: number, maintenanceGoal: number, weightGainGoal: number) {
+      const comparisonSection = document.getElementById('calorieComparisonSection');
+      if (!comparisonSection) {
+        return;
+      }
+
+      // Only show comparison if we have both total calories and at least one goal
+      if (totalCalories === 0 && (weightLossGoal === 0 && maintenanceGoal === 0 && weightGainGoal === 0)) {
+        return;
+      }
+
+      // Show the comparison section
+      comparisonSection.classList.remove('hidden');
+
+      // Helper function to update each goal comparison
+      function updateGoalComparison(goalType: string, goalValue: number) {
+        const difference = totalCalories - goalValue;
+        const percentage = goalValue > 0 ? (totalCalories / goalValue) * 100 : 0;
+        const isOver = difference > 0;
+        const isUnder = difference < 0;
+        const isPerfect = Math.abs(difference) < 50; // Within 50 calories is "perfect"
+
+        // Update goal display
+        const goalDisplayEl = document.getElementById(`${goalType}-goal-display`);
+        if (goalDisplayEl) {
+          goalDisplayEl.textContent = `${goalValue} cal/day`;
+        }
+
+        // Update difference display
+        const differenceEl = document.getElementById(`${goalType}-difference`);
+        if (differenceEl) {
+          const sign = difference > 0 ? '+' : '';
+          differenceEl.textContent = `${sign}${difference}`;
+          
+          // Color code the difference
+          if (isPerfect) {
+            differenceEl.className = 'text-lg font-bold text-green-600 dark:text-green-400';
+          } else if (isOver) {
+            differenceEl.className = 'text-lg font-bold text-red-600 dark:text-red-400';
+          } else {
+            differenceEl.className = 'text-lg font-bold text-orange-600 dark:text-orange-400';
+          }
+        }
+
+        // Update status text
+        const statusEl = document.getElementById(`${goalType}-status`);
+        if (statusEl) {
+          if (isPerfect) {
+            statusEl.textContent = 'On target! 🎯';
+          } else if (isOver) {
+            statusEl.textContent = `${Math.abs(difference)} over`;
+          } else {
+            statusEl.textContent = `${Math.abs(difference)} under`;
+          }
+        }
+
+        // Update progress bar
+        const progressBarEl = document.getElementById(`${goalType}-progress-bar`);
+        if (progressBarEl) {
+          const cappedPercentage = Math.min(percentage, 150); // Cap at 150% for visual purposes
+          progressBarEl.style.width = `${cappedPercentage}%`;
+          
+          // Color code the progress bar
+          if (isPerfect) {
+            progressBarEl.className = 'h-full transition-all duration-500 rounded-full bg-green-500 dark:bg-green-400';
+          } else if (isOver) {
+            progressBarEl.className = 'h-full transition-all duration-500 rounded-full bg-red-500 dark:bg-red-400';
+          } else {
+            progressBarEl.className = 'h-full transition-all duration-500 rounded-full bg-orange-500 dark:bg-orange-400';
+          }
+        }
+      }
+
+      // Update all three goal comparisons
+      updateGoalComparison('weightloss', weightLossGoal);
+      updateGoalComparison('maintenance', maintenanceGoal);
+      updateGoalComparison('weightgain', weightGainGoal);
+    }
+
+    // Load and display goals when page loads
+    window.addEventListener('DOMContentLoaded', function() {
+      displayCalorieGoals();
+    });
+
+    
     // Ensure back link uses the correct date from URL
-    const backLink = document.getElementById('back-to-entries-link');
+    const backLink = document.getElementById('back-to-entries-link') as HTMLAnchorElement | null;
     if (backLink) {
       const urlParams = new URLSearchParams(window.location.search);
       const dateParam = urlParams.get('date');
@@ -577,9 +768,10 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
       }
     }
     
-    // Refresh chart when window gains focus (in case data was updated in another tab)
+    // Refresh chart and goals when window gains focus (in case data was updated in another tab)
     window.addEventListener('focus', () => {
       dashboard.init();
+      displayCalorieGoals();
     });
   </script>
 </Layout>

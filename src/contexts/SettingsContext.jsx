@@ -51,10 +51,10 @@ Please format your response clearly so I can easily update my meal entry.`,
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
-    
+
     const savedSettings = localStorage.getItem('healthTrackerSettings');
     const healthEntries = localStorage.getItem('healthEntries');
-    
+
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
@@ -63,13 +63,13 @@ Please format your response clearly so I can easily update my meal entry.`,
         console.error('Error loading settings:', error);
       }
     }
-    
+
     // Load feature toggles from healthEntries if available
     if (healthEntries) {
       try {
         const parsed = JSON.parse(healthEntries);
-        if (parsed.enableMeals !== undefined || parsed.enableExercise !== undefined || 
-            parsed.enableSleep !== undefined || parsed.enableMeasurements !== undefined) {
+        if (parsed.enableMeals !== undefined || parsed.enableExercise !== undefined ||
+          parsed.enableSleep !== undefined || parsed.enableMeasurements !== undefined) {
           setSettings(prev => ({ ...prev, ...parsed }));
         }
       } catch (error) {
@@ -82,9 +82,9 @@ Please format your response clearly so I can easily update my meal entry.`,
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
-    
+
     localStorage.setItem('healthTrackerSettings', JSON.stringify(settings));
-    
+
     // Also save feature toggles to healthEntries for compatibility
     const featureToggles = {
       enableMeals: settings.enableMeals,
@@ -92,7 +92,7 @@ Please format your response clearly so I can easily update my meal entry.`,
       enableSleep: settings.enableSleep,
       enableMeasurements: settings.enableMeasurements
     };
-    
+
     const existingHealthEntries = JSON.parse(localStorage.getItem('healthEntries') || '{}');
     const updatedHealthEntries = { ...existingHealthEntries, ...featureToggles };
     localStorage.setItem('healthEntries', JSON.stringify(updatedHealthEntries));
@@ -115,7 +115,7 @@ Please format your response clearly so I can easily update my meal entry.`,
   // Conversion functions
   const convertWeight = (value, fromUnit, toUnit) => {
     if (fromUnit === toUnit) return value;
-    
+
     if (fromUnit === 'lbs' && toUnit === 'kg') {
       return value * 0.453592;
     } else if (fromUnit === 'kg' && toUnit === 'lbs') {
@@ -126,7 +126,7 @@ Please format your response clearly so I can easily update my meal entry.`,
 
   const convertLength = (value, fromUnit, toUnit) => {
     if (fromUnit === toUnit) return value;
-    
+
     if (fromUnit === 'in' && toUnit === 'cm') {
       return value * 2.54;
     } else if (fromUnit === 'cm' && toUnit === 'in') {
@@ -137,7 +137,7 @@ Please format your response clearly so I can easily update my meal entry.`,
 
   const convertSkinfold = (value, fromUnit, toUnit) => {
     if (fromUnit === toUnit) return value;
-    
+
     if (fromUnit === 'mm' && toUnit === 'cm') {
       return value / 10;
     } else if (fromUnit === 'cm' && toUnit === 'mm') {
@@ -148,8 +148,8 @@ Please format your response clearly so I can easily update my meal entry.`,
 
   // AI prompt generation function
   const generateAIPrompt = (mealData) => {
-    const { name, amount, calories, protein, carbs, fats } = mealData;
-    
+    const { name, amount, calories, protein, carbs, fats, fibre, other } = mealData;
+
     // Replace placeholders in the template
     let prompt = settings.aiPromptTemplate
       .replace(/{mealName}/g, name || 'Unknown Meal')
@@ -157,7 +157,9 @@ Please format your response clearly so I can easily update my meal entry.`,
       .replace(/{calories}/g, calories || 'not specified')
       .replace(/{protein}/g, protein || 'not specified')
       .replace(/{carbs}/g, carbs || 'not specified')
-      .replace(/{fats}/g, fats || 'not specified');
+      .replace(/{fats}/g, fats || 'not specified')
+      .replace(/{fibre}/g, fibre || 'not specified')
+      .replace(/{other}/g, other || 'not specified');
 
     // If not including current values, remove that section
     if (!settings.aiIncludeCurrentValues) {
@@ -170,7 +172,7 @@ Please format your response clearly so I can easily update my meal entry.`,
   // Get AI service URL
   const getAIServiceUrl = (prompt) => {
     const encodedPrompt = encodeURIComponent(prompt);
-    
+
     switch (settings.aiService) {
       case 'chatgpt':
         return `https://chat.openai.com/?q=${encodedPrompt}`;

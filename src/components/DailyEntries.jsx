@@ -3,63 +3,16 @@ import GroupedEntries from './GroupedEntries';
 import healthDB from '../lib/database.js';
 import { SettingsProvider, useSettings } from '../contexts/SettingsContext.jsx';
 import { formatDate, formatTime } from '../lib/utils';
+import { exportToCSV } from '../lib/exportUtils';
+import { useHealthData } from '../hooks/useHealthData';
 
-function loadFromLocalStorage() {
-  if (typeof window === 'undefined') return {};
-  try {
-    const saved = localStorage.getItem('healthEntries');
-    if (!saved) return {};
-    const parsed = JSON.parse(saved);
-    
-    // Convert localStorage entries to proper format with normalized dates
-    const formattedEntries = {};
-    Object.keys(parsed).forEach(dateKey => {
-      const dateEntries = parsed[dateKey];
-      if (Array.isArray(dateEntries)) {
-        dateEntries.forEach(entry => {
-          if (!entry || !entry.date) return;
-          
-          let entryDate;
-          if (entry.date instanceof Date) {
-            entryDate = entry.date;
-          } else if (typeof entry.date === 'string') {
-            entryDate = new Date(entry.date);
-          } else {
-            entryDate = new Date(entry.date);
-          }
-          
-          // Normalize date to midnight to avoid timezone issues
-          if (!isNaN(entryDate.getTime())) {
-            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-            const normalizedDateKey = entryDate.toDateString();
-            
-            if (!formattedEntries[normalizedDateKey]) {
-              formattedEntries[normalizedDateKey] = [];
-            }
-            
-            formattedEntries[normalizedDateKey].push({
-              ...entry,
-              date: entryDate
-            });
-          }
-        });
-      }
-    });
-    
-    return formattedEntries;
-  } catch (error) {
-    console.error('Error loading from localStorage:', error);
-    return {};
-  }
-}
+
 
 const DailyEntriesContent = ({ date: dateParam }) => {
-  const [entries, setEntries] = useState({});
-  const [isDBInitialized, setIsDBInitialized] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [entriesLoaded, setEntriesLoaded] = useState(false);
+  const { entries, loading, isDBInitialized, deleteEntry } = useHealthData();
+  const [entriesLoaded, setEntriesLoaded] = useState(false); // Kept for compatibility if needed, or remove
   const { settings } = useSettings();
-  
+
   // Track URL to force re-render when it changes
   const [currentUrl, setCurrentUrl] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -76,26 +29,26 @@ const DailyEntriesContent = ({ date: dateParam }) => {
         const urlParams = new URLSearchParams(window.location.search);
         const urlDate = urlParams.get('date');
         console.log('Checking URL - Full URL:', newUrl, 'Date param:', urlDate);
-        
+
         if (newUrl !== currentUrl) {
           console.log('URL changed from', currentUrl, 'to', newUrl);
           setCurrentUrl(newUrl);
         }
       }
     };
-    
+
     // Check immediately on mount
     checkUrl();
-    
+
     // Also check after a short delay to catch any timing issues
     const timeout = setTimeout(checkUrl, 100);
-    
+
     // Listen for navigation events
     window.addEventListener('popstate', checkUrl);
-    
+
     // Also check on focus (in case user navigated away and back)
     window.addEventListener('focus', checkUrl);
-    
+
     return () => {
       clearTimeout(timeout);
       window.removeEventListener('popstate', checkUrl);
@@ -106,7 +59,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
   // Get date from prop or URL parameter - always read from URL to ensure it's current
   const selectedDate = useMemo(() => {
     let dateToUse = null;
-    
+
     // Always check URL first (most reliable for navigation)
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
@@ -126,7 +79,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
         console.log('No date param in URL, will use prop or today');
       }
     }
-    
+
     // Fallback to prop if URL date not available
     if (!dateToUse && dateParam) {
       // If dateParam is in YYYY-MM-DD format, parse it correctly
@@ -139,14 +92,14 @@ const DailyEntriesContent = ({ date: dateParam }) => {
         console.log('Using prop date (parsed):', dateParam, '->', dateToUse);
       }
     }
-    
+
     // Normalize date to midnight to avoid timezone issues
     if (dateToUse && !isNaN(dateToUse.getTime())) {
       const normalized = new Date(dateToUse.getFullYear(), dateToUse.getMonth(), dateToUse.getDate());
       console.log('Selected date normalized:', normalized.toISOString().split('T')[0], 'Date key:', normalized.toDateString());
       return normalized;
     }
-    
+
     // Last resort: today's date
     const today = new Date();
     const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -154,121 +107,10 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     return normalizedToday;
   }, [dateParam, currentUrl]); // Re-compute when dateParam or URL changes
 
-  // Load entries from database
+  // Entries loaded via hook
   useEffect(() => {
-    const loadEntries = async () => {
-      if (typeof window === 'undefined') return;
-      
-      setLoading(true);
-      setEntriesLoaded(false);
-      // Keep previous entries while loading to avoid showing "No entries" during reload
-      try {
-        // Initialize IndexedDB
-        await healthDB.init();
-        setIsDBInitialized(true);
-
-        // Load entries from IndexedDB - use getAllUserEntries to get all entries
-        const dbEntries = await healthDB.getAllUserEntries();
-        
-        // Load photos separately and merge with entries
-        let photoEntries = [];
-        try {
-          photoEntries = await healthDB.getAllPhotoEntries();
-        } catch (photoError) {
-          console.warn('Could not load photo entries:', photoError);
-        }
-
-        // Create a map of photos by entry ID
-        const photosByEntryId = {};
-        photoEntries.forEach(photoEntry => {
-          const entryId = photoEntry.entryId || photoEntry.id;
-          if (entryId && photoEntry.photo) {
-            photosByEntryId[entryId] = photoEntry.photo;
-          }
-        });
-
-        // Convert IndexedDB entries to the format expected by the component
-        const formattedEntries = {};
-        console.log('Processing', dbEntries.length, 'entries from IndexedDB');
-        dbEntries.forEach((entry, index) => {
-          if (!entry || !entry.date) {
-            console.log(`Skipping entry ${index}: missing date`, entry);
-            return;
-          }
-          
-          let entryDate;
-          if (entry.date instanceof Date) {
-            entryDate = entry.date;
-          } else if (typeof entry.date === 'string') {
-            // Handle YYYY-MM-DD format
-            if (entry.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-              const [year, month, day] = entry.date.split('-').map(Number);
-              entryDate = new Date(year, month - 1, day);
-            } else {
-              entryDate = new Date(entry.date);
-            }
-          } else {
-            entryDate = new Date(entry.date);
-          }
-          
-          // Validate date is valid before proceeding
-          if (isNaN(entryDate.getTime())) {
-            console.log(`Skipping entry ${index}: invalid date`, entry.date, entryDate);
-            return;
-          }
-          
-          // Normalize date to midnight to avoid timezone issues
-          entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-          
-          // Double-check normalized date is valid
-          if (isNaN(entryDate.getTime())) {
-            console.log(`Skipping entry ${index}: invalid normalized date`, entry.date);
-            return;
-          }
-          
-          const dateKey = entryDate.toDateString();
-          
-          if (!formattedEntries[dateKey]) {
-            formattedEntries[dateKey] = [];
-          }
-          
-          const entryPhoto = photosByEntryId[entry.id] || entry.photo;
-          const mergedEntry = {
-            ...entry,
-            date: entryDate
-          };
-          if (entryPhoto && (entryPhoto.dataUrl || entryPhoto.url)) {
-            mergedEntry.photo = entryPhoto;
-          }
-          formattedEntries[dateKey].push(mergedEntry);
-          console.log(`Added entry ${index} to date key: ${dateKey}`, mergedEntry.name || mergedEntry.type);
-        });
-        
-        console.log('Loaded entries:', Object.keys(formattedEntries).length, 'dates');
-        console.log('Formatted entries keys:', Object.keys(formattedEntries));
-        if (Object.keys(formattedEntries).length > 0) {
-          console.log('Sample entry:', formattedEntries[Object.keys(formattedEntries)[0]][0]);
-          // Log all date keys for debugging
-          Object.keys(formattedEntries).forEach(key => {
-            console.log(`Date key "${key}": ${formattedEntries[key].length} entries`);
-          });
-        }
-        setEntries(formattedEntries);
-        setEntriesLoaded(true);
-        console.log('Entries loaded and setEntriesLoaded(true) called');
-      } catch (error) {
-        console.error('Error loading entries from IndexedDB:', error);
-        // Fallback to localStorage
-        const savedEntries = loadFromLocalStorage();
-        setEntries(savedEntries);
-        setEntriesLoaded(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEntries();
-  }, [currentUrl, selectedDate]); // Reload when URL changes OR when selected date changes (e.g., when navigating from another page)
+    if (!loading) setEntriesLoaded(true);
+  }, [loading]);
 
   // Log when selectedDate changes
   useEffect(() => {
@@ -286,32 +128,32 @@ const DailyEntriesContent = ({ date: dateParam }) => {
       console.log('No selected date');
       return [];
     }
-    
+
     // Normalize selected date to ensure consistent matching
     const normalizedSelectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     const dateKey = normalizedSelectedDate.toDateString();
-    
+
     console.log('=== FILTERING ENTRIES ===');
     console.log('Selected date:', normalizedSelectedDate);
     console.log('Selected date ISO:', normalizedSelectedDate.toISOString().split('T')[0]);
     console.log('Date key:', dateKey);
     console.log('Total entries loaded:', Object.keys(entries).length, 'dates');
     console.log('Available date keys:', Object.keys(entries));
-    
+
     // Try exact match first
     let foundEntries = entries[dateKey] || [];
-    
+
     // If no exact match, try to find entries by comparing ISO date strings (more robust)
     if (foundEntries.length === 0 && Object.keys(entries).length > 0) {
       const selectedISO = normalizedSelectedDate.toISOString().split('T')[0];
       console.log('No exact match, trying ISO date match:', selectedISO);
-      
+
       // Check each date key to see if it matches the selected date
       Object.keys(entries).forEach(key => {
         try {
           // First try parsing the key as a date string
           let keyDate = new Date(key);
-          
+
           // If that doesn't work, check the actual entry dates in that key
           if (isNaN(keyDate.getTime()) && entries[key].length > 0) {
             const firstEntry = entries[key][0];
@@ -331,7 +173,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
               }
             }
           }
-          
+
           if (!isNaN(keyDate.getTime())) {
             const normalizedKeyDate = new Date(keyDate.getFullYear(), keyDate.getMonth(), keyDate.getDate());
             const keyISO = normalizedKeyDate.toISOString().split('T')[0];
@@ -345,7 +187,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
         }
       });
     }
-    
+
     console.log('Found entries for this date:', foundEntries.length);
     if (foundEntries.length > 0) {
       console.log('Sample found entry:', foundEntries[0]);
@@ -357,7 +199,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
         console.log(`  Date key "${key}" has ${entries[key].length} entries`);
       });
     }
-    
+
     return foundEntries;
   }, [entries, selectedDate]);
 
@@ -375,37 +217,11 @@ const DailyEntriesContent = ({ date: dateParam }) => {
   // Handle delete
   const handleDelete = async (entryId) => {
     if (!entryId) return;
-    
+
     const confirmed = window.confirm('Are you sure you want to delete this entry?');
     if (!confirmed) return;
 
-    try {
-      // Remove from state
-      const dateKey = selectedDate.toDateString();
-      setEntries((prev) => {
-        const updated = { ...prev };
-        if (updated[dateKey]) {
-          updated[dateKey] = updated[dateKey].filter(e => e.id !== entryId);
-        }
-        return updated;
-      });
-
-      // Delete from IndexedDB
-      if (isDBInitialized) {
-        await healthDB.deleteUserEntry(entryId);
-      }
-
-      // Update localStorage
-      const dateKeyStr = selectedDate.toDateString();
-      const savedEntries = loadFromLocalStorage();
-      if (savedEntries[dateKeyStr]) {
-        savedEntries[dateKeyStr] = savedEntries[dateKeyStr].filter(e => e.id !== entryId);
-        localStorage.setItem('healthEntries', JSON.stringify(savedEntries));
-      }
-    } catch (error) {
-      console.error('Error deleting entry:', error);
-      alert('Failed to delete entry. Please try again.');
-    }
+    await deleteEntry(entryId, selectedDate);
   };
 
   // Handle edit - navigate back to main page with date selected
@@ -434,50 +250,13 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     return `${year}-${month}-${day}`;
   })();
 
-  // Export to CSV
-  const exportToCSV = () => {
-    if (currentDateEntries.length === 0) {
-      alert('No entries to export');
-      return;
-    }
 
-    const headers = ['Type', 'Name', 'Time', 'Amount', 'Calories', 'Protein', 'Carbs', 'Fats', 'Notes'];
-    const rows = currentDateEntries.map(entry => {
-      const timeStr = entry.time ? formatTime(entry.time) : '';
-      return [
-        entry.type || '',
-        entry.name || '',
-        timeStr,
-        entry.amount || '',
-        entry.calories || '',
-        entry.protein || '',
-        entry.carbs || '',
-        entry.fats || '',
-        entry.notes || ''
-      ];
-    });
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `entries-${selectedDate.toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  };
 
   // Drag handlers (no-op for read-only view)
-  const handleDragStart = () => {};
-  const handleDragEnd = () => {};
-  const handleDragOver = () => {};
-  const handleDrop = () => {};
+  const handleDragStart = () => { };
+  const handleDragEnd = () => { };
+  const handleDragOver = () => { };
+  const handleDrop = () => { };
 
   if (loading) {
     return (
@@ -538,70 +317,70 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                 <div className="flex items-center justify-between gap-3 mb-6 pb-6 border-b border-gray-200">
                   <h2 className="text-lg md:text-xl font-bold text-gray-900">Today's Entries</h2>
                   <div className="flex items-center gap-2 md:gap-3">
-                  <a
-                    href={`/daily-calories?date=${dateStr}`}
-                    className="flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
-                    title={`View calorie intake graph (${dateStr})`}
-                  >
-                    <span className="whitespace-nowrap">Calories</span>
-                  </a>
-                  <a
-                    href={`/daily-sleep?date=${dateStr}`}
-                    className="flex items-center justify-center px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg border border-purple-100 transition-colors duration-200"
-                    title="View sleep statistics"
-                  >
-                    <span className="whitespace-nowrap">Sleep</span>
-                  </a>
-                  <a
-                    href={`/daily-weight?date=${dateStr}`}
-                    className="flex items-center justify-center px-4 py-2 text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-green-100 transition-colors duration-200"
-                    title="View weight progress"
-                  >
-                    <span className="whitespace-nowrap">Weight</span>
-                  </a>
-                  <button
-                    onClick={exportToCSV}
-                    className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
-                    title="Export daily entries"
-                  >
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span className="whitespace-nowrap">Export</span>
-                  </button>
+                    <a
+                      href={`/daily-calories?date=${dateStr}`}
+                      className="flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
+                      title={`View calorie intake graph (${dateStr})`}
+                    >
+                      <span className="whitespace-nowrap">Calories</span>
+                    </a>
+                    <a
+                      href={`/daily-sleep?date=${dateStr}`}
+                      className="flex items-center justify-center px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg border border-purple-100 transition-colors duration-200"
+                      title="View sleep statistics"
+                    >
+                      <span className="whitespace-nowrap">Sleep</span>
+                    </a>
+                    <a
+                      href={`/daily-weight?date=${dateStr}`}
+                      className="flex items-center justify-center px-4 py-2 text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-green-100 transition-colors duration-200"
+                      title="View weight progress"
+                    >
+                      <span className="whitespace-nowrap">Weight</span>
+                    </a>
+                    <button
+                      onClick={() => exportToCSV(entries, selectedDate)}
+                      className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
+                      title="Export daily entries"
+                    >
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="whitespace-nowrap">Export</span>
+                    </button>
                   </div>
                 </div>
                 <GroupedEntries
                   key={`${dateStr}-${filteredDateEntries.length}`}
                   entries={filteredDateEntries}
-                formatTime={formatTime}
-                settings={settings}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onInfoClick={handleInfoClick}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              />
-              
-              {/* Make A New Entry Button */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <a
-                  href={`/?date=${dateStr}&add=true`}
-                  onClick={(e) => {
-                    // Use replace for faster navigation without adding to history
-                    e.preventDefault();
-                    window.location.replace(`/?date=${dateStr}&add=true`);
-                  }}
-                  className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-95"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Add a New Entry
-                </a>
-              </div>
+                  formatTime={formatTime}
+                  settings={settings}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onInfoClick={handleInfoClick}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                />
+
+                {/* Make A New Entry Button */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <a
+                    href={`/?date=${dateStr}&add=true`}
+                    onClick={(e) => {
+                      // Use replace for faster navigation without adding to history
+                      e.preventDefault();
+                      window.location.replace(`/?date=${dateStr}&add=true`);
+                    }}
+                    className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold py-4 px-6 rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-95"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add a New Entry
+                  </a>
+                </div>
               </>
             ) : (
               !loading && entriesLoaded && filteredDateEntries.length === 0 ? (
