@@ -1,0 +1,445 @@
+﻿17:06:47 [vite] Re-optimizing dependencies because vite config has changed
+17:06:48 [content] Syncing content
+17:06:48 [content] Synced content
+17:06:48 [types] Generated 844ms
+17:06:48 [check] Getting diagnostics for Astro files in C:\Users\Francois\OneDrive\Desktop\MyCalorieBalanceBlog...
+[96msrc/content/config.ts[0m:[93m1[0m:[93m1[0m - [93mwarning[0m[90m ts(6192): [0mAll imports in import declaration are unused.
+
+[7m1[0m import { defineCollection, z } from "astro:content";
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/utils/pagination.ts[0m:[93m10[0m:[93m77[0m - [91merror[0m[90m ts(2339): [0mProperty 'postsPerPage' does not exist on type '{ title: string; logo: string; logoWidth: string; logoHeight: string; logoText: string; author: string; description: string; ogImage: string; noindex: { tags: boolean; categories: boolean; }; copyright: string; }'.
+
+[7m10[0m export function getPagination({ page, totalPosts, postsPerPage = siteConfig.postsPerPage, basePath }: PaginationProps) {
+[7m  [0m [91m                                                                            ~~~~~~~~~~~~[0m
+
+[96msrc/hooks/useHealthData.js[0m:[93m240[0m:[93m19[0m - [93mwarning[0m[90m ts(6133): [0m'dbEntries' is declared but its value is never read.
+
+[7m240[0m             const dbEntries = await healthDB.getAllUserEntries();
+[7m   [0m [93m                  ~~~~~~~~~[0m
+
+[96msrc/hooks/usePhotoManagement.js[0m:[93m103[0m:[93m75[0m - [93mwarning[0m[90m ts(6133): [0m'isDBInitialized' is declared but its value is never read.
+
+[7m103[0m   const handleSavePhotoToGallery = async (selectedDate, time, activeForm, isDBInitialized, addEntry) => {
+[7m   [0m [93m                                                                          ~~~~~~~~~~~~~~~[0m
+
+[96msrc/components/AutocompleteInput.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect, useRef } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/Calendar.jsx[0m:[93m158[0m:[93m27[0m - [93mwarning[0m[90m ts(6133): [0m'e' is declared but its value is never read.
+
+[7m158[0m                 onClick={(e) => {
+[7m   [0m [93m                          ~[0m
+[96msrc/components/Calendar.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useEffect, useMemo, useState } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/DailyEntries.jsx[0m:[93m12[0m:[93m29[0m - [93mwarning[0m[90m ts(6133): [0m'isDBInitialized' is declared but its value is never read.
+
+[7m12[0m   const { entries, loading, isDBInitialized, deleteEntry } = useHealthData();
+[7m  [0m [93m                            ~~~~~~~~~~~~~~~[0m
+[96msrc/components/DailyEntries.jsx[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'healthDB' is declared but its value is never read.
+
+[7m3[0m import healthDB from '../lib/database.js';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DailyEntries.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect, useMemo } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/DateTimeSelector.jsx[0m:[93m984[0m:[93m26[0m - [93mwarning[0m[90m ts(6133): [0m'targetEntry' is declared but its value is never read.
+
+[7m984[0m   const handleDrop = (e, targetEntry) => {
+[7m   [0m [93m                         ~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m984[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'handleDrop' is declared but its value is never read.
+
+[7m984[0m   const handleDrop = (e, targetEntry) => {
+[7m   [0m [93m        ~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m977[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'handleDragOver' is declared but its value is never read.
+
+[7m977[0m   const handleDragOver = (e) => {
+[7m   [0m [93m        ~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m972[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'handleDragEnd' is declared but its value is never read.
+
+[7m972[0m   const handleDragEnd = (e) => {
+[7m   [0m [93m        ~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m966[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'handleDragStart' is declared but its value is never read.
+
+[7m966[0m   const handleDragStart = (e, entry) => {
+[7m   [0m [93m        ~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m813[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'foundDateKey' is declared but its value is never read.
+
+[7m813[0m       let foundDateKey = null;
+[7m   [0m [93m          ~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m683[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'toggleQuickAddItem' is declared but its value is never read.
+
+[7m683[0m   const toggleQuickAddItem = async (item, type) => {
+[7m   [0m [93m        ~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m643[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'handleOpenQuickAddManager' is declared but its value is never read.
+
+[7m643[0m   const handleOpenQuickAddManager = (type) => {
+[7m   [0m [93m        ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m611[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'handleQuickAdd' is declared but its value is never read.
+
+[7m611[0m   const handleQuickAdd = (item, type) => {
+[7m   [0m [93m        ~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m586[0m:[93m12[0m - [93mwarning[0m[90m ts(6133): [0m'handleDelete' is declared but its value is never read.
+
+[7m586[0m   function handleDelete(id) {
+[7m   [0m [93m           ~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m579[0m:[93m12[0m - [93mwarning[0m[90m ts(6133): [0m'removeSet' is declared but its value is never read.
+
+[7m579[0m   function removeSet(index) {
+[7m   [0m [93m           ~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m570[0m:[93m12[0m - [93mwarning[0m[90m ts(6133): [0m'updateSet' is declared but its value is never read.
+
+[7m570[0m   function updateSet(index, field, value) {
+[7m   [0m [93m           ~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m563[0m:[93m12[0m - [93mwarning[0m[90m ts(6133): [0m'addSet' is declared but its value is never read.
+
+[7m563[0m   function addSet() {
+[7m   [0m [93m           ~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m420[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'totalSleepDuration' is declared but its value is never read.
+
+[7m420[0m   const totalSleepDuration = useMemo(() => {
+[7m   [0m [93m        ~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m407[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'toggleTimeGroup' is declared but its value is never read.
+
+[7m407[0m   const toggleTimeGroup = (timeKey) => {
+[7m   [0m [93m        ~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m377[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'groupedEntries' is declared but its value is never read.
+
+[7m377[0m   const groupedEntries = useMemo(() => {
+[7m   [0m [93m        ~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m185[0m:[93m5[0m - [93mwarning[0m[90m ts(7027): [0mUnreachable code detected.
+
+[7m185[0m     const urlParamsCheck = new URLSearchParams(window.location.search);
+[7m   [0m [93m    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m186[0m     const hasEditOrInfo = urlParamsCheck.get('edit') || urlParamsCheck.get('info');
+[7m   [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m217[0m       console.error('Error loading settings from localStorage:', error);
+[7m   [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m218[0m     }
+[7m   [0m [93m~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m118[0m:[93m5[0m - [93mwarning[0m[90m ts(6133): [0m'loadEntryForEdit' is declared but its value is never read.
+
+[7m118[0m     loadEntryForEdit
+[7m   [0m [93m    ~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m117[0m:[93m5[0m - [93mwarning[0m[90m ts(6133): [0m'handleSubmitWithData' is declared but its value is never read.
+
+[7m117[0m     handleSubmitWithData,
+[7m   [0m [93m    ~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m98[0m:[93m26[0m - [93mwarning[0m[90m ts(2568): [0mProperty 'saveExerciseItem' may not exist on type 'HealthDatabase'. Did you mean 'addExerciseItem'?
+
+[7m98[0m           await healthDB.saveExerciseItem(exerciseData);
+[7m  [0m [93m                         ~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m41[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'collapsedTimes' is declared but its value is never read.
+
+[7m41[0m   const [collapsedTimes, setCollapsedTimes] = useState(new Set());
+[7m  [0m [93m         ~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m40[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'draggedEntry' is declared but its value is never read.
+
+[7m40[0m   const [draggedEntry, setDraggedEntry] = useState(null);
+[7m  [0m [93m         ~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m31[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'showExerciseInput' is declared but its value is never read.
+
+[7m31[0m   const [showExerciseInput, setShowExerciseInput] = useState(false);
+[7m  [0m [93m         ~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m27[0m:[93m33[0m - [93mwarning[0m[90m ts(6133): [0m'setLibrarySuccessMessage' is declared but its value is never read.
+
+[7m27[0m   const [librarySuccessMessage, setLibrarySuccessMessage] = useState('');
+[7m  [0m [93m                                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m24[0m:[93m20[0m - [93mwarning[0m[90m ts(6133): [0m'loading' is declared but its value is never read.
+
+[7m24[0m   const { entries, loading, isDBInitialized, addEntry, updateEntry, deleteEntry } = useHealthData();
+[7m  [0m [93m                   ~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m10[0m:[93m1[0m - [93mwarning[0m[90m ts(6192): [0mAll imports in import declaration are unused.
+
+[7m10[0m import { exportToJSON, exportToCSV, exportToPDF } from '../lib/exportUtils';
+[7m  [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m5[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'GroupedEntries' is declared but its value is never read.
+
+[7m5[0m import GroupedEntries from './GroupedEntries';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'TimePicker' is declared but its value is never read.
+
+[7m3[0m import TimePicker from '@react/TimePicker';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/DateTimeSelector.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useMemo, useState, useEffect, useRef } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/ExportManager.jsx[0m:[93m126[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'exportToPDF' is declared but its value is never read.
+
+[7m126[0m   const exportToPDF = () => {
+[7m   [0m [93m        ~~~~~~~~~~~[0m
+[96msrc/components/ExportManager.jsx[0m:[93m96[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'exportToJSON' is declared but its value is never read.
+
+[7m96[0m   const exportToJSON = () => {
+[7m  [0m [93m        ~~~~~~~~~~~~[0m
+[96msrc/components/ExportManager.jsx[0m:[93m35[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'exportToCSV' is declared but its value is never read.
+
+[7m35[0m   const exportToCSV = () => {
+[7m  [0m [93m        ~~~~~~~~~~~[0m
+[96msrc/components/ExportManager.jsx[0m:[93m5[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'loading' is declared but its value is never read.
+
+[7m5[0m   const [loading, setLoading] = useState(false);
+[7m [0m [93m         ~~~~~~~[0m
+[96msrc/components/ExportManager.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/GroupedEntries.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/KilojouleConverter.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/LibraryManager.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/MeasurementsForm.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/OfflineIndicator.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/PWAInstallPrompt.jsx[0m:[93m131[0m:[93m3[0m - [93mwarning[0m[90m ts(7027): [0mUnreachable code detected.
+
+[7m131[0m   return (
+[7m   [0m [93m  ~~~~~~~~[0m
+[7m132[0m     <div className="fixed bottom-20 left-4 right-4 z-[60] md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
+[7m   [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m177[0m     </div>
+[7m   [0m [93m~~~~~~~~~~[0m
+[7m178[0m   );
+[7m   [0m [93m~~~~[0m
+[96msrc/components/PWAInstallPrompt.jsx[0m:[93m7[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'isClient' is declared but its value is never read.
+
+[7m7[0m   const [isClient, setIsClient] = useState(false);
+[7m [0m [93m         ~~~~~~~~[0m
+[96msrc/components/PWAInstallPrompt.jsx[0m:[93m5[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'showInstallPrompt' is declared but its value is never read.
+
+[7m5[0m   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+[7m [0m [93m         ~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/PWAInstallPrompt.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/PhotoGallery.jsx[0m:[93m89[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'getTypeLabel' is declared but its value is never read.
+
+[7m89[0m function getTypeLabel(type) {
+[7m  [0m [93m         ~~~~~~~~~~~~[0m
+[96msrc/components/PhotoGallery.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useEffect, useMemo, useState } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/ProteinCalorieCalculator.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/Settings.jsx[0m:[93m44[0m:[93m19[0m - [93mwarning[0m[90m ts(6133): [0m'onClose' is declared but its value is never read.
+
+[7m44[0m const Settings = ({ onClose = null }) => {
+[7m  [0m [93m                  ~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/Settings.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useEffect } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/TimePicker.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { useMemo, useRef, useEffect, useState } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/components/HealthTracker/InfoModal.jsx[0m:[93m1[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React from 'react';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/contexts/SettingsContext.jsx[0m:[93m1[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'React' is declared but its value is never read.
+
+[7m1[0m import React, { createContext, useContext, useState, useEffect } from 'react';
+[7m [0m [93m       ~~~~~[0m
+
+[96msrc/pages/calorie-calculator.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/daily-calories.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/daily-calories.astro[0m:[93m691[0m:[93m15[0m - [93mwarning[0m[90m ts(6133): [0m'isUnder' is declared but its value is never read.
+
+[7m691[0m         const isUnder = difference < 0;
+[7m   [0m [93m              ~~~~~~~[0m
+[96msrc/pages/daily-calories.astro[0m:[93m527[0m:[93m15[0m - [93mwarning[0m[90m ts(6133): [0m'totalCal' is declared but its value is never read.
+
+[7m527[0m         const totalCal = macroData.totalCalories > 0 ? macroData.totalCalories : totalCalFromGrams;
+[7m   [0m [93m              ~~~~~~~~[0m
+[96msrc/pages/daily-calories.astro[0m:[93m274[0m:[93m45[0m - [93mwarning[0m[90m ts(6133): [0m'reject' is declared but its value is never read.
+
+[7m274[0m           await new Promise<void>((resolve, reject) => {
+[7m   [0m [93m                                            ~~~~~~[0m
+
+[96msrc/pages/daily-sleep.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/daily-weight.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/daily-weight.astro[0m:[93m124[0m:[93m15[0m - [91merror[0m[90m ts(2794): [0mExpected 1 arguments, but got 0. Did you forget to include 'void' in your type argument to 'Promise'?
+
+[7m124[0m               resolve();
+[7m   [0m [91m              ~~~~~~~[0m
+[96msrc/pages/daily-weight.astro[0m:[93m119[0m:[93m11[0m - [91merror[0m[90m ts(2794): [0mExpected 1 arguments, but got 0. Did you forget to include 'void' in your type argument to 'Promise'?
+
+[7m119[0m           resolve();
+[7m   [0m [91m          ~~~~~~~[0m
+
+[96msrc/pages/entries.astro[0m:[93m19[0m:[93m41[0m - [91merror[0m[90m ts(2322): [0mType '{ "client:load": true; date: string; key: string; }' is not assignable to type 'IntrinsicAttributes & { date: any; }'.
+  Property 'key' does not exist on type 'IntrinsicAttributes & { date: any; }'.
+
+[7m19[0m   <DailyEntries client:load date={date} key={date} />
+[7m  [0m [91m                                        ~~~[0m
+[96msrc/pages/entries.astro[0m:[93m4[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m4[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/food-logger-test.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/helpful-links.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/helpful-links.astro[0m:[93m625[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'totalCount' is declared but its value is never read.
+
+[7m625[0m       let totalCount = allLinks.length;
+[7m   [0m [93m          ~~~~~~~~~~[0m
+
+[96msrc/pages/index.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/kilojoule-converter.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/library.astro[0m:[93m4[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m4[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/portion-guide.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/protein-calculator.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/settings.astro[0m:[93m5[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m5[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/statistics.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/tools.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'siteConfig' is declared but its value is never read.
+
+[7m3[0m import { siteConfig } from '@config/site';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/tools.astro[0m:[93m531[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'totalCount' is declared but its value is never read.
+
+[7m531[0m       let totalCount = allLinks.length;
+[7m   [0m [93m          ~~~~~~~~~~[0m
+
+[96msrc/layouts/Layout.astro[0m:[93m43[0m:[93m3[0m - [93mwarning[0m[90m ts(6133): [0m'showHeader' is declared but its value is never read.
+
+[7m43[0m   showHeader = true,
+[7m  [0m [93m  ~~~~~~~~~~[0m
+[96msrc/layouts/Layout.astro[0m:[93m42[0m:[93m3[0m - [93mwarning[0m[90m ts(6133): [0m'showFooter' is declared but its value is never read.
+
+[7m42[0m   showFooter = true,
+[7m  [0m [93m  ~~~~~~~~~~[0m
+
+[96msrc/layouts/components/common/BottomNavigation.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'Icon' is declared but its value is never read.
+
+[7m3[0m import { Icon } from 'astro-icon/components';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/layouts/components/common/SEO.astro[0m:[93m44[0m:[93m3[0m - [93mwarning[0m[90m ts(6133): [0m'categories' is declared but its value is never read.
+
+[7m44[0m   categories
+[7m  [0m [93m  ~~~~~~~~~~[0m
+[96msrc/layouts/components/common/SEO.astro[0m:[93m243[0m:[93m11[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m243[0m   <script type="application/ld+json" set:html={JSON.stringify(videoSchema)} />
+[7m   [0m [93m          ~~~~[0m
+[96msrc/layouts/components/common/SEO.astro[0m:[93m238[0m:[93m11[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m238[0m   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbsSchema)} />
+[7m   [0m [93m          ~~~~[0m
+[96msrc/layouts/components/common/SEO.astro[0m:[93m234[0m:[93m9[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m234[0m <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+[7m   [0m [93m        ~~~~[0m
+
+[96msrc/layouts/components/common/TopNavigation.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'Icon' is declared but its value is never read.
+
+[7m3[0m import { Icon } from 'astro-icon/components';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+Result (52 files): 
+- 4 errors
+- 0 warnings
+- 88 hints
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 // Custom CSS for responsive radio buttons and toggle switches
 const radioStyles = `
@@ -41,7 +41,7 @@ const radioStyles = `
   }
 `;
 
-const Settings = ({ onClose = null }) => {
+const Settings = ({ onClose: _onClose = null }) => {
   // Only initialize hooks if we're on the client side
   const [isClient, setIsClient] = useState(false);
   const [settings, setSettings] = useState({
@@ -227,7 +227,7 @@ Please format your response clearly so I can easily update my meal entry.`,
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: radioStyles }} />
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto">
+      <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-lg p-4 sm:p-6 max-w-4xl mx-auto">
         <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">App Settings</h4>
 
         {/* Dark Mode Toggle */}
@@ -241,7 +241,7 @@ Please format your response clearly so I can easily update my meal entry.`,
             </div>
             <button
               onClick={handleThemeToggle}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 text-gray-700 dark:text-gray-300"
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[var(--color-bg-subtle)] hover:bg-gray-50 dark:hover:bg-[var(--color-bg-muted)] transition-all duration-200 text-gray-700 dark:text-gray-300"
             >
               {/* Moon icon (light mode) */}
               <svg

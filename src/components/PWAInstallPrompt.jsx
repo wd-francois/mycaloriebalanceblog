@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
   const [isInstalled, setIsInstalled] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+
   const [userEngaged, setUserEngaged] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    
+
     // Only run on client side
     if (typeof window === 'undefined') return;
-    
+
     // Track user engagement - only show prompt to engaged users
     let engagementTimer;
     let pageViews = 0;
     let timeOnSite = 0;
-    
+
     const trackEngagement = () => {
       pageViews++;
       timeOnSite += 30; // Track in 30-second intervals
-      
+
       // Show prompt only if user has been engaged for at least 2 minutes
       // or has visited multiple pages
       if (timeOnSite >= 120 || pageViews >= 3) {
@@ -29,15 +29,15 @@ const PWAInstallPrompt = () => {
         clearInterval(engagementTimer);
       }
     };
-    
+
     // Start tracking engagement
     engagementTimer = setInterval(trackEngagement, 30000); // Check every 30 seconds
-    
+
     // Check if the app is already installed
     const checkIfInstalled = () => {
       // Check if running in standalone mode (installed PWA)
-      if (window.matchMedia('(display-mode: standalone)').matches || 
-          window.navigator.standalone === true) {
+      if (window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true) {
         setIsInstalled(true);
         return;
       }
@@ -57,7 +57,7 @@ const PWAInstallPrompt = () => {
       console.log('PWA: beforeinstallprompt event fired');
       e.preventDefault();
       setDeferredPrompt(e);
-      
+
       // Store the prompt for later use when user becomes engaged
       // Don't show immediately - wait for engagement
     };
@@ -68,7 +68,7 @@ const PWAInstallPrompt = () => {
       setIsInstalled(true);
       setShowInstallPrompt(false);
       setDeferredPrompt(null);
-      
+
       // Only run on client side
       if (typeof window !== 'undefined') {
         localStorage.setItem('pwa-installed', 'true');
@@ -103,15 +103,15 @@ const PWAInstallPrompt = () => {
     if (!deferredPrompt) return;
 
     console.log('PWA: Showing install prompt');
-    
+
     // Show the install prompt
     deferredPrompt.prompt();
-    
+
     // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     console.log(`PWA: User response to install prompt: ${outcome}`);
-    
+
     // Clear the deferred prompt
     setDeferredPrompt(null);
     setShowInstallPrompt(false);
@@ -126,11 +126,11 @@ const PWAInstallPrompt = () => {
   };
 
   // TEMPORARILY DISABLED FOR DEBUGGING - Return early to disable component
-  return null;
+  // return null;
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-[60] md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
             <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
@@ -139,7 +139,7 @@ const PWAInstallPrompt = () => {
               </svg>
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
               Add to Home Screen
@@ -147,7 +147,7 @@ const PWAInstallPrompt = () => {
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Get quick access to your calorie tracking with offline support.
             </p>
-            
+
             <div className="flex space-x-2 mt-3">
               <button
                 onClick={handleInstallClick}
@@ -157,13 +157,13 @@ const PWAInstallPrompt = () => {
               </button>
               <button
                 onClick={handleDismiss}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200"
+                className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-[var(--color-bg-subtle)] dark:hover:bg-[var(--color-bg-muted)] text-gray-800 dark:text-gray-200 text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200"
               >
                 Maybe later
               </button>
             </div>
           </div>
-          
+
           <button
             onClick={handleDismiss}
             className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"

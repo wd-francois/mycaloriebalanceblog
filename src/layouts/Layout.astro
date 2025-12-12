@@ -39,11 +39,9 @@ const {
   modifiedDate,
   showBottomNav = false,
   showTopNav = false,
-  showFooter = true,
-  showHeader = true,
   author,
   tags,
-  categories
+
 } = Astro.props;
 ---
 
@@ -87,7 +85,7 @@ const {
     <meta name="theme-color" content="#3b82f6" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="CalorieBalance" />
+    <meta name="apple-mobile-web-app-title" content="My Calorie Balance" />
    
     <meta name="generator" content={Astro.generator} />
     
@@ -149,7 +147,7 @@ const {
         background-color: #1f2937;
       }
       .dark body {
-        background-color: #111827;
+        background-color: #0D1321;
         color: #fff;
       }
       main {
@@ -204,13 +202,13 @@ const {
       
       author={author}
       tags={tags}
-      categories={categories}
+
     />
   
   
     
   </head>
-  <body class={`bg-white dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen flex flex-col ${showBottomNav ? 'bottom-nav-present' : ''} ${showTopNav ? 'top-nav-present' : ''}`}>
+  <body class={`bg-white dark:bg-[var(--color-bg-base)] text-gray-900 dark:text-white min-h-screen flex flex-col ${showBottomNav ? 'bottom-nav-present' : ''} ${showTopNav ? 'top-nav-present' : ''}`}>
     <!-- Script to prevent FOUC - TEMPORARILY DISABLED FOR DEBUGGING -->
     <!-- <script is:inline>
       // Remove loading class when CSS is loaded
@@ -279,8 +277,8 @@ const {
     {showTopNav && <TopNavigation />}
     
     <!-- Main content area with conditional width -->
-    <main class="flex-grow w-full overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
-      <div class={wideContent ? "w-full" : "max-w-5xl mx-auto px-4 sm:px-6"}>
+    <main class="flex-grow w-full dark:bg-[var(--color-bg-base)] flex items-center justify-center" style="touch-action: pan-y; -webkit-overflow-scrolling: touch; min-height: 100vh; overflow-y-auto;">
+      <div class={`w-full ${wideContent ? "" : "max-w-5xl mx-auto px-4 sm:px-6"}`}>
         <slot />
       </div>
     </main>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const KilojouleConverter = () => {
   const [kilojoules, setKilojoules] = useState('');
@@ -60,7 +60,7 @@ const KilojouleConverter = () => {
   const handleSwap = () => {
     setIsSwapping(true);
     setTimeout(() => setIsSwapping(false), 300);
-    
+
     const tempKj = kilojoules;
     const tempCal = calories;
     setKilojoules(tempCal);
@@ -181,7 +181,7 @@ const KilojouleConverter = () => {
               </svg>
               Clear All
             </button>
-            
+
             {kilojoules && calories && (
               <div className="flex items-center gap-2 text-sm">
                 <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -244,7 +244,7 @@ const KilojouleConverter = () => {
           <div>
             <h4 className="font-semibold text-gray-900 mb-2">About the Conversion</h4>
             <p className="text-sm text-gray-700 leading-relaxed">
-              Both kilojoules (kJ) and kilocalories (kcal) measure food energy. Most food labels show values in both units. 
+              Both kilojoules (kJ) and kilocalories (kcal) measure food energy. Most food labels show values in both units.
               The scientific standard is kilojoules, while kilocalories (often called "calories") are commonly used in nutrition.
             </p>
           </div>

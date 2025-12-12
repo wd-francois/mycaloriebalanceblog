@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const OfflineIndicator = () => {
   const [isOnline, setIsOnline] = useState(true); // Default to true for SSR
@@ -7,10 +7,10 @@ const OfflineIndicator = () => {
 
   useEffect(() => {
     setIsClient(true);
-    
+
     // Only run on client side
     if (typeof window === 'undefined') return;
-    
+
     // Set initial online status
     setIsOnline(navigator.onLine);
 
@@ -54,20 +54,17 @@ const OfflineIndicator = () => {
   }
 
   return (
-    <div className={`fixed top-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm transition-all duration-300 ${
-      isOnline ? 'animate-fade-in' : 'animate-slide-down'
-    }`}>
-      <div className={`rounded-lg shadow-lg border p-3 ${
-        isOnline 
-          ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' 
-          : 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800'
+    <div className={`fixed top-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm transition-all duration-300 ${isOnline ? 'animate-fade-in' : 'animate-slide-down'
       }`}>
+      <div className={`rounded-lg shadow-lg border p-3 ${isOnline
+          ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
+          : 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800'
+        }`}>
         <div className="flex items-center space-x-2">
-          <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
-            isOnline 
-              ? 'bg-green-100 dark:bg-green-800' 
+          <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${isOnline
+              ? 'bg-green-100 dark:bg-green-800'
               : 'bg-orange-100 dark:bg-orange-800'
-          }`}>
+            }`}>
             {isOnline ? (
               <svg className="w-3 h-3 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -78,34 +75,31 @@ const OfflineIndicator = () => {
               </svg>
             )}
           </div>
-          
+
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-medium ${
-              isOnline 
-                ? 'text-green-800 dark:text-green-200' 
+            <p className={`text-sm font-medium ${isOnline
+                ? 'text-green-800 dark:text-green-200'
                 : 'text-orange-800 dark:text-orange-200'
-            }`}>
+              }`}>
               {isOnline ? 'Back online' : 'You\'re offline'}
             </p>
-            <p className={`text-xs ${
-              isOnline 
-                ? 'text-green-600 dark:text-green-400' 
+            <p className={`text-xs ${isOnline
+                ? 'text-green-600 dark:text-green-400'
                 : 'text-orange-600 dark:text-orange-400'
-            }`}>
-              {isOnline 
-                ? 'Your data will sync automatically' 
+              }`}>
+              {isOnline
+                ? 'Your data will sync automatically'
                 : 'Some features may be limited. Your data is saved locally.'
               }
             </p>
           </div>
-          
+
           <button
             onClick={() => setShowIndicator(false)}
-            className={`flex-shrink-0 ${
-              isOnline 
-                ? 'text-green-400 hover:text-green-600 dark:hover:text-green-300' 
+            className={`flex-shrink-0 ${isOnline
+                ? 'text-green-400 hover:text-green-600 dark:hover:text-green-300'
                 : 'text-orange-400 hover:text-orange-600 dark:hover:text-orange-300'
-            }`}
+              }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />

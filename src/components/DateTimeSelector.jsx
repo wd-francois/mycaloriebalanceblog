@@ -1,13 +1,13 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
-import Calendar from '@react/Calendar';
-import TimePicker from '@react/TimePicker';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import Calendar from './Calendar';
+
 import AutocompleteInput from './AutocompleteInput';
-import GroupedEntries from './GroupedEntries';
+
 import healthDB from '../lib/database.js';
 import { SettingsProvider } from '../contexts/SettingsContext.jsx';
 import { formatDate, formatTime } from '../lib/utils';
 import { getCurrentTimeParts, calculateSleepDuration } from '../lib/dateUtils';
-import { exportToJSON, exportToCSV, exportToPDF } from '../lib/exportUtils';
+
 import { useHealthData } from '../hooks/useHealthData';
 import { useFormState } from '../hooks/useFormState';
 import { usePhotoManagement } from '../hooks/usePhotoManagement';
@@ -17,28 +17,39 @@ import { usePhotoManagement } from '../hooks/usePhotoManagement';
 const DateTimeSelector = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [time, setTime] = useState(() => getCurrentTimeParts());
-  const [showModal, setShowModal] = useState(false);
+  // Initialize showModal to true if we have edit/info params in URL
+  const [showModal, setShowModal] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return !!(urlParams.get('edit') || urlParams.get('info'));
+    }
+    return false;
+  });
   const [isClient, setIsClient] = useState(false);
 
   // Entries state managed by useHealthData hook
-  const { entries, loading, isDBInitialized, addEntry, updateEntry, deleteEntry } = useHealthData();
+  const { entries, isDBInitialized, addEntry, updateEntry } = useHealthData();
+
+
 
   // Library state
-  const [librarySuccessMessage, setLibrarySuccessMessage] = useState('');
+
 
   // Form visibility state
   const [showMealInput, setShowMealInput] = useState(false);
-  const [showExerciseInput, setShowExerciseInput] = useState(false);
+
   const [showSleepInput, setShowSleepInput] = useState(false);
   const [showMeasurementsInput, setShowMeasurementsInput] = useState(false);
+  // Exercise is disabled, but handleSubmit expects this function
+  const setShowExerciseInput = () => {};
 
   // Other state
-  const [frequentItems, setFrequentItems] = useState({ food: [], exercise: [] });
+
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [infoFormData, setInfoFormData] = useState({ notes: '' });
-  const [draggedEntry, setDraggedEntry] = useState(null);
-  const [collapsedTimes, setCollapsedTimes] = useState(new Set());
+
+
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState({
     weightUnit: 'kg',
@@ -53,6 +64,7 @@ const DateTimeSelector = () => {
     enableMeals: true
   });
   const processedUrlParams = useRef(new Set());
+  const modalOpenedViaEdit = useRef(false);
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
 
   // Auto-add to library function (needed by useFormState)
@@ -95,7 +107,7 @@ const DateTimeSelector = () => {
         );
 
         if (!isDuplicate) {
-          await healthDB.saveExerciseItem(exerciseData);
+          await healthDB.addExerciseItem(exerciseData);
           console.log('Exercise added to database library:', entry.name);
         }
       }
@@ -113,9 +125,7 @@ const DateTimeSelector = () => {
     formSuccessMessage,
     activeForm,
     setActiveForm,
-    handleSubmit,
-    handleSubmitWithData,
-    loadEntryForEdit
+    handleSubmit
   } = useFormState(addEntry, updateEntry, addToLibrary);
 
   // Photo management handled by usePhotoManagement hook
@@ -179,8 +189,6 @@ const DateTimeSelector = () => {
       }
     }, 1000);
 
-    return () => clearTimeout(timeoutId);
-
     // Check if we have edit/info URL params - if so, don't load form state from localStorage
     const urlParamsCheck = new URLSearchParams(window.location.search);
     const hasEditOrInfo = urlParamsCheck.get('edit') || urlParamsCheck.get('info');
@@ -216,6 +224,8 @@ const DateTimeSelector = () => {
     } catch (error) {
       console.error('Error loading settings from localStorage:', error);
     }
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   useEffect(() => {
@@ -267,7 +277,7 @@ const DateTimeSelector = () => {
   // Load frequent items when database is initialized
   useEffect(() => {
     if (isDBInitialized) {
-      loadFrequentItems();
+
     }
   }, [isDBInitialized]);
 
@@ -288,13 +298,25 @@ const DateTimeSelector = () => {
     }
   }, [formState]);
 
+  // Update setting function for settings modal
+  const updateSetting = (key, value) => {
+    if (typeof window === 'undefined') return;
+    
+    setSettings(prev => {
+      const newSettings = { ...prev, [key]: value };
+      // Save to localStorage
+      localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
+      return newSettings;
+    });
+  };
+
 
 
 
   const headerText = useMemo(() => {
-    if (!selectedDate) return '';
-    return formatDate(selectedDate);
-  }, [selectedDate]);
+    // Return empty string - date will be shown in the form area instead
+    return '';
+  }, []);
 
   // Prevent body scroll when info modal is open
   useEffect(() => {
@@ -370,115 +392,16 @@ const DateTimeSelector = () => {
       availableKeys: Object.keys(entries),
       firstFewKeys: Object.keys(entries).slice(0, 5)
     });
+
     return todayEntriesList;
   }, [entries]);
 
-  // Group entries by time
-  const groupedEntries = useMemo(() => {
-    const groups = {};
-    currentDateEntries.forEach(entry => {
-      const timeKey = formatTime(entry.time);
-      if (!groups[timeKey]) {
-        groups[timeKey] = [];
-      }
-      groups[timeKey].push(entry);
-    });
-
-    // Sort groups by time
-    const sortedGroups = Object.keys(groups).sort((a, b) => {
-      const timeA = groups[a][0].time;
-      const timeB = groups[b][0].time;
-
-      // Convert to 24-hour format for comparison
-      const hourA = timeA.period === 'AM' ? (timeA.hour === 12 ? 0 : timeA.hour) : (timeA.hour === 12 ? 12 : timeA.hour + 12);
-      const hourB = timeB.period === 'AM' ? (timeB.hour === 12 ? 0 : timeB.hour) : (timeB.hour === 12 ? 12 : timeB.hour + 12);
-
-      if (hourA !== hourB) return hourA - hourB;
-      return timeA.minute - timeB.minute;
-    });
-
-    return sortedGroups.map(timeKey => ({
-      time: timeKey,
-      entries: groups[timeKey]
-    }));
-  }, [currentDateEntries]);
-
-  // Toggle time group collapse
-  const toggleTimeGroup = (timeKey) => {
-    setCollapsedTimes(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(timeKey)) {
-        newSet.delete(timeKey);
-      } else {
-        newSet.add(timeKey);
-      }
-      return newSet;
-    });
-  };
-
-  // Calculate total sleep duration for the selected date
-  const totalSleepDuration = useMemo(() => {
-    const sleepEntries = currentDateEntries.filter(entry => entry.type === 'sleep');
-    if (sleepEntries.length === 0) return null;
-
-    let totalMinutes = 0;
-    sleepEntries.forEach(entry => {
-      if (entry.duration) {
-        // Parse duration string like "8h 30m" or "7h" or "45m"
-        const duration = entry.duration;
-        const hoursMatch = duration.match(/(\d+)h/);
-        const minutesMatch = duration.match(/(\d+)m/);
-
-        const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
-        const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
-
-        totalMinutes += hours * 60 + minutes;
-      }
-    });
-
-    const totalHours = Math.floor(totalMinutes / 60);
-    const remainingMinutes = totalMinutes % 60;
-
-    if (totalHours === 0) {
-      return `${remainingMinutes}m`;
-    } else if (remainingMinutes === 0) {
-      return `${totalHours}h`;
-    } else {
-      return `${totalHours}h ${remainingMinutes}m`;
-    }
-  }, [currentDateEntries]);
-
-  // Calculate total sleep duration for today (for Today's Summary card)
   const todaySleepDuration = useMemo(() => {
-    const sleepEntries = todayEntries.filter(entry => entry.type === 'sleep');
-    if (sleepEntries.length === 0) return null;
-
-    let totalMinutes = 0;
-    sleepEntries.forEach(entry => {
-      if (entry.duration) {
-        // Parse duration string like "8h 30m" or "7h" or "45m"
-        const duration = entry.duration;
-        const hoursMatch = duration.match(/(\d+)h/);
-        const minutesMatch = duration.match(/(\d+)m/);
-
-        const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
-        const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
-
-        totalMinutes += hours * 60 + minutes;
-      }
-    });
-
-    const totalHours = Math.floor(totalMinutes / 60);
-    const remainingMinutes = totalMinutes % 60;
-
-    if (totalHours === 0) {
-      return `${remainingMinutes}m`;
-    } else if (remainingMinutes === 0) {
-      return `${totalHours}h`;
-    } else {
-      return `${totalHours}h ${remainingMinutes}m`;
-    }
+    const sleepEntry = todayEntries.find(e => e.type === 'sleep');
+    return sleepEntry ? sleepEntry.duration : null;
   }, [todayEntries]);
+
+
 
   function handleDateSelect(date) {
     setSelectedDate(date);
@@ -520,7 +443,7 @@ const DateTimeSelector = () => {
     setActiveForm('meal');
     // Close any open form inputs
     setShowMealInput(false);
-    setShowExerciseInput(false);
+
     setShowSleepInput(false);
     setShowMeasurementsInput(false);
     setShowModal(true);
@@ -549,10 +472,11 @@ const DateTimeSelector = () => {
 
     // Close the modal
     setShowModal(false);
+    modalOpenedViaEdit.current = false; // Reset the flag when modal is closed
 
     // Reset form inputs to ensure clean state
     setShowMealInput(false);
-    setShowExerciseInput(false);
+
     setShowSleepInput(false);
     setShowMeasurementsInput(false);
   }
@@ -560,36 +484,9 @@ const DateTimeSelector = () => {
 
 
   // Functions to handle individual sets
-  function addSet() {
-    setFormState(prev => ({
-      ...prev,
-      sets: [...prev.sets, { reps: '', load: '' }]
-    }));
-  }
 
-  function updateSet(index, field, value) {
-    setFormState(prev => ({
-      ...prev,
-      sets: prev.sets.map((set, i) =>
-        i === index ? { ...set, [field]: value } : set
-      )
-    }));
-  }
 
-  function removeSet(index) {
-    setFormState(prev => ({
-      ...prev,
-      sets: prev.sets.filter((_, i) => i !== index)
-    }));
-  }
 
-  function handleDelete(id) {
-    if (!selectedDate) return;
-    deleteEntry(id, selectedDate);
-    if (formState.id === id) {
-      resetForm();
-    }
-  }
 
   // Handle autocomplete selection
   const handleAutocompleteSelect = (item) => {
@@ -621,106 +518,9 @@ const DateTimeSelector = () => {
   };
 
   // Handle quick add
-  const handleQuickAdd = (item, type) => {
-    if (type === 'exercise' && item.defaultSets && item.defaultReps) {
-      // Create a default set with the exercise's default values
-      const defaultSet = {
-        reps: item.defaultReps.toString(),
-        load: item.defaultLoad || ''
-      };
-
-      setFormState(prev => ({
-        ...prev,
-        name: item.name,
-        type: type,
-        sets: [defaultSet]
-      }));
-    } else {
-      setFormState(prev => ({
-        ...prev,
-        name: item.name,
-        type: type
-      }));
-    }
-
-    if (type === 'meal') {
-      setActiveForm('meal');
-      setShowMealInput(true);
-    } else if (type === 'exercise') {
-      setActiveForm('exercise');
-      setShowExerciseInput(true);
-    }
-  };
-
-  // Handle quick add management
-  const handleOpenQuickAddManager = (type) => {
-    setQuickAddType(type);
-    setShowQuickAddManager(true);
-  };
-
-  // Handle settings update
-  const updateSetting = (key, value) => {
-    const newSettings = { ...settings, [key]: value };
-    setSettings(newSettings);
-
-    // Only run on client side
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
-    }
-  };
 
 
 
-  // Load frequent items
-  const loadFrequentItems = async () => {
-    try {
-      const [foodItems, exerciseItems] = await Promise.all([
-        healthDB.getFoodItems('', 5),
-        healthDB.getExerciseItems('', 5)
-      ]);
-
-      setFrequentItems({
-        food: foodItems || [],
-        exercise: exerciseItems || []
-      });
-    } catch (error) {
-      console.error('Error loading frequent items:', error);
-      // Set empty arrays as fallback
-      setFrequentItems({
-        food: [],
-        exercise: []
-      });
-    }
-  };
-
-  const toggleQuickAddItem = async (item, type) => {
-    try {
-      const currentFrequentItems = frequentItems[type];
-      const isCurrentlyFrequent = currentFrequentItems.some(frequentItem => frequentItem.id === item.id);
-
-      if (isCurrentlyFrequent) {
-        // Remove from frequent items
-        const updatedFrequentItems = currentFrequentItems.filter(frequentItem => frequentItem.id !== item.id);
-        setFrequentItems(prev => ({
-          ...prev,
-          [type]: updatedFrequentItems
-        }));
-      } else {
-        // Add to frequent items (limit to 5 items)
-        if (currentFrequentItems.length < 5) {
-          const updatedFrequentItems = [...currentFrequentItems, item];
-          setFrequentItems(prev => ({
-            ...prev,
-            [type]: updatedFrequentItems
-          }));
-        } else {
-          alert(`You can only have up to 5 quick add items. Please remove one first.`);
-        }
-      }
-    } catch (error) {
-      console.error('Error toggling quick add item:', error);
-    }
-  };
 
   // Handle information modal
   const handleInfoClick = (entry) => {
@@ -774,6 +574,10 @@ const DateTimeSelector = () => {
     // Skip if we've already processed these params
     if (processedUrlParams.current.has(urlKey)) {
       console.log('URL params already processed, skipping:', urlKey);
+      // But ensure modal stays open if it was opened via these params
+      if ((editParam || infoParam) && !showModal) {
+        setShowModal(true);
+      }
       return;
     }
 
@@ -782,6 +586,8 @@ const DateTimeSelector = () => {
     // Skip if no action params
     if (!editParam && !infoParam) {
       console.log('No edit/info params, skipping');
+      // If modal is open but no params, don't close it (user might have closed URL manually)
+      // Only return, don't interfere with existing modal state
       return;
     }
 
@@ -791,7 +597,7 @@ const DateTimeSelector = () => {
       setIsLoadingEdit(true);
       // Reset form state and close any open forms immediately
       setShowMealInput(false);
-      setShowExerciseInput(false);
+
       setShowSleepInput(false);
       setShowMeasurementsInput(false);
       setShowModal(true);
@@ -812,9 +618,11 @@ const DateTimeSelector = () => {
       }
     }
 
-    // Wait for entries to be loaded before processing edit/info
-    if (Object.keys(entries).length === 0) {
+    // If we have edit/info params but entries aren't loaded yet, show loading state
+    if ((editParam || infoParam) && Object.keys(entries).length === 0) {
       console.log('Waiting for entries to load...');
+      setIsLoadingEdit(true);
+      setShowModal(true); // Show modal with loading state
       return;
     }
 
@@ -824,6 +632,7 @@ const DateTimeSelector = () => {
       // Find the entry across all dates
       let foundEntry = null;
       let foundDateKey = null;
+
       for (const dateKey in entries) {
         const entryList = entries[dateKey];
         console.log(`Checking date ${dateKey}, ${entryList.length} entries`);
@@ -851,7 +660,7 @@ const DateTimeSelector = () => {
         // Call handleEdit immediately without setTimeout - set form state directly
         // Close any open forms first
         setShowMealInput(false);
-        setShowExerciseInput(false);
+
         setShowSleepInput(false);
         setShowMeasurementsInput(false);
 
@@ -881,33 +690,34 @@ const DateTimeSelector = () => {
           duration: foundEntry.duration || '',
           intensity: foundEntry.intensity || '',
           quality: foundEntry.quality || '',
-          weight: foundEntry.weight || '',
-          neck: foundEntry.neck || '',
-          shoulders: foundEntry.shoulders || '',
-          chest: foundEntry.chest || '',
-          waist: foundEntry.waist || '',
-          hips: foundEntry.hips || '',
-          thigh: foundEntry.thigh || '',
-          arm: foundEntry.arm || '',
-          calf: foundEntry.calf || '',
-          chestSkinfold: foundEntry.chestSkinfold || '',
-          abdominalSkinfold: foundEntry.abdominalSkinfold || '',
-          thighSkinfold: foundEntry.thighSkinfold || '',
-          tricepSkinfold: foundEntry.tricepSkinfold || '',
-          subscapularSkinfold: foundEntry.subscapularSkinfold || '',
-          suprailiacSkinfold: foundEntry.suprailiacSkinfold || '',
+          // Convert measurement values to strings for input fields
+          weight: foundEntry.weight ? String(foundEntry.weight) : '',
+          neck: foundEntry.neck ? String(foundEntry.neck) : '',
+          shoulders: foundEntry.shoulders ? String(foundEntry.shoulders) : '',
+          chest: foundEntry.chest ? String(foundEntry.chest) : '',
+          waist: foundEntry.waist ? String(foundEntry.waist) : '',
+          hips: foundEntry.hips ? String(foundEntry.hips) : '',
+          thigh: foundEntry.thigh ? String(foundEntry.thigh) : '',
+          arm: foundEntry.arm ? String(foundEntry.arm) : '',
+          calf: foundEntry.calf ? String(foundEntry.calf) : '',
+          chestSkinfold: foundEntry.chestSkinfold ? String(foundEntry.chestSkinfold) : '',
+          abdominalSkinfold: foundEntry.abdominalSkinfold ? String(foundEntry.abdominalSkinfold) : '',
+          thighSkinfold: foundEntry.thighSkinfold ? String(foundEntry.thighSkinfold) : '',
+          tricepSkinfold: foundEntry.tricepSkinfold ? String(foundEntry.tricepSkinfold) : '',
+          subscapularSkinfold: foundEntry.subscapularSkinfold ? String(foundEntry.subscapularSkinfold) : '',
+          suprailiacSkinfold: foundEntry.suprailiacSkinfold ? String(foundEntry.suprailiacSkinfold) : '',
           notes: foundEntry.notes || '',
           photo: foundEntry.photo || null
         });
 
         setActiveForm(foundEntry.type);
         setShowModal(true);
+        modalOpenedViaEdit.current = true; // Track that modal was opened via edit
 
         // Show the appropriate form input
         if (foundEntry.type === 'meal') {
           setShowMealInput(true);
-        } else if (foundEntry.type === 'exercise') {
-          setShowExerciseInput(true);
+
         } else if (foundEntry.type === 'sleep') {
           setShowSleepInput(true);
         } else if (foundEntry.type === 'measurements') {
@@ -917,7 +727,10 @@ const DateTimeSelector = () => {
         // Clear loading flag now that form is ready
         setIsLoadingEdit(false);
 
-        // Clean up URL
+        // Ensure modal stays open
+        setShowModal(true);
+
+        // Clean up URL - but keep modal open
         const newUrl = new URL(window.location);
         newUrl.searchParams.delete('edit');
         window.history.replaceState({}, '', newUrl);
@@ -930,6 +743,15 @@ const DateTimeSelector = () => {
           entries[dateKey].forEach(e => allEntryIds.push({ id: e.id, idType: typeof e.id, name: e.name, date: dateKey }));
         }
         console.error('All entry IDs:', allEntryIds);
+        // Show modal with error message instead of blank page
+        setShowModal(true);
+        setIsLoadingEdit(false);
+        // Mark as processed to prevent re-running
+        processedUrlParams.current.add(urlKey);
+        // Clean up URL even if entry not found
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.delete('edit');
+        window.history.replaceState({}, '', newUrl);
       }
     }
 
@@ -976,29 +798,15 @@ const DateTimeSelector = () => {
   }, [isDBInitialized, entries]);
 
   // Drag and drop handlers
-  const handleDragStart = (e, entry) => {
-    setDraggedEntry(entry);
-    e.dataTransfer.effectAllowed = 'move';
-    e.target.style.opacity = '0.5';
-  };
 
-  const handleDragEnd = (e) => {
-    e.target.style.opacity = '1';
-    setDraggedEntry(null);
-  };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
+
+
+
 
   // Note: Drag and drop reordering is temporarily disabled as it requires
   // additional implementation with the centralized data hook
-  const handleDrop = (e, targetEntry) => {
-    e.preventDefault();
-    // TODO: Implement reordering with useHealthData hook
-    console.log('Drag and drop reordering is currently disabled');
-  };
+
 
   // Don't render on server side
   if (!isClient) {
@@ -1019,38 +827,40 @@ const DateTimeSelector = () => {
   // Check for edit/info URL params to hide calendar initially
   const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const hasEditOrInfoParam = urlParams && (urlParams.get('edit') || urlParams.get('info'));
+  const editParam = urlParams?.get('edit');
+  const infoParam = urlParams?.get('info');
 
   return (
     <div className="w-full">
-      {!hasEditOrInfoParam && (
-        <div className="w-full min-h-[calc(100vh-160px)] bg-white flex items-center md:items-start justify-center overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+      {!hasEditOrInfoParam && !showModal && (
+        <div className="w-full min-h-[calc(100vh-160px)] bg-white dark:bg-[var(--color-bg-base)] flex items-start justify-center overflow-y-auto pt-32 sm:pt-36 md:pt-40 lg:pt-44 xl:pt-48" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
           <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 md:py-6 pb-8 md:pb-12">
             {/* Calendar Card */}
-            <div>
+            <div className="pt-4 sm:pt-6">
               {isClient && <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />}
             </div>
 
             {/* Today's Summary Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4">
-              <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Today's Summary</h3>
+            <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Today's Summary</h3>
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                <div className="text-center p-2 sm:p-3 bg-blue-50 rounded-xl">
-                  <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                <div className="text-center p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
                     {todayEntries.filter(e => e.type === 'meal').length}
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-600 mt-0.5 sm:mt-1">Meals</div>
+                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">Meals</div>
                 </div>
-                <div className="text-center p-2 sm:p-3 bg-purple-50 rounded-xl">
-                  <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                <div className="text-center p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                  <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
                     {todaySleepDuration || '—'}
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-600 mt-0.5 sm:mt-1">Sleep</div>
+                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">Sleep</div>
                 </div>
-                <div className="text-center p-2 sm:p-3 bg-green-50 rounded-xl">
-                  <div className="text-xl sm:text-2xl font-bold text-green-600">
+                <div className="text-center p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
                     {todayEntries.filter(e => e.type === 'measurements').length}
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-600 mt-0.5 sm:mt-1">Measured</div>
+                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">Measured</div>
                 </div>
               </div>
             </div>
@@ -1058,64 +868,75 @@ const DateTimeSelector = () => {
         </div>
       )}
 
-      {(showModal || hasEditOrInfoParam) && (
-        <div className="fixed inset-0 z-50 w-full h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col overflow-hidden">
-          {/* Header with Glassmorphism */}
-          <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm flex-shrink-0">
-            <div className="max-w-4xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
-              <div className="flex items-center justify-between gap-1 sm:gap-2 md:gap-3">
-                <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 min-w-0 flex-1">
-                  <button
-                    onClick={closeModal}
-                    className="flex items-center justify-center p-1.5 sm:p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
-                    title="Back"
-                  >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                  </button>
-                  <div className="text-sm sm:text-base md:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate min-w-0">
-                    {headerText}
+      {(showModal || hasEditOrInfoParam || modalOpenedViaEdit.current) && (
+        <div className="fixed inset-0 z-50 w-full h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-[var(--color-bg-base)] dark:via-[var(--color-bg-base)] dark:to-[var(--color-bg-base)] flex flex-col overflow-hidden" role="dialog" aria-modal="true" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
+          {/* Content - Centered vertically between navbars */}
+          <div className={`flex-1 overflow-y-auto min-h-0 py-8 ${!(showMealInput || showSleepInput || showMeasurementsInput) ? 'flex items-center justify-center' : ''}`} style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 w-full flex flex-col items-center">
+              {/* Loading State */}
+              {isLoadingEdit && Object.keys(entries).length === 0 && (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading entry...</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setShowSettings(true)}
-                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-blue-100 hover:shadow-md"
-                    title="Open settings"
-                  >
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="hidden sm:inline">My Settings</span>
-                  </button>
+              )}
+              
+              {/* Entry not found error - Show only if we've checked and entry wasn't found */}
+              {!isLoadingEdit && hasEditOrInfoParam && editParam && !formState.id && Object.keys(entries).length > 0 && (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-center max-w-md">
+                    <p className="text-red-600 dark:text-red-400 mb-4 text-lg font-semibold">Entry not found</p>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">The entry you're trying to edit could not be found.</p>
+                    <button
+                      onClick={closeModal}
+                      className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                    >
+                      Go Back
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Content - Centered vertically between header and bottom nav */}
-          <div className={`flex-1 overflow-y-auto min-h-0 ${!(showMealInput || showSleepInput || showMeasurementsInput) ? 'flex items-center justify-center' : ''}`} style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-            <div className={`max-w-4xl mx-auto px-4 sm:px-6 w-full ${!(showMealInput || showSleepInput || showMeasurementsInput) ? '' : 'py-4 md:py-8'}`}>
-              {/* Entry Form */}
-              <div className={`w-full ${(showMealInput || showSleepInput || showMeasurementsInput) ? 'max-w-2xl mx-auto' : 'max-w-[380px] md:max-w-4xl'} ${(showMealInput || showSleepInput || showMeasurementsInput) ? '' : 'border border-gray-200 rounded-3xl overflow-hidden shadow-lg bg-white p-6 md:p-8 space-y-6'}`}>
-                {!(showMealInput || showSleepInput || showMeasurementsInput) && (
-                  <h2 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    {formState.id == null ? 'Add a New Entry' : `Edit ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry`}
-                  </h2>
+              )}
+              
+              {/* Entry Form - Show if not in error state, or show default form if modal is open */}
+              {!(isLoadingEdit === false && hasEditOrInfoParam && editParam && !formState.id && Object.keys(entries).length > 0) && !(isLoadingEdit === true && Object.keys(entries).length === 0) && (
+              <div className="w-full flex flex-col items-center">
+                {/* Date display above the card */}
+                {!(showMealInput || showSleepInput || showMeasurementsInput) && selectedDate && (
+                  <div className="w-full max-w-[380px] md:max-w-4xl mx-auto mb-4 text-center">
+                    <div className="text-base md:text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                      {formatDate(selectedDate)}
+                    </div>
+                  </div>
                 )}
+                <div className={`w-full ${(showMealInput || showSleepInput || showMeasurementsInput) ? 'max-w-2xl mx-auto' : 'max-w-[380px] md:max-w-4xl mx-auto'} ${(showMealInput || showSleepInput || showMeasurementsInput) ? '' : 'border border-gray-200 dark:border-gray-700 rounded-3xl overflow-hidden shadow-lg bg-white dark:bg-[var(--color-bg-base)] p-6 md:p-8 space-y-6 relative'}`}>
+                  {!(showMealInput || showSleepInput || showMeasurementsInput) && (
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        {formState.id == null ? 'Add a New Entry' : `Edit ${activeForm.charAt(0).toUpperCase() + activeForm.slice(1)} Entry`}
+                      </h2>
+                      <button
+                        onClick={closeModal}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        title="Close"
+                      >
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
 
-                <form className={(showMealInput || showSleepInput || showMeasurementsInput) ? '' : 'space-y-6'}>
+                <form className={(showMealInput || showSleepInput || showMeasurementsInput) ? 'w-full' : 'space-y-6'}>
                   {/* Desktop Layout: Single column when form is active, side by side otherwise */}
                   {!(showMealInput || showSleepInput || showMeasurementsInput) && (
                     <div className={`md:grid md:grid-cols-2 md:gap-6 md:space-y-0 space-y-6`}>
                       {/* Left Column */}
                       <div className="space-y-6">
                         {/* Time Picker */}
-                        <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-4 md:p-5 rounded-2xl space-y-2 border border-blue-100">
-                          <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 md:p-5 rounded-2xl space-y-2 border border-blue-100 dark:border-blue-800/50">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                             <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -1295,14 +1116,15 @@ const DateTimeSelector = () => {
 
                   {/* Meal Form Fields */}
                   {settings.enableMeals && activeForm === 'meal' && showMealInput && !isLoadingEdit && (
-                    <div className="pt-6 px-4 pb-6 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="pt-6 px-4 pb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-gray-900">Add Meal</h4>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Add Meal</h4>
                         <button
                           onClick={() => {
                             setShowMealInput(false);
+                            setActiveForm('meal');
                           }}
-                          className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
                         >
                           <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1435,7 +1257,7 @@ const DateTimeSelector = () => {
                         <div className="flex items-center gap-3 pb-4">
                           <button
                             type="button"
-                            onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowExerciseInput, setShowSleepInput, setShowMeasurementsInput })}
+                            onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowSleepInput, setShowMeasurementsInput })}
                             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1461,15 +1283,15 @@ const DateTimeSelector = () => {
 
                   {/* Sleep Form Fields */}
                   {settings.enableSleep && activeForm === 'sleep' && showSleepInput && !isLoadingEdit && (
-                    <div className="pt-6 px-4 pb-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="pt-6 px-4 pb-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/50 rounded-lg">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-gray-900">Add Sleep</h4>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Add Sleep</h4>
                         <button
                           onClick={() => {
                             setShowSleepInput(false);
                             setActiveForm('meal');
                           }}
-                          className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
                         >
                           <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1602,7 +1424,7 @@ const DateTimeSelector = () => {
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
-                            onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowExerciseInput, setShowSleepInput, setShowMeasurementsInput })}
+                            onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowSleepInput, setShowMeasurementsInput })}
                             className="inline-flex items-center px-6 py-3 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1628,9 +1450,9 @@ const DateTimeSelector = () => {
 
                   {/* Measurements Form Fields */}
                   {settings.enableMeasurements && activeForm === 'measurements' && showMeasurementsInput && !isLoadingEdit && (
-                    <div className="pt-6 px-4 pb-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="pt-6 px-4 pb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-lg">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-semibold text-gray-900">
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {formState.id == null ? 'Add Body Measurements' : 'Edit Body Measurements'}
                         </h4>
                         <button
@@ -1638,7 +1460,7 @@ const DateTimeSelector = () => {
                             setShowMeasurementsInput(false);
                             setActiveForm('meal');
                           }}
-                          className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
                         >
                           <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1838,7 +1660,7 @@ const DateTimeSelector = () => {
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
-                            onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowExerciseInput, setShowSleepInput, setShowMeasurementsInput })}
+                            onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowSleepInput, setShowMeasurementsInput })}
                             className="inline-flex items-center px-6 py-3 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1874,17 +1696,10 @@ const DateTimeSelector = () => {
                       {formSuccessMessage}
                     </div>
                   )}
-
-                  {librarySuccessMessage && (
-                    <div className="px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                      {librarySuccessMessage}
-                    </div>
-                  )}
                 </form>
               </div>
+              </div>
+              )}
 
               {/* View All Entries Button */}
               <div className="mt-6 flex justify-center">

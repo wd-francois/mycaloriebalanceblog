@@ -15,7 +15,7 @@ export interface Props {
     url?: string;
   };
   tags?: string[];
-  categories?: string[];
+
   // For breadcrumbs
   breadcrumbs?: Array<{name: string; url: string}>;
   // For video content
@@ -40,8 +40,7 @@ const {
   modifiedDate,
   author,
   
-  tags,
-  categories
+  tags
 } = Astro.props;
 
 // Determine if we should add noindex based on site config and page type
@@ -231,14 +230,14 @@ try {
 <link rel="alternate" type="application/rss+xml" title={`${siteConfig.title} RSS Feed`} href="/rss.xml" /> 
 
 <!-- Schema.org JSON-LD -->
-<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+<script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
 
 <!-- BreadcrumbList Schema (if breadcrumbs are provided) -->
 {breadcrumbsSchema && (
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbsSchema)} />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbsSchema)} />
 )}
 
 <!-- VideoObject Schema (if video is provided) -->
 {videoSchema && article && (
-  <script type="application/ld+json" set:html={JSON.stringify(videoSchema)} />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(videoSchema)} />
 )}

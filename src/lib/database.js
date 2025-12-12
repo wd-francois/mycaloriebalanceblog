@@ -231,8 +231,8 @@ class HealthDatabase {
   // User Entries Methods
   async saveUserEntry(entry) {
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(['userEntries'], 'readwrite');
-      const store = transaction.objectStore('userEntries');
+    const transaction = this.db.transaction(['userEntries'], 'readwrite');
+    const store = transaction.objectStore('userEntries');
       
       // Ensure entry has proper date format for indexing
       const entryToSave = {
@@ -271,8 +271,8 @@ class HealthDatabase {
 
   async deleteUserEntry(id) {
     return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(['userEntries'], 'readwrite');
-      const store = transaction.objectStore('userEntries');
+    const transaction = this.db.transaction(['userEntries'], 'readwrite');
+    const store = transaction.objectStore('userEntries');
       
       const request = store.delete(id);
       request.onsuccess = () => resolve(request.result);

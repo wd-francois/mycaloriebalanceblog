@@ -19,58 +19,32 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
   description="View your daily sleep statistics - " + siteConfig.title
   wideContent={true}
   showBottomNav={true}
-  showTopNav={false}
+  showTopNav={true}
   showFooter={false}
 >
-  <main class="w-full bg-gray-50 flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
-    <!-- Top Navigation Header -->
-    <div class="bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm sticky top-0 z-10">
-      <div class="max-w-6xl mx-auto px-4 py-3">
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <a
-              href={`/entries?date=${backDate}`}
-              id="back-to-entries-link"
-              class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              title={`Back to Show Entries (${backDate})`}
-              data-date={backDate}
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </a>
-            <div class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate pr-2">
-              Daily Sleep Statistics
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <a
-              href="/settings/"
-              class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-blue-100 hover:shadow-md"
-              title="Open settings"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>My Settings</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
+  <main class="w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
     <!-- Content -->
-    <div class="flex-1 py-6 sm:py-12 bg-gradient-to-br from-purple-50 via-white to-indigo-50">
+    <div class="flex-1 py-6 sm:py-12 bg-white dark:bg-[var(--color-bg-base)]">
       <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
         <!-- Date Display -->
         <div class="mb-6">
-          <p class="text-gray-600 dark:text-gray-400" id="dateRange">Loading...</p>
+          <p class="text-gray-600 dark:text-gray-400 text-center" id="dateRange">Loading...</p>
         </div>
 
       <!-- Sleep Statistics Card -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">Sleep Details</h2>
+      <div class="bg-white dark:bg-[var(--color-bg-muted)] rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6 relative">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Sleep Details</h2>
+          <button
+            onclick={`window.location.href='/entries?date=${backDate}'`}
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            title="Close"
+          >
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
         
         <!-- Main Sleep Info -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -190,7 +164,8 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
                           
                           if (!isNaN(entryDate.getTime())) {
                             entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-                            const dateKey = entryDate.toISOString().split('T')[0];
+                            // Use toDateString() to match the format used by the main app
+                            const dateKey = entryDate.toDateString();
                             
                             if (!this.entries[dateKey]) {
                               this.entries[dateKey] = [];
@@ -277,23 +252,30 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
         // Get the selected date or today's date
         let targetDate;
         if (this.selectedDate) {
-          targetDate = new Date(this.selectedDate);
+          // Parse date from YYYY-MM-DD format
+          const dateParts = this.selectedDate.split('-');
+          if (dateParts.length === 3) {
+            targetDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+          } else {
+            targetDate = new Date(this.selectedDate);
+          }
         } else {
           targetDate = new Date();
         }
         
-        // Normalize date to YYYY-MM-DD format
+        // Normalize date to midnight and use toDateString() format (matches main app)
+        targetDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+        const dateKey = targetDate.toDateString();
+        
+        // Also try ISO format and YYYY-MM-DD format as fallbacks
+        const isoDate = targetDate.toISOString().split('T')[0];
         const year = targetDate.getFullYear();
         const month = String(targetDate.getMonth() + 1).padStart(2, '0');
         const day = String(targetDate.getDate()).padStart(2, '0');
-        const dateKey = `${year}-${month}-${day}`;
+        const dateKeyISO = `${year}-${month}-${day}`;
         
-        // Also try other date formats
-        const dateString = targetDate.toDateString();
-        const isoDate = targetDate.toISOString().split('T')[0];
-        
-        // Get entries for this date
-        const dayEntries = this.entries[dateKey] || this.entries[dateString] || this.entries[isoDate] || [];
+        // Get entries for this date (try multiple formats)
+        const dayEntries = this.entries[dateKey] || this.entries[isoDate] || this.entries[dateKeyISO] || [];
         
         // Find sleep entry
         const sleepEntry = dayEntries.find((entry: any) => entry.type === 'sleep');

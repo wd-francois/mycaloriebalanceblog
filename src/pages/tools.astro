@@ -27,47 +27,12 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
   description="Essential calculators and tools for tracking your nutrition and health."
   showBottomNav={true}
   wideContent={true}
-  showTopNav={false}
+  showTopNav={true}
   showFooter={false}
 >
-  <main class="w-full bg-gray-50 flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
-    <!-- Top Navigation Header -->
-    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-      <div class="max-w-6xl mx-auto px-4 py-3">
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <a
-              href="/"
-              class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Back to Calendar"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </a>
-            <div class="text-lg font-bold text-gray-900 truncate pr-2">
-              Tools
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <a
-              href="/settings/"
-              class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-blue-100 hover:shadow-md"
-              title="Open settings"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>My Settings</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
+  <main class="w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
     <!-- Content -->
-    <div class="flex-1 py-6 sm:py-10 lg:py-12">
+    <div class="flex-1 py-6 sm:py-10 lg:py-12 dark:bg-[var(--color-bg-base)]">
       <!-- Calorie & Nutrition Tools -->
     <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 sm:mb-16 lg:mb-20" data-category="Calorie & Nutrition Tools">
       <div class="text-center mb-8 lg:mb-10">
@@ -82,7 +47,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
             type="text" 
             id="links-search-input" 
             placeholder="Search for tools, calculators, and resources..." 
-            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-[var(--color-bg-muted)] text-gray-900 dark:text-white"
             autocomplete="off"
           />
           <div class="absolute right-3 top-3 text-gray-400">
@@ -104,7 +69,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         <!-- Our Calorie Calculator -->
         <a 
           href="/calorie-calculator/" 
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="Calorie Calculator"
           data-description="Calculate BMR and TDEE using the Mifflin-St Jeor Equation"
           data-tags="calculator bmr tdee calories mifflin-st-jeor"
@@ -123,7 +88,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         <!-- Kilojoule Converter -->
         <a 
           href="/kilojoule-converter/" 
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600"
           data-title="Kilojoule Converter"
           data-description="Convert between kilojoules and calories for nutrition tracking"
           data-tags="calculator converter kilojoules calories kj kcal"
@@ -142,7 +107,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         <!-- Hand Portion Size Guide -->
         <a 
           href="/portion-guide/" 
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600"
           data-title="Hand Portion Size Guide"
           data-description="Learn how to use your hand to measure portion sizes for balanced meals"
           data-tags="guide portion control hand measurement nutrition meals"
@@ -161,7 +126,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         <!-- Protein Calorie Calculator -->
         <a 
           href="/protein-calculator/" 
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-sky-300 dark:hover:border-sky-600"
           data-title="Protein Calorie Calculator"
           data-description="Calculate protein per calorie ratio to identify high-protein, moderate, or low-protein foods"
           data-tags="calculator protein calories ratio nutrition macros"
@@ -192,7 +157,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://examine.com/" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="Examine.com"
           data-description="Analyzes and summarizes the latest scientific research on supplements"
           data-tags="supplements research science evidence-based"
@@ -212,7 +177,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://labdoor.com/" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="Labdoor"
           data-description="An independent company that tests supplements"
           data-tags="supplements testing quality independent"
@@ -232,7 +197,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://exrx.net/Lists/Directory" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="ExRx.net"
           data-description="Exercise Library with comprehensive exercise database"
           data-tags="exercises workouts fitness library"
@@ -251,7 +216,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://pubmed.ncbi.nlm.nih.gov/" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="ExRx.net"
           data-description="Exercise Library with comprehensive exercise database"
           data-tags="exercises workouts fitness library"
@@ -274,7 +239,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://www.openpowerlifting.org/" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="Open Powerling"
           data-description="Permanent, accurate, convenient, accessible, open archive of the world's powerlifting data.base"
           data-tags="powerlifting records & data">
@@ -298,7 +263,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://strengthlevel.com/strength-standards/" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="Open Powerling"
           data-description="Permanent, accurate, convenient, accessible, open archive of the world's powerlifting data.base"
           data-tags="powerlifting records & data"
@@ -328,7 +293,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://www.calculator.net/body-fat-calculator.html" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="Body Fat Calculator"
           data-description="Estimate your body fat percentage using various measurement methods"
           data-tags="calculator body-fat measurements fitness"
@@ -348,7 +313,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://www.topendsports.com/testing/density-jackson-pollock.htm" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600"
           data-title="Jackson-Pollock Skinfold Calculator"
           data-description="Calculate body density and body fat percentage using scientifically validated skinfold equations"
           data-tags="calculator skinfold body-fat body-density jackson-pollock fitness"
@@ -368,7 +333,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://www.calculator.net/one-rep-max-calculator.html" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="1RM Calculator"
           data-description="Calculate your one-rep max for strength training and program design"
           data-tags="calculator strength 1rm weightlifting"
@@ -388,7 +353,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://www.calculator.net/pace-calculator.html" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
           data-title="Pace Calculator"
           data-description="Calculate running pace, time, and distance for your training runs"
           data-tags="calculator running pace training"
@@ -408,7 +373,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           href="https://exrx.net/Calculators/MinuteRun" 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600"
+          class="group p-6 bg-white dark:bg-[var(--color-bg-muted)] rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-600"
           data-title="Cooper Test"
           data-description="Calculate your VO2 max and cardiovascular fitness using the 12-minute run test"
           data-tags="calculator cooper test vo2 max running fitness cardiovascular"

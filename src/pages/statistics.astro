@@ -13,7 +13,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
   showTopNav={false}
   showFooter={false}
 >
-  <main class="w-full bg-gray-50 flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+  <main class="w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
     <!-- Top Navigation Header -->
     <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
       <div class="max-w-6xl mx-auto px-4 py-3">
@@ -50,13 +50,13 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
     </div>
 
     <!-- Content -->
-    <div class="flex-1 py-6 sm:py-12 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div class="flex-1 py-6 sm:py-12 bg-white dark:bg-[var(--color-bg-base)]">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <!-- Statistics Dashboard -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Calorie Intake Chart -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-[var(--color-bg-muted)] rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Daily Calorie Intake</h2>
           <div class="h-64">
             <canvas id="calorieChart"></canvas>
@@ -64,7 +64,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         </div>
 
         <!-- Weight Progress Chart -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-[var(--color-bg-muted)] rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Weight Progress</h2>
           <div class="h-64">
             <canvas id="weightChart"></canvas>
@@ -72,7 +72,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         </div>
 
         <!-- Sleep Patterns Chart -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-[var(--color-bg-muted)] rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Sleep Patterns</h2>
           <div class="h-64">
             <canvas id="sleepChart"></canvas>
@@ -80,7 +80,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         </div>
 
         <!-- Macronutrient Breakdown -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-[var(--color-bg-muted)] rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Macronutrient Breakdown</h2>
           <div class="h-64">
             <canvas id="macroChart"></canvas>
@@ -160,7 +160,85 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
 
       async loadData() {
         try {
-          // Load entries from localStorage
+          // Try to load from IndexedDB first
+          if (typeof indexedDB !== 'undefined') {
+            try {
+              const dbName = 'HealthTrackerDB';
+              const request = indexedDB.open(dbName, 2);
+              
+              await new Promise<void>((resolve, reject) => {
+                request.onsuccess = () => {
+                  const db = request.result;
+                  
+                  if (db.objectStoreNames.contains('userEntries')) {
+                    const transaction = db.transaction(['userEntries'], 'readonly');
+                    const store = transaction.objectStore('userEntries');
+                    const getAllRequest = store.getAll();
+                    
+                    getAllRequest.onsuccess = () => {
+                      const allEntries = getAllRequest.result || [];
+                      console.log('Loaded', allEntries.length, 'entries from IndexedDB for statistics');
+                      
+                      // Format entries by date
+                      const formattedEntries: any = {};
+                      allEntries.forEach((entry: any) => {
+                        if (!entry || !entry.date) return;
+                        
+                        let entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
+                        if (isNaN(entryDate.getTime())) return;
+                        
+                        entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+                        const dateKey = entryDate.toDateString();
+                        
+                        if (!formattedEntries[dateKey]) {
+                          formattedEntries[dateKey] = [];
+                        }
+                        
+                        formattedEntries[dateKey].push({
+                          ...entry,
+                          date: entryDate
+                        });
+                      });
+                      
+                      this.entries = formattedEntries;
+                      resolve();
+                    };
+                    
+                    getAllRequest.onerror = () => {
+                      console.warn('Error loading from IndexedDB, falling back to localStorage');
+                      this.loadFromLocalStorage();
+                      resolve();
+                    };
+                  } else {
+                    console.warn('IndexedDB userEntries store not found, falling back to localStorage');
+                    this.loadFromLocalStorage();
+                    resolve();
+                  }
+                };
+                
+                request.onerror = () => {
+                  console.warn('IndexedDB open failed, falling back to localStorage');
+                  this.loadFromLocalStorage();
+                  resolve();
+                };
+              });
+            } catch (dbError) {
+              console.warn('IndexedDB error, falling back to localStorage:', dbError);
+              this.loadFromLocalStorage();
+            }
+          } else {
+            // IndexedDB not available, use localStorage
+            this.loadFromLocalStorage();
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+          this.loadFromLocalStorage();
+        }
+      }
+
+      loadFromLocalStorage() {
+        try {
+          // Load entries from localStorage as fallback
           const entriesData = localStorage.getItem('healthEntries');
           if (entriesData) {
             const parsed = JSON.parse(entriesData);
@@ -178,7 +256,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
             this.measurements = JSON.parse(measurementsData);
           }
         } catch (error) {
-          console.error('Error loading data:', error);
+          console.error('Error loading from localStorage:', error);
         }
       }
 

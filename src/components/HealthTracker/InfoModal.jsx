@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 /**
  * Modal for adding/editing notes on an entry

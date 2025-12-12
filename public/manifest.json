@@ -1,6 +1,6 @@
 {
   "name": "My Calorie Balance",
-  "short_name": "CalorieBalance",
+  "short_name": "My Calorie Balance",
   "description": "Track your daily meals, exercise, and nutrition with our comprehensive health tracking app",
   "start_url": "/",
   "display": "standalone",

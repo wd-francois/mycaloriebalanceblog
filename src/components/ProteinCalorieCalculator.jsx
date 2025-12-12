@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const ProteinCalorieCalculator = () => {
   const [protein, setProtein] = useState('');
@@ -58,12 +58,12 @@ const ProteinCalorieCalculator = () => {
       return;
     }
 
-    const itemText = result.name 
+    const itemText = result.name
       ? `${result.name} — ${result.protein} g protein · ${result.calories} kcal`
       : `${result.protein} g protein · ${result.calories} kcal`;
-    
+
     const text = `${itemText}\nProtein per kcal: ${formatNumber(result.ratio, 3)}\nProtein per 100 kcal: ${formatNumber(result.per100, 2)} g\nCalories per g protein: ${formatNumber(result.kcalPerGram, 1)} kcal/g\n(${result.interpretation.text})`;
-    
+
     try {
       await navigator.clipboard.writeText(text);
       setCopyButtonText('Copied!');
@@ -194,7 +194,7 @@ const ProteinCalorieCalculator = () => {
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Result</h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {result.name 
+                    {result.name
                       ? `${result.name} — ${result.protein} g protein · ${result.calories} kcal`
                       : `${result.protein} g protein · ${result.calories} kcal`}
                   </p>

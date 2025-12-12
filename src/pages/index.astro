@@ -5,13 +5,13 @@ import DateTimeSelector from '../components/DateTimeSelector.jsx';
 ---
 
 <Layout
-  title="Food Logger - " + siteConfig.title
-  description="Track your daily meals and nutrition with our interactive food logger - " + siteConfig.title
+  title={siteConfig.title}
+  description="Track your daily meals and nutrition with My Calorie Balance - " + siteConfig.title
   showBottomNav={true}
   showTopNav={true}
   wideContent={true}
 >
-  <div class="w-full flex flex-col items-center justify-center" style="min-height: calc(100vh - 160px); height: calc(100vh - 160px);">
+  <div class="w-full flex flex-col items-center justify-center bg-white dark:bg-[var(--color-bg-base)]" style="min-height: calc(100vh - 160px); height: calc(100vh - 160px);">
     <div class="w-full max-w-sm mx-auto px-4 flex items-center justify-center" style="height: 100%;">
       <DateTimeSelector client:load />
     </div>

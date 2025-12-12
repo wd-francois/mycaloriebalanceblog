@@ -306,7 +306,7 @@ export function useHealthData() {
         // Re-run load logic
         setLoading(true);
         try {
-            const dbEntries = await healthDB.getAllUserEntries();
+            await healthDB.getAllUserEntries();
             // ... (re-use formatting logic, maybe extract it)
             // For brevity, just reloading basic entries for now or triggering re-mount effect
             // A simple way is to just toggle a counter dependency in useEffect, but for now:

@@ -100,7 +100,7 @@ export function usePhotoManagement(formState, setFormState, setFormError) {
   /**
    * Save photo to gallery as a standalone entry
    */
-  const handleSavePhotoToGallery = async (selectedDate, time, activeForm, isDBInitialized, addEntry) => {
+  const handleSavePhotoToGallery = async (selectedDate, time, activeForm, addEntry) => {
     if (!formState.photo?.dataUrl) {
       setPhotoSaveError('Attach a photo before saving to the gallery.');
       return;

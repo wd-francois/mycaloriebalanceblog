@@ -1,6 +1,6 @@
 ---
 import Layout from '@layouts/Layout.astro';
-import { siteConfig } from '@config/site';
+
 ---
 
 <Layout
@@ -622,7 +622,7 @@ import { siteConfig } from '@config/site';
       
       const searchTerm = query.toLowerCase().trim();
       let visibleCount = 0;
-      let totalCount = allLinks.length;
+
       
       // Search through all links
       allLinks.forEach(link => {

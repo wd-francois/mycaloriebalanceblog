@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -59,7 +59,7 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   const getEntryCounts = (date) => {
     const dateKey = date.toDateString();
     const dateEntries = entries[dateKey] || [];
-    
+
     return {
       meal: dateEntries.filter(e => e.type === 'meal').length,
       sleep: dateEntries.filter(e => e.type === 'sleep').length,
@@ -96,22 +96,22 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
   });
 
   return (
-    <div className="p-2 sm:p-3 md:p-6 text-gray-900 w-full max-w-md">
+    <div className="p-2 sm:p-3 md:p-6 text-gray-900 dark:text-white w-full max-w-md">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 sm:mb-4 md:mb-6">
-        <button 
-          onClick={goPrevMonth} 
-          className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
+        <button
+          onClick={goPrevMonth}
+          className="p-1.5 sm:p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
           aria-label="Previous month"
         >
           <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 text-center px-1 sm:px-2">{monthLabel}</h2>
-        <button 
-          onClick={goNextMonth} 
-          className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
+        <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white text-center px-1 sm:px-2">{monthLabel}</h2>
+        <button
+          onClick={goNextMonth}
+          className="p-1.5 sm:p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-manipulation"
           aria-label="Next month"
         >
           <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
       </div>
 
       {/* Weekday labels */}
-      <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-[10px] sm:text-xs md:text-sm font-semibold text-gray-600 mb-1.5 sm:mb-2 md:mb-3">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-[10px] sm:text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2 md:mb-3">
         {WEEKDAY_LABELS.map((label) => (
           <div key={label} className="py-0.5 sm:py-1 md:py-2 px-0.5 sm:px-1">{label}</div>
         ))}
@@ -133,18 +133,18 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
           week.map((cell) => {
             const isSelected = cell.key === selectedKey;
             const isTodayDate = isToday(cell.date);
-            
+
             const baseClasses = 'py-1.5 sm:py-2 md:py-3 px-0.5 sm:px-1 rounded-lg cursor-pointer select-none transition-all duration-200 relative touch-manipulation min-h-[28px] sm:min-h-[32px] md:min-h-[36px] flex items-center justify-center';
             let stateClasses = '';
-            
+
             if (isSelected) {
-              stateClasses = 'bg-blue-600 text-white shadow-lg shadow-blue-200';
+              stateClasses = 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900';
             } else if (isTodayDate) {
-              stateClasses = 'bg-blue-50 text-blue-700 border-2 border-blue-200';
+              stateClasses = 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-2 border-blue-200 dark:border-blue-700';
             } else if (cell.inCurrentMonth) {
-              stateClasses = 'text-gray-900 hover:bg-gray-50 hover:shadow-sm';
+              stateClasses = 'text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-sm';
             } else {
-              stateClasses = 'text-gray-400 hover:bg-gray-50';
+              stateClasses = 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700';
             }
 
             const entryCounts = getEntryCounts(cell.date);
@@ -155,14 +155,14 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                 key={cell.key}
                 data-calendar-cell
                 className={`${baseClasses} ${stateClasses} relative`}
-                onClick={(e) => {
+                onClick={() => {
                   setSelectedKey(cell.key);
                   // If clicking an outside day, also update the visible month to match
                   if (!cell.inCurrentMonth) {
                     setViewYear(cell.date.getFullYear());
                     setViewMonth(cell.date.getMonth());
                   }
-                  
+
                   // Navigate directly to the date
                   if (typeof onSelectDate === 'function') {
                     onSelectDate(cell.date);
@@ -182,17 +182,16 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
                 }}
               >
                 <div className="flex flex-col items-center justify-center min-h-[1.75rem] sm:min-h-[2rem] md:min-h-[2.5rem] gap-0.5 sm:gap-1">
-                  <span className={`text-sm sm:text-base font-medium ${isTodayDate && !isSelected ? 'text-blue-700' : ''}`}>
+                  <span className={`text-sm sm:text-base font-medium ${isTodayDate && !isSelected ? 'text-blue-700 dark:text-blue-300' : ''}`}>
                     {cell.dayNumber}
                   </span>
                   {hasEntries && (
-                    <div className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${
-                      isSelected 
-                        ? 'bg-white' 
-                        : isTodayDate 
-                          ? 'bg-blue-600' 
-                          : 'bg-blue-500'
-                    }`}></div>
+                    <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected
+                      ? 'bg-white'
+                      : isTodayDate
+                        ? 'bg-blue-600 dark:bg-blue-400'
+                        : 'bg-blue-500 dark:bg-blue-400'
+                      }`}></div>
                   )}
                 </div>
               </div>

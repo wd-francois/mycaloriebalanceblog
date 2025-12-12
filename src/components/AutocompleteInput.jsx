@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import healthDB from '../lib/database.js';
 
-const AutocompleteInput = ({ 
+const AutocompleteInput = ({
   type = 'food', // 'food' or 'exercise'
-  value, 
-  onChange, 
+  value,
+  onChange,
   placeholder = 'Type to search...',
   onSelect,
   className = '',
@@ -16,7 +16,7 @@ const AutocompleteInput = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  
+
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const debounceRef = useRef(null);
@@ -36,10 +36,10 @@ const AutocompleteInput = ({
 
       setIsLoading(true);
       try {
-        const items = type === 'food' 
+        const items = type === 'food'
           ? await healthDB.getFoodItems(term, 10)
           : await healthDB.getExerciseItems(term, 10);
-        
+
         setSuggestions(items);
         setIsOpen(items.length > 0);
         setSelectedIndex(-1);
@@ -78,7 +78,7 @@ const AutocompleteInput = ({
       case 'ArrowDown':
         if (isOpen && suggestions.length > 0) {
           e.preventDefault();
-          setSelectedIndex(prev => 
+          setSelectedIndex(prev =>
             prev < suggestions.length - 1 ? prev + 1 : 0
           );
         }
@@ -86,7 +86,7 @@ const AutocompleteInput = ({
       case 'ArrowUp':
         if (isOpen && suggestions.length > 0) {
           e.preventDefault();
-          setSelectedIndex(prev => 
+          setSelectedIndex(prev =>
             prev > 0 ? prev - 1 : suggestions.length - 1
           );
         }
@@ -110,10 +110,10 @@ const AutocompleteInput = ({
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
-    
+
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
-          inputRef.current && !inputRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
+        inputRef.current && !inputRef.current.contains(event.target)) {
         setIsOpen(false);
         setSelectedIndex(-1);
       }
@@ -127,7 +127,7 @@ const AutocompleteInput = ({
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return;
-    
+
     setSearchTerm(value || '');
   }, [value]);
 
@@ -149,7 +149,7 @@ const AutocompleteInput = ({
         autoFocus={autoFocus}
         className={`w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${className}`}
       />
-      
+
       {isLoading && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
@@ -165,9 +165,8 @@ const AutocompleteInput = ({
             <div
               key={item.id}
               onClick={() => handleItemSelect(item)}
-              className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
-                index === selectedIndex ? 'bg-blue-50' : ''
-              }`}
+              className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${index === selectedIndex ? 'bg-blue-50' : ''
+                }`}
             >
               <div className="flex items-center justify-between">
                 <div>

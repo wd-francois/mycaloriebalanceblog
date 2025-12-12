@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect, useState } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1); // 1..12
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);   // 0..59
@@ -33,7 +33,7 @@ const TimePicker = ({
 
     updateHeight();
     window.addEventListener('resize', updateHeight);
-    
+
     // Use a small timeout to ensure DOM is fully rendered
     const timeoutId = setTimeout(updateHeight, 0);
 
@@ -113,7 +113,7 @@ const TimePicker = ({
       {/* Display time */}
       <div className="flex flex-col items-center ml-2">
         <label className="text-xs font-medium text-gray-600 mb-1 hidden sm:block">Time</label>
-        <div 
+        <div
           ref={timeDisplayRef}
           className="w-16 sm:w-20 px-1 sm:px-3 py-1.5 sm:py-2 bg-white border border-gray-300 rounded-md text-gray-900 text-xs sm:text-sm font-medium text-center flex items-center justify-center sm:bg-blue-50 sm:border-blue-200 sm:text-blue-900 sm:font-semibold"
           style={{ height: timeDisplayHeight, boxSizing: 'border-box' }}

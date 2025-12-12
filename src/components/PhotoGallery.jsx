@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import healthDB from '../lib/database.js';
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -86,18 +86,7 @@ function groupPhotosByDate(entries) {
     }));
 }
 
-function getTypeLabel(type) {
-  switch (type) {
-    case 'exercise':
-      return 'Exercise';
-    case 'sleep':
-      return 'Sleep';
-    case 'measurements':
-      return 'Measurements';
-    default:
-      return 'Meal';
-  }
-}
+
 
 const PhotoGallery = () => {
   const [entries, setEntries] = useState([]);
@@ -208,13 +197,23 @@ const PhotoGallery = () => {
         </div>
       ) : (
         groupedPhotos.map((group) => (
-          <section key={group.dateKey} className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
+          <section key={group.dateKey} className="bg-white dark:bg-[var(--color-bg-muted)] border border-gray-200 dark:border-gray-700 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4 relative">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">{group.dateLabel}</h2>
-                <p className="text-sm text-gray-500">{group.photos.length} photo{group.photos.length !== 1 ? 's' : ''}</p>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{group.dateLabel}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{group.photos.length} photo{group.photos.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
+            {/* X button in top right corner */}
+            <button
+              onClick={() => window.history.back()}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              title="Close"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {group.photos.map((photo) => (

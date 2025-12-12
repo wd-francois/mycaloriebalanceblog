@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext.jsx';
 import { defaultGenerateAIPrompt, defaultGetAIServiceUrl } from '../lib/utils';
 
 const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, onDragStart, onDragEnd, onDragOver, onDrop, settings = { weightUnit: 'lbs', lengthUnit: 'in' } }) => {
   const [collapsedTimes, setCollapsedTimes] = useState(new Set());
-  
+
   // Reset collapsed times when entries change (e.g., when navigating back from another page)
   useEffect(() => {
     setCollapsedTimes(new Set());
   }, [entries]);
-  
+
   // Get settings context - must be called unconditionally at top level
   // Since this component is used within SettingsProvider, the context should always be available
   const settingsContext = useSettings();
-  
+
   // Use shared utility functions for AI prompts
 
   const generateAIPrompt = settingsContext?.generateAIPrompt || defaultGenerateAIPrompt;
@@ -32,7 +32,7 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
 
     // Get the appropriate AI service URL
     const aiUrl = getAIServiceUrl(prompt);
-    
+
     // Open AI service with the prompt
     window.open(aiUrl, '_blank');
   };
@@ -56,11 +56,11 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
   const sortedGroups = Object.keys(groupedEntries).sort((a, b) => {
     const timeA = groupedEntries[a][0].time;
     const timeB = groupedEntries[b][0].time;
-    
+
     // Convert to 24-hour format for comparison
     const hourA = timeA.period === 'AM' ? (timeA.hour === 12 ? 0 : timeA.hour) : (timeA.hour === 12 ? 12 : timeA.hour + 12);
     const hourB = timeB.period === 'AM' ? (timeB.hour === 12 ? 0 : timeB.hour) : (timeB.hour === 12 ? 12 : timeB.hour + 12);
-    
+
     if (hourA !== hourB) return hourA - hourB;
     return timeA.minute - timeB.minute;
   });
@@ -156,7 +156,7 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                   </div>
                 )}
               </div>
-              
+
               {/* Action buttons */}
               <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                 <button
@@ -199,11 +199,11 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
         const group = groupedEntries[timeKey];
         const isCollapsed = collapsedTimes.has(timeKey);
         const entryCount = group.length;
-        
+
         return (
           <div key={timeKey} className="border border-gray-200 rounded-lg overflow-hidden">
             {/* Time Group Header */}
-            <div 
+            <div
               className="bg-gray-50 px-3 sm:px-4 py-2 sm:py-3 cursor-pointer hover:bg-gray-100 transition-colors touch-manipulation"
               onClick={() => toggleTimeGroup(timeKey)}
             >
@@ -216,33 +216,33 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                     {entryCount} entr{entryCount === 1 ? 'y' : 'ies'}
                   </span>
                 </div>
-                <svg 
-                  className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform flex-shrink-0 ${isCollapsed ? 'rotate-180' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform flex-shrink-0 ${isCollapsed ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
             </div>
-            
+
             {/* Entries List */}
             {!isCollapsed && (
               <div className="divide-y divide-gray-200">
                 {group.map((entry) => {
                   const typeInfo = getTypeInfo(entry.type);
-                  
+
                   return (
-                  <div
-                    key={entry.id}
-                    draggable
-                    onDragStart={(e) => onDragStart(e, entry)}
-                    onDragEnd={onDragEnd}
-                    onDragOver={onDragOver}
-                    onDrop={(e) => onDrop(e, entry)}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-white hover:bg-gray-50 transition-colors cursor-move hover:border-blue-300 touch-manipulation"
-                  >
+                    <div
+                      key={entry.id}
+                      draggable
+                      onDragStart={(e) => onDragStart(e, entry)}
+                      onDragEnd={onDragEnd}
+                      onDragOver={onDragOver}
+                      onDrop={(e) => onDrop(e, entry)}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-white hover:bg-gray-50 transition-colors cursor-move hover:border-blue-300 touch-manipulation"
+                    >
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
                           <div className={`px-3 py-1 ${typeInfo.bgColor} ${typeInfo.textColor} text-xs font-medium rounded-full flex items-center justify-center`}>
@@ -252,15 +252,15 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                             {entry.name}
                           </div>
                         </div>
-                        
+
                         {/* Additional info based on entry type */}
                         {entry.type === 'meal' && (entry.amount || entry.calories || entry.protein || entry.carbs || entry.fats || entry.fibre || entry.other) && (
                           <div className="mt-2 text-sm text-gray-600 space-y-1">
                             {entry.amount && (
                               <div>Amount: {entry.amount}</div>
                             )}
-                            
-                            
+
+
                             {(entry.calories || entry.protein || entry.carbs || entry.fats || entry.fibre || entry.other) && (
                               <div className="flex flex-wrap gap-3 text-xs">
                                 {entry.calories && <span>🔥 {entry.calories} cal</span>}
@@ -273,7 +273,7 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                             )}
                           </div>
                         )}
-                        
+
                         {entry.type === 'exercise' && entry.sets && entry.sets.length > 0 && (
                           <div className="mt-2 text-sm text-gray-600">
                             <div className="mb-2">
@@ -290,7 +290,7 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                             </div>
                           </div>
                         )}
-                        
+
                         {entry.type === 'sleep' && entry.duration && (
                           <div className="mt-2 text-sm text-gray-600">
                             Duration: {entry.duration}
@@ -302,7 +302,7 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                             {entry.weight && (
                               <div className="font-medium">Weight: {entry.weight} {settings.weightUnit}</div>
                             )}
-                            
+
                             {(entry.neck || entry.shoulders || entry.chest || entry.waist || entry.hips || entry.thigh || entry.arm) && (
                               <div className="flex flex-wrap gap-3 text-xs">
                                 {entry.neck && <span>Neck: {entry.neck}{settings.lengthUnit}</span>}
@@ -340,7 +340,7 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                         <button
                           onClick={() => onInfoClick(entry)}

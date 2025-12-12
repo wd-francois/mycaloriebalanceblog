@@ -10,55 +10,16 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
   description="Learn how to use your hand to measure portion sizes for meals. Simple visual guide for portion control without scales or measuring cups."
   showBottomNav={true}
   wideContent={true}
-  showTopNav={false}
+  showTopNav={true}
   showFooter={false}
 >
-  <main class="w-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
-    <!-- Top Navigation Header -->
-    <div class="bg-white/90 backdrop-blur-xl border-b border-gray-200/80 shadow-sm sticky top-0 z-10">
-      <div class="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-        <div class="flex items-center justify-between gap-2 sm:gap-3">
-          <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            <a
-              href="/daily-calories"
-              class="flex items-center justify-center p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 flex-shrink-0 group"
-              title="Back to Daily Calorie Intake"
-            >
-              <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </a>
-            <a
-              href="/"
-              class="text-xs sm:text-sm md:text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:opacity-80 transition-opacity flex-shrink-0 pr-2 sm:pr-3"
-              title="Home"
-            >
-              My Calorie Balance
-            </a>
-          </div>
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <a
-              href="/settings/"
-              class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:text-blue-700 bg-gray-50 hover:bg-blue-50 rounded-xl transition-all duration-200 border border-gray-200 hover:border-blue-300 hover:shadow-md group"
-              title="Open settings"
-            >
-              <svg class="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span class="hidden sm:inline">Settings</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
+  <div class="w-full bg-white dark:bg-[var(--color-bg-base)]">
     <!-- Content -->
-    <div class="flex-1 px-4 sm:px-6 py-6 sm:py-8 md:py-10 pb-24 sm:pb-28">
+    <div class="w-full px-4 sm:px-6 py-6 sm:py-8 md:py-10">
       <div class="max-w-5xl mx-auto space-y-6">
         
         <!-- Introduction Card -->
-        <div class="bg-gradient-to-br from-orange-50 to-pink-50 rounded-2xl border border-orange-200 p-6">
+        <div class="bg-gradient-to-br from-orange-50 to-pink-50 dark:from-orange-900/20 dark:to-pink-900/20 rounded-2xl border border-orange-200 dark:border-orange-800 p-6">
           <div class="flex items-start gap-3">
             <div class="flex-shrink-0 p-2 bg-orange-100 rounded-lg">
               <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +36,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         </div>
 
         <!-- Women's Guide -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div class="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div class="bg-gradient-to-r from-pink-500 via-purple-500 to-pink-600 p-6 md:p-8">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
@@ -88,22 +49,24 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
               </h2>
             </div>
           </div>
-          <div class="p-6 md:p-8">
+          <div class="p-6 md:p-8 bg-white dark:bg-[var(--color-bg-muted)]">
             <img 
               src="/images/portion-guide-women.jpg" 
               alt="Hand portion size guide for women showing palm-sized protein, fist-sized vegetables, cupped hand of carbs, and thumb-sized fats"
-              class="w-full rounded-xl shadow-lg"
+              class="w-full rounded-xl shadow-lg block"
+              style="display: block; max-width: 100%; height: auto;"
               onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
             />
-            <div style="display: none;" class="text-center py-12 bg-gray-50 rounded-xl">
-              <p class="text-gray-600 mb-2">Image not found</p>
-              <p class="text-sm text-gray-500">Please save the women's portion guide image as: <code class="bg-gray-200 px-2 py-1 rounded">public/images/portion-guide-women.jpg</code></p>
+            <div style="display: none;" class="text-center py-12 bg-gray-50 dark:bg-[var(--color-bg-muted)] rounded-xl border border-gray-200 dark:border-gray-700">
+              <p class="text-gray-600 dark:text-gray-300 mb-2 font-semibold">Image not found</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Please save the women's portion guide image as:</p>
+              <code class="bg-gray-200 dark:bg-[var(--color-bg-subtle)] text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded text-sm font-mono">public/images/portion-guide-women.jpg</code>
             </div>
           </div>
         </div>
 
         <!-- Men's Guide -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div class="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div class="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 p-6 md:p-8">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
@@ -116,22 +79,24 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
               </h2>
             </div>
           </div>
-          <div class="p-6 md:p-8">
+          <div class="p-6 md:p-8 bg-white dark:bg-[var(--color-bg-muted)]">
             <img 
               src="/images/portion-guide-men.jpg" 
               alt="Hand portion size guide for men showing palm-sized protein, fist-sized vegetables, cupped hand of carbs, and thumb-sized fats"
-              class="w-full rounded-xl shadow-lg"
+              class="w-full rounded-xl shadow-lg block"
+              style="display: block; max-width: 100%; height: auto;"
               onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
             />
-            <div style="display: none;" class="text-center py-12 bg-gray-50 rounded-xl">
-              <p class="text-gray-600 mb-2">Image not found</p>
-              <p class="text-sm text-gray-500">Please save the men's portion guide image as: <code class="bg-gray-200 px-2 py-1 rounded">public/images/portion-guide-men.jpg</code></p>
+            <div style="display: none;" class="text-center py-12 bg-gray-50 dark:bg-[var(--color-bg-muted)] rounded-xl border border-gray-200 dark:border-gray-700">
+              <p class="text-gray-600 dark:text-gray-300 mb-2 font-semibold">Image not found</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Please save the men's portion guide image as:</p>
+              <code class="bg-gray-200 dark:bg-[var(--color-bg-subtle)] text-gray-800 dark:text-gray-200 px-3 py-1.5 rounded text-sm font-mono">public/images/portion-guide-men.jpg</code>
             </div>
           </div>
         </div>
 
         <!-- Key Points Card -->
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8">
+        <div class="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 md:p-8">
           <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -184,7 +149,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
 
         <!-- Quick Reference Card -->
         <div class="grid md:grid-cols-2 gap-6">
-          <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl border border-pink-200 p-6">
+          <div class="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-2xl border border-pink-200 dark:border-pink-800 p-6">
             <h3 class="text-lg font-bold text-gray-900 mb-4">Women's Portions</h3>
             <div class="space-y-3 text-sm">
               <div class="flex items-start gap-2">
@@ -206,7 +171,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
             </div>
           </div>
 
-          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6">
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 p-6">
             <h3 class="text-lg font-bold text-gray-900 mb-4">Men's Portions</h3>
             <div class="space-y-3 text-sm">
               <div class="flex items-start gap-2">
@@ -230,7 +195,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         </div>
       </div>
     </div>
-  </main>
+  </div>
   
   <!-- PWA Components -->
   <PWAInstallPrompt client:load />

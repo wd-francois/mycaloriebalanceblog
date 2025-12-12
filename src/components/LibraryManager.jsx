@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import healthDB from '../lib/database.js';
 import { useSettings, SettingsProvider } from '../contexts/SettingsContext.jsx';
 import { defaultGenerateAIPrompt, defaultGetAIServiceUrl } from '../lib/utils';
@@ -29,11 +29,11 @@ const LibraryManager = () => {
   });
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  
+
   // Get settings context - must be called unconditionally at top level
   // Since this component should be used within SettingsProvider, the context should always be available
   const settings = useSettings();
-  
+
   // Use shared utility functions for AI prompts
 
   const generateAIPrompt = settings?.generateAIPrompt || defaultGenerateAIPrompt;
@@ -47,28 +47,30 @@ const LibraryManager = () => {
 
   const loadData = async () => {
     setLoading(true);
-    
+
     // Only run on client side
     if (typeof window === 'undefined') {
       setLoading(false);
       return;
     }
-    
+
     try {
       // Try IndexedDB first, fallback to localStorage
       try {
         // Initialize database if not already done
         if (!healthDB.db) {
           await healthDB.init();
-          await healthDB.initializeSampleData();
         }
+        
+        // Always check and initialize sample data if needed
+        await healthDB.initializeSampleData();
 
         // Load data from IndexedDB
         const mealData = await healthDB.getFoodItems('', 100);
-        
+
         // Set state directly
         setMeals([...mealData]);
-        
+
         console.log('Loaded from IndexedDB:', mealData.length, 'meals');
         setLoading(false);
         return; // Exit early on success
@@ -76,7 +78,7 @@ const LibraryManager = () => {
         console.warn('IndexedDB failed, falling back to localStorage:', indexedDBError);
         // Call the localStorage function directly
         const mealData = [];
-        
+
         try {
           const mealDataStr = localStorage.getItem('mealLibrary');
           if (mealDataStr) {
@@ -88,9 +90,9 @@ const LibraryManager = () => {
         } catch (error) {
           console.error('Error loading meals from localStorage:', error);
         }
-        
+
         // Add sample data if library is empty
-        
+
         if (mealData.length === 0) {
           const sampleMeals = [
             {
@@ -130,14 +132,14 @@ const LibraryManager = () => {
           mealData.push(...sampleMeals);
           localStorage.setItem('mealLibrary', JSON.stringify(sampleMeals));
         }
-        
+
         setMeals([...mealData]);
-        
+
         console.log('Loaded from localStorage:', mealData.length, 'meals');
         setLoading(false);
         return; // Exit early on success
       }
-      
+
     } catch (error) {
       console.error('Error loading library data:', error);
       // Final fallback - set empty arrays
@@ -223,7 +225,7 @@ const LibraryManager = () => {
 
         if (editingItem) {
           // Update existing item
-          const updatedItems = currentItems.map(item => 
+          const updatedItems = currentItems.map(item =>
             item.id === editingItem.id ? { ...item, ...itemData } : item
           );
           localStorage.setItem(storageKey, JSON.stringify(updatedItems));
@@ -236,10 +238,10 @@ const LibraryManager = () => {
       }
 
       setShowAddModal(false);
-      
+
       // Show success message
       alert(`${activeTab === 'exercises' ? 'Exercise' : 'Meal'} ${editingItem ? 'updated' : 'added'} successfully!`);
-      
+
       // Reload data
       await loadData();
     } catch (error) {
@@ -262,7 +264,7 @@ const LibraryManager = () => {
           const updatedItems = currentItems.filter(existingItem => existingItem.id !== item.id);
           localStorage.setItem(storageKey, JSON.stringify(updatedItems));
         }
-        
+
         await loadData(); // Reload data
         alert(`${activeTab === 'exercises' ? 'Exercise' : 'Meal'} deleted successfully!`);
       } catch (error) {
@@ -290,13 +292,13 @@ const LibraryManager = () => {
 
     // Get the appropriate AI service URL
     const aiUrl = getAIServiceUrl(prompt);
-    
+
     // Open AI service with the prompt
     window.open(aiUrl, '_blank');
   };
 
   const currentItems = meals;
-  
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -319,11 +321,10 @@ const LibraryManager = () => {
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('meals')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'meals'
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'meals'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2">
                 <span className="text-lg">🍽️</span>
@@ -357,11 +358,10 @@ const LibraryManager = () => {
         {currentItems.map((item) => (
           <div
             key={item.id}
-            className={`meal-card-item p-4 rounded-lg border ${
-              activeTab === 'exercises'
+            className={`meal-card-item p-4 rounded-lg border ${activeTab === 'exercises'
                 ? 'bg-green-50 border-green-200 dark:bg-gray-950 dark:border-green-700'
                 : 'bg-blue-50 border-blue-200 dark:bg-gray-950 dark:border-blue-700'
-            }`}
+              }`}
           >
             <div className="flex justify-between items-center">
               <div className="flex-1 min-w-0">
@@ -439,13 +439,24 @@ const LibraryManager = () => {
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="absolute inset-0" onClick={() => setShowAddModal(false)} />
-          <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl mx-4 z-10">
+          <div className="relative w-full max-w-md bg-white dark:bg-[var(--color-bg-muted)] rounded-xl shadow-xl mx-4 z-10">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {editingItem ? 'Edit' : 'Add'} Meal
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {editingItem ? 'Edit' : 'Add'} Meal
+                </h3>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  title="Close"
+                >
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
-            
+
             <div className="px-6 py-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -455,12 +466,12 @@ const LibraryManager = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
                   placeholder="e.g., Breakfast, Lunch, Dinner, Snack"
                   autoFocus
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Amount
@@ -469,11 +480,11 @@ const LibraryManager = () => {
                   type="text"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
                   placeholder="e.g., 1 cup, 500 grams, 2 slices"
                 />
               </div>
-              
+
               {/* Nutrition Information */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
@@ -484,7 +495,7 @@ const LibraryManager = () => {
                     type="number"
                     value={formData.calories}
                     onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
                     placeholder="e.g., 250"
                   />
                 </div>
@@ -496,7 +507,7 @@ const LibraryManager = () => {
                     type="number"
                     value={formData.protein}
                     onChange={(e) => setFormData({ ...formData, protein: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
                     placeholder="e.g., 20"
                   />
                 </div>
@@ -508,7 +519,7 @@ const LibraryManager = () => {
                     type="number"
                     value={formData.carbs}
                     onChange={(e) => setFormData({ ...formData, carbs: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
                     placeholder="e.g., 30"
                   />
                 </div>
@@ -520,7 +531,7 @@ const LibraryManager = () => {
                     type="number"
                     value={formData.fats}
                     onChange={(e) => setFormData({ ...formData, fats: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
                     placeholder="e.g., 10"
                   />
                 </div>
@@ -532,7 +543,7 @@ const LibraryManager = () => {
                     type="number"
                     value={formData.fibre}
                     onChange={(e) => setFormData({ ...formData, fibre: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
                     placeholder="e.g., 5"
                   />
                 </div>
@@ -544,12 +555,12 @@ const LibraryManager = () => {
                     type="text"
                     value={formData.other}
                     onChange={(e) => setFormData({ ...formData, other: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
                     placeholder="e.g., Additional notes or nutrients"
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Notes
@@ -557,13 +568,13 @@ const LibraryManager = () => {
                 <textarea
                   value={formData.notes || ''}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
                   placeholder="Add any notes about this meal..."
                   rows={3}
                 />
               </div>
             </div>
-            
+
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
               <button
                 onClick={() => setShowAddModal(false)}
@@ -574,11 +585,10 @@ const LibraryManager = () => {
               <button
                 onClick={handleSaveItem}
                 disabled={!formData.name}
-                className={`px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
-                  activeTab === 'exercises'
+                className={`px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${activeTab === 'exercises'
                     ? 'bg-green-600 hover:bg-green-700'
                     : 'bg-blue-600 hover:bg-blue-700'
-                }`}
+                  }`}
               >
                 {editingItem ? 'Update' : 'Add'} {activeTab === 'exercises' ? 'Exercise' : 'Meal'}
               </button>
@@ -591,7 +601,7 @@ const LibraryManager = () => {
       {showInfoModal && selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowInfoModal(false)} />
-          <div className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-xl mx-4 max-h-[80vh] overflow-hidden">
+          <div className="relative w-full max-w-2xl bg-white dark:bg-[var(--color-bg-muted)] rounded-xl shadow-xl mx-4 max-h-[80vh] overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -599,9 +609,10 @@ const LibraryManager = () => {
                 </h3>
                 <button
                   onClick={() => setShowInfoModal(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  title="Close"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -611,64 +622,64 @@ const LibraryManager = () => {
             <div className="px-6 py-4 max-h-96 overflow-y-auto">
               <div className="space-y-4">
                 {selectedItem.amount && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Amount
-                          </label>
-                          <p className="text-gray-900 dark:text-white">{selectedItem.amount}</p>
-                        </div>
-                      )}
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        {selectedItem.calories && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Calories
-                            </label>
-                            <p className="text-gray-900 dark:text-white">{selectedItem.calories} cal</p>
-                          </div>
-                        )}
-                        
-                        {selectedItem.protein && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Protein
-                            </label>
-                            <p className="text-gray-900 dark:text-white">{selectedItem.protein}g</p>
-                          </div>
-                        )}
-                        
-                        {selectedItem.carbs && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Carbs
-                            </label>
-                            <p className="text-gray-900 dark:text-white">{selectedItem.carbs}g</p>
-                          </div>
-                        )}
-                        
-                        {selectedItem.fats && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Fats
-                            </label>
-                            <p className="text-gray-900 dark:text-white">{selectedItem.fats}g</p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {selectedItem.notes && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Notes
-                          </label>
-                          <p className="text-gray-900 dark:text-white whitespace-pre-wrap">{selectedItem.notes}</p>
-                        </div>
-                      )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Amount
+                    </label>
+                    <p className="text-gray-900 dark:text-white">{selectedItem.amount}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedItem.calories && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Calories
+                      </label>
+                      <p className="text-gray-900 dark:text-white">{selectedItem.calories} cal</p>
+                    </div>
+                  )}
+
+                  {selectedItem.protein && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Protein
+                      </label>
+                      <p className="text-gray-900 dark:text-white">{selectedItem.protein}g</p>
+                    </div>
+                  )}
+
+                  {selectedItem.carbs && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Carbs
+                      </label>
+                      <p className="text-gray-900 dark:text-white">{selectedItem.carbs}g</p>
+                    </div>
+                  )}
+
+                  {selectedItem.fats && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Fats
+                      </label>
+                      <p className="text-gray-900 dark:text-white">{selectedItem.fats}g</p>
+                    </div>
+                  )}
+                </div>
+
+                {selectedItem.notes && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Notes
+                    </label>
+                    <p className="text-gray-900 dark:text-white whitespace-pre-wrap">{selectedItem.notes}</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[var(--color-bg-subtle)]">
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowInfoModal(false)}

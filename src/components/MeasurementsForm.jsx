@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = { weightUnit: 'kg', lengthUnit: 'cm' } }) => {
   const [formData, setFormData] = useState({
@@ -55,7 +55,7 @@ const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = {
       ...prev,
       [field]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
@@ -74,7 +74,7 @@ const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Weight is required
     if (!formData.weight.trim()) {
       newErrors.weight = 'Weight is required';
@@ -96,7 +96,7 @@ const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       // Convert string values to numbers where appropriate
       const submissionData = {
@@ -118,7 +118,7 @@ const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = {
         suprailiacSkinfold: formData.suprailiacSkinfold ? parseFloat(formData.suprailiacSkinfold) : null,
         id: initialData?.id || null
       };
-      
+
       onSubmit(submissionData);
     }
   };
@@ -159,9 +159,8 @@ const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = {
           min="0"
           value={formData[field.key]}
           onChange={(e) => handleInputChange(field.key, e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            errors[field.key] ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors[field.key] ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder={`Enter ${field.label.toLowerCase()}`}
         />
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -184,9 +183,8 @@ const MeasurementsForm = ({ onSubmit, onCancel, initialData = null, settings = {
         <div className="flex items-center justify-between">
           <h4 className="text-lg font-medium text-gray-900">{title}</h4>
           <svg
-            className={`w-5 h-5 text-gray-500 transform transition-transform ${
-              openSections[sectionKey] ? 'rotate-180' : ''
-            }`}
+            className={`w-5 h-5 text-gray-500 transform transition-transform ${openSections[sectionKey] ? 'rotate-180' : ''
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

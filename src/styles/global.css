@@ -149,9 +149,10 @@
   color-scheme: dark;
 
   /* Background colors - Dark Mode */
-  --color-bg-base: #111827;
+  --color-bg-base: #0D1321;
   --color-bg-muted: #1f2937;
   --color-bg-subtle: #374151;
+  --color-navbar-dark: #0D1321; /* Match this to your dark logo background color */
 
   /* Text colors - Dark Mode */
   --color-text-base: #f9fafb;
@@ -166,7 +167,7 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
-  --background: oklch(0.145 0 0);
+  --background: oklch(0.12 0.02 250);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -199,11 +200,11 @@
   --sidebar-ring: oklch(0.556 0 0);
 
   /* shadcn/ui dark mode variables */
-  --background: 222.2 84% 4.9%;
+  --background: 221 43% 9%;
   --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
+  --card: 221 43% 9%;
   --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
+  --popover: 221 43% 9%;
   --popover-foreground: 210 40% 98%;
   --primary: 210 40% 98%;
   --primary-foreground: 222.2 47.4% 11.2%;
@@ -218,6 +219,9 @@
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
   --ring: 212.7 26.8% 83.9%;
+  /* Custom overrides */
+  --summary-label-color: #000000;
+  --summary-heading-color: #e5e7eb;
 }
 
 /* Custom CSS for the blog */
@@ -420,4 +424,21 @@ body {
 .dark .library-card div[class*="rounded-lg"][class*="border"][class*="p-4"] {
   background-color: #030712 !important;
   background: #030712 !important;
+}
+
+/* Ensure transparent logo displays correctly in dark mode */
+.dark .dark-logo,
+.dark img.dark-logo {
+  background: transparent !important;
+  background-color: transparent !important;
+  mix-blend-mode: normal;
+  opacity: 1;
+  display: block !important;
+}
+
+/* Ensure logo container has transparent background */
+.dark nav h1 a,
+.dark nav h1 {
+  background: transparent !important;
+  background-color: transparent !important;
 }
