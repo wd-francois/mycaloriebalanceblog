@@ -260,29 +260,32 @@ const DailyEntriesContent = ({ date: dateParam }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[var(--color-bg-base)]" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading entries...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading entries...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
+    <div className="min-h-screen bg-white dark:bg-[var(--color-bg-base)] flex flex-col" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
       {/* Content - Centered vertically */}
       <div className="flex-1 flex items-center justify-center">
         <div className="max-w-4xl mx-auto px-4 w-full">
-          <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-lg p-6 md:p-8">
+          {/* Date Header - Above the card */}
+          <div className="mb-4 text-center">
+            <div className="text-base md:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">{formatDate(selectedDate)}</div>
+          </div>
+          
+          <div className="bg-white dark:bg-[var(--color-bg-muted)] border border-gray-200 dark:border-gray-700 rounded-3xl overflow-hidden shadow-lg p-6 md:p-8">
             {/* Show entries if filtered entries exist */}
             {filteredDateEntries.length > 0 ? (
               <>
-                {/* Heading and Action Buttons */}
-                <div className="mb-6 pb-6 border-b border-gray-200">
-                  <div className="flex items-center justify-between gap-3 mb-2">
-                    <h2 className="text-lg md:text-xl font-bold text-gray-900">{formatDate(selectedDate)}</h2>
-                    <div className="flex items-center gap-2 md:gap-3">
+                {/* Action Buttons */}
+                <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-start gap-2 md:gap-3">
                     <a
                       href={`/daily-calories?date=${dateStr}`}
                       className="flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
@@ -315,7 +318,6 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                       <span className="whitespace-nowrap">Export</span>
                     </button>
                   </div>
-                  </div>
                 </div>
                 <GroupedEntries
                   key={`${dateStr}-${filteredDateEntries.length}`}
@@ -332,7 +334,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                 />
 
                 {/* Make A New Entry Button */}
-                <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <a
                     href={`/?date=${dateStr}&add=true`}
                     onClick={(e) => {
@@ -352,11 +354,11 @@ const DailyEntriesContent = ({ date: dateParam }) => {
             ) : (
               !loading && entriesLoaded && filteredDateEntries.length === 0 ? (
                 <div className="text-center py-12">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No entries for this date</h3>
-                  <p className="mt-1 text-sm text-gray-500">Add your first entry to get started</p>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No entries for this date</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Add your first entry to get started</p>
                   <div className="mt-6">
                     <a
                       href={`/?date=${dateStr}&add=true`}

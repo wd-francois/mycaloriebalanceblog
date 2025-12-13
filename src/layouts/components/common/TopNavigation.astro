@@ -22,14 +22,14 @@ const currentUrl = Astro.url.pathname;
           <img 
             src={logo.src} 
             alt="My Calorie Balance Diary" 
-            class={`h-10 sm:h-12 md:h-16 lg:h-20 xl:h-24 w-auto object-contain block dark:hidden transition-all duration-200 ${
+            class={`h-[60px] w-auto sm:h-12 md:h-16 lg:h-20 xl:h-24 object-contain block dark:hidden transition-all duration-200 ${
               currentUrl === '/' ? '' : 'group-hover:scale-110 group-hover:opacity-80 group-hover:brightness-110'
             }`}
           />
           <img 
             src={darkLogo.src} 
             alt="My Calorie Balance Diary" 
-            class={`dark-logo h-10 sm:h-12 md:h-16 lg:h-20 xl:h-24 w-auto object-contain hidden dark:block transition-all duration-200 ${
+            class={`dark-logo h-[60px] w-auto sm:h-12 md:h-16 lg:h-20 xl:h-24 object-contain hidden dark:block transition-all duration-200 ${
               currentUrl === '/' ? '' : 'group-hover:scale-110 group-hover:opacity-80 group-hover:brightness-125'
             }`}
           />
