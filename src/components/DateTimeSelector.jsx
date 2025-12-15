@@ -921,6 +921,13 @@ const DateTimeSelector = () => {
                   </div>
                 </div>
               </div>
+            ) : (contextSettings?.calorieGoal === 'none' || !contextSettings?.calorieGoal) ? (
+              <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Calorie Goal</h3>
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Choose your goal in <a href="/settings" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">My Settings</a></p>
+                </div>
+              </div>
             ) : null}
 
             {/* Calendar Card */}
