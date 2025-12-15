@@ -1000,7 +1000,7 @@ const DateTimeSelector = () => {
                 {/* Date display above the card */}
                 {!(showMealInput || showSleepInput || showMeasurementsInput) && selectedDate && (
                   <div className="w-full max-w-[380px] md:max-w-4xl mx-auto mb-4 text-center">
-                    <div className="text-base md:text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                    <div className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                       {formatDate(selectedDate)}
                     </div>
                   </div>
@@ -1076,9 +1076,9 @@ const DateTimeSelector = () => {
                                 setActiveForm('meal');
                                 setShowMealInput(true);
                               }}
-                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${showMealInput
-                                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:shadow-md'
+                              className={`py-3 md:py-4 rounded-2xl font-semibold shadow-lg active:scale-[0.97] transition-all text-sm md:text-base ${showMealInput
+                                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl'
+                                : 'bg-white dark:bg-gray-800 border-2 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 dark:hover:from-blue-900/30 dark:hover:to-blue-800/30 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-xl'
                                 }`}
                             >
                               🍽️ Meal
@@ -1091,9 +1091,9 @@ const DateTimeSelector = () => {
                                 setActiveForm('sleep');
                                 setShowSleepInput(true);
                               }}
-                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${showSleepInput
-                                ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 hover:shadow-md'
+                              className={`py-3 md:py-4 rounded-2xl font-semibold shadow-lg active:scale-[0.97] transition-all text-sm md:text-base ${showSleepInput
+                                ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-xl'
+                                : 'bg-white dark:bg-gray-800 border-2 border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 dark:hover:from-purple-900/30 dark:hover:to-purple-800/30 hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-xl'
                                 }`}
                             >
                               🛌 Sleep
@@ -1106,9 +1106,9 @@ const DateTimeSelector = () => {
                                 setActiveForm('measurements');
                                 setShowMeasurementsInput(true);
                               }}
-                              className={`py-3 md:py-4 rounded-2xl font-medium shadow-sm active:scale-[0.97] transition-all text-sm md:text-base ${showMeasurementsInput
-                                ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 hover:shadow-md'
+                              className={`py-3 md:py-4 rounded-2xl font-semibold shadow-lg active:scale-[0.97] transition-all text-sm md:text-base ${showMeasurementsInput
+                                ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-xl'
+                                : 'bg-white dark:bg-gray-800 border-2 border-green-300 dark:border-green-600 text-green-700 dark:text-green-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 dark:hover:from-green-900/30 dark:hover:to-green-800/30 hover:border-green-500 dark:hover:border-green-500 hover:shadow-xl'
                                 }`}
                             >
                               📏 Measure
@@ -1142,14 +1142,14 @@ const DateTimeSelector = () => {
                             <button
                               type="button"
                               onClick={triggerCameraCapture}
-                              className="flex-1 border-2 border-blue-300 py-3 md:py-4 rounded-xl font-medium text-blue-700 bg-white active:scale-[0.97] transition-all hover:bg-blue-50 hover:border-blue-500 hover:shadow-md text-sm md:text-base"
+                              className="flex-1 border-2 border-blue-400 dark:border-blue-600 py-3 md:py-4 rounded-xl font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-gray-800 active:scale-[0.97] transition-all hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-600 dark:hover:border-blue-500 hover:shadow-lg text-sm md:text-base"
                             >
                               📷 Take Photo
                             </button>
                             <button
                               type="button"
                               onClick={triggerPhotoUpload}
-                              className="flex-1 border-2 border-blue-300 py-3 md:py-4 rounded-xl font-medium text-blue-700 bg-white active:scale-[0.97] transition-all hover:bg-blue-50 hover:border-blue-500 hover:shadow-md text-sm md:text-base"
+                              className="flex-1 border-2 border-blue-400 dark:border-blue-600 py-3 md:py-4 rounded-xl font-semibold text-blue-700 dark:text-blue-300 bg-white dark:bg-gray-800 active:scale-[0.97] transition-all hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-600 dark:hover:border-blue-500 hover:shadow-lg text-sm md:text-base"
                             >
                               ⬆️ Upload
                             </button>
@@ -1171,7 +1171,7 @@ const DateTimeSelector = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleSavePhotoToGallery(selectedDate, time, activeForm, isDBInitialized, addEntry)}
-                                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-green-200 bg-green-50 text-green-700 font-medium hover:bg-green-100 transition-colors duration-200 text-sm"
+                                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 border-green-400 dark:border-green-600 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-semibold hover:bg-green-200 dark:hover:bg-green-900/50 hover:border-green-500 dark:hover:border-green-500 hover:shadow-md transition-all duration-200 text-sm"
                                 >
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -1353,7 +1353,7 @@ const DateTimeSelector = () => {
                           <button
                             type="button"
                             onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowSleepInput, setShowMeasurementsInput })}
-                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            className="inline-flex items-center px-6 py-3 bg-blue-600 dark:bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -1366,7 +1366,7 @@ const DateTimeSelector = () => {
                             onClick={() => {
                               setShowMealInput(false);
                             }}
-                            className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                            className="inline-flex items-center px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-semibold rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
                           >
                             {formState.id == null ? 'Cancel' : 'Cancel Edit'}
                           </button>
@@ -1520,7 +1520,7 @@ const DateTimeSelector = () => {
                           <button
                             type="button"
                             onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowSleepInput, setShowMeasurementsInput })}
-                            className="inline-flex items-center px-6 py-3 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                            className="inline-flex items-center px-6 py-3 bg-purple-600 dark:bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 dark:hover:bg-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -1534,7 +1534,7 @@ const DateTimeSelector = () => {
                               setShowSleepInput(false);
                               setActiveForm('meal');
                             }}
-                            className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                            className="inline-flex items-center px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-semibold rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
                           >
                             {formState.id == null ? 'Cancel' : 'Cancel Edit'}
                           </button>
@@ -1756,7 +1756,7 @@ const DateTimeSelector = () => {
                           <button
                             type="button"
                             onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowSleepInput, setShowMeasurementsInput })}
-                            className="inline-flex items-center px-6 py-3 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                            className="inline-flex items-center px-6 py-3 bg-green-600 dark:bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 dark:hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
                           >
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -1770,7 +1770,7 @@ const DateTimeSelector = () => {
                               setShowMeasurementsInput(false);
                               setActiveForm('meal');
                             }}
-                            className="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                            className="inline-flex items-center px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-semibold rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
                           >
                             {formState.id == null ? 'Cancel' : 'Cancel Edit'}
                           </button>
@@ -1868,13 +1868,13 @@ const DateTimeSelector = () => {
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={handleInfoSave}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
                 >
                   Save Information
                 </button>
                 <button
                   onClick={handleInfoCancel}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-semibold rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-all shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
                 >
                   Cancel
                 </button>
