@@ -5,7 +5,36 @@ const SettingsContext = createContext();
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (!context) {
-    throw new Error('useSettings must be used within a SettingsProvider');
+    // Return default settings instead of throwing error
+    // This can happen during initial render or if provider isn't set up yet
+    console.warn('useSettings called outside SettingsProvider, using defaults');
+    return {
+      settings: {
+        weightUnit: 'kg',
+        lengthUnit: 'cm',
+        dateFormat: 'MM/DD/YYYY',
+        timeFormat: '12h',
+        enableMeals: true,
+        enableExercise: false,
+        enableSleep: true,
+        enableMeasurements: true,
+        theme: 'light',
+        calorieGoal: 'none',
+        aiService: 'chatgpt',
+        aiPromptTemplate: '',
+        aiCustomUrl: '',
+        aiIncludeCurrentValues: true,
+        aiRequestFormat: 'detailed',
+        aiLanguage: 'english'
+      },
+      updateSetting: () => {},
+      updateSettings: () => {},
+      convertWeight: (v, f, t) => v,
+      convertLength: (v, f, t) => v,
+      convertSkinfold: (v, f, t) => v,
+      generateAIPrompt: () => '',
+      getAIServiceUrl: () => ''
+    };
   }
   return context;
 };
@@ -23,6 +52,8 @@ export const SettingsProvider = ({ children }) => {
     enableMeasurements: true,
     // Theme
     theme: 'light',
+    // Calorie Goal
+    calorieGoal: 'none', // 'none', 'weightLoss', 'maintenance', 'weightGain'
     // AI Settings
     aiService: 'chatgpt', // 'chatgpt', 'claude', 'gemini', 'grok', 'custom'
     aiPromptTemplate: `I have a meal entry for "{mealName}" with amount: {amount}. 
@@ -58,7 +89,12 @@ Please format your response clearly so I can easily update my meal entry.`,
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
-        setSettings(prev => ({ ...prev, ...parsed }));
+        console.log('Loading settings from localStorage:', parsed);
+        setSettings(prev => {
+          const merged = { ...prev, ...parsed };
+          console.log('Merged settings:', merged);
+          return merged;
+        });
       } catch (error) {
         console.error('Error loading settings:', error);
       }
@@ -83,6 +119,7 @@ Please format your response clearly so I can easily update my meal entry.`,
     // Only run on client side
     if (typeof window === 'undefined') return;
 
+    console.log('Saving settings to localStorage:', settings);
     localStorage.setItem('healthTrackerSettings', JSON.stringify(settings));
 
     // Also save feature toggles to healthEntries for compatibility
@@ -99,10 +136,15 @@ Please format your response clearly so I can easily update my meal entry.`,
   }, [settings]);
 
   const updateSetting = (key, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
+    console.log('updateSetting called:', key, '=', value);
+    setSettings(prev => {
+      const newSettings = {
+        ...prev,
+        [key]: value
+      };
+      console.log('New settings:', newSettings);
+      return newSettings;
+    });
   };
 
   const updateSettings = (newSettings) => {

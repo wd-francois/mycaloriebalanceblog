@@ -4,7 +4,7 @@ import Calendar from './Calendar';
 import AutocompleteInput from './AutocompleteInput';
 
 import healthDB from '../lib/database.js';
-import { SettingsProvider } from '../contexts/SettingsContext.jsx';
+import { SettingsProvider, useSettings } from '../contexts/SettingsContext.jsx';
 import { formatDate, formatTime } from '../lib/utils';
 import { getCurrentTimeParts, calculateSleepDuration } from '../lib/dateUtils';
 
@@ -26,6 +26,9 @@ const DateTimeSelector = () => {
     return false;
   });
   const [isClient, setIsClient] = useState(false);
+
+  // Get settings from context
+  const { settings: contextSettings } = useSettings();
 
   // Entries state managed by useHealthData hook
   const { entries, isDBInitialized, addEntry, updateEntry } = useHealthData();
@@ -400,6 +403,60 @@ const DateTimeSelector = () => {
     const sleepEntry = todayEntries.find(e => e.type === 'sleep');
     return sleepEntry ? sleepEntry.duration : null;
   }, [todayEntries]);
+
+  // Calculate today's total calories and get calorie goal
+  const calorieGoalData = useMemo(() => {
+    if (!isClient || typeof window === 'undefined') {
+      return { goalValue: null, todayCalories: 0, goalType: null, goalLabel: null };
+    }
+
+    // Get selected calorie goal from settings
+    const selectedGoal = contextSettings?.calorieGoal || 'none';
+    
+    if (selectedGoal === 'none') {
+      return { goalValue: null, todayCalories: 0, goalType: null, goalLabel: null };
+    }
+
+    // Load calorie calculator data from localStorage
+    let calculatorData = null;
+    try {
+      const savedData = localStorage.getItem('calorieCalculatorData');
+      if (savedData) {
+        calculatorData = JSON.parse(savedData);
+      }
+    } catch (e) {
+      console.error('Error loading calculator data:', e);
+    }
+
+    if (!calculatorData) {
+      return { goalValue: null, todayCalories: 0, goalType: null, goalLabel: null };
+    }
+
+    // Get goal value based on selected goal type
+    const goalValue = calculatorData[selectedGoal] || null;
+
+    // Calculate today's total calories from meal entries
+    const todayCalories = todayEntries
+      .filter(e => e.type === 'meal' && e.calories)
+      .reduce((sum, entry) => {
+        const calories = parseFloat(entry.calories) || 0;
+        return sum + calories;
+      }, 0);
+
+    // Get goal type label
+    const goalLabels = {
+      weightLoss: 'Weight Loss',
+      maintenance: 'Maintenance',
+      weightGain: 'Weight Gain'
+    };
+
+    return {
+      goalValue,
+      todayCalories: Math.round(todayCalories),
+      goalType: selectedGoal,
+      goalLabel: goalLabels[selectedGoal] || selectedGoal
+    };
+  }, [isClient, contextSettings?.calorieGoal, todayEntries]);
 
 
 
@@ -833,10 +890,41 @@ const DateTimeSelector = () => {
   return (
     <div className="w-full">
       {!hasEditOrInfoParam && !showModal && (
-        <div className="w-full min-h-[calc(100vh-160px)] bg-white dark:bg-[var(--color-bg-base)] flex items-start justify-center overflow-y-auto pt-32 sm:pt-36 md:pt-40 lg:pt-44 xl:pt-48" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-          <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 md:py-6 pb-8 md:pb-12">
+        <div className="w-full min-h-[calc(100vh-160px)] bg-white dark:bg-[var(--color-bg-base)] flex items-center justify-center overflow-y-auto py-4 sm:py-6" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+          <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full justify-center">
+            {/* Calorie Goal Card */}
+            {calorieGoalData.goalValue ? (
+              <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Calorie Goal</h3>
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                  <div className={`text-center p-2 sm:p-3 rounded-xl ${calorieGoalData.todayCalories > calorieGoalData.goalValue ? 'bg-red-50 dark:bg-red-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                    <div className={`text-xl sm:text-2xl font-bold ${calorieGoalData.todayCalories > calorieGoalData.goalValue ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                      {calorieGoalData.todayCalories}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">Today</div>
+                  </div>
+                  <div className="text-center p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                    <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      {calorieGoalData.goalValue > 0 && calorieGoalData.todayCalories > calorieGoalData.goalValue ? '+' : ''}
+                      {calorieGoalData.goalValue > 0 && calorieGoalData.todayCalories < calorieGoalData.goalValue ? '-' : ''}
+                      {calorieGoalData.goalValue}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">Goal</div>
+                  </div>
+                  <div className={`text-center p-2 sm:p-3 rounded-xl ${calorieGoalData.todayCalories > calorieGoalData.goalValue ? 'bg-red-50 dark:bg-red-900/20' : 'bg-green-50 dark:bg-green-900/20'}`}>
+                    <div className={`text-xl sm:text-2xl font-bold ${calorieGoalData.todayCalories > calorieGoalData.goalValue ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                      {Math.abs(calorieGoalData.todayCalories - calorieGoalData.goalValue)}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">
+                      {calorieGoalData.todayCalories > calorieGoalData.goalValue ? 'Over' : 'Under'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
             {/* Calendar Card */}
-            <div className="pt-4 sm:pt-6">
+            <div>
               {isClient && <Calendar selectedDate={selectedDate} onSelectDate={handleDateSelect} entries={entries} />}
             </div>
 

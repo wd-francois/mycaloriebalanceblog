@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSettings } from '../contexts/SettingsContext.jsx';
 
 // Custom CSS for responsive radio buttons and toggle switches
 const radioStyles = `
@@ -44,39 +45,9 @@ const radioStyles = `
 const Settings = ({ onClose: _onClose = null }) => {
   // Only initialize hooks if we're on the client side
   const [isClient, setIsClient] = useState(false);
-  const [settings, setSettings] = useState({
-    weightUnit: 'kg',
-    lengthUnit: 'cm',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h',
-    enableMeals: true,
-    enableExercise: false, // Temporarily disabled
-    enableSleep: true,
-    enableMeasurements: true,
-    theme: 'light',
-    // AI Settings
-    aiService: 'chatgpt',
-    aiPromptTemplate: `I have a meal entry for "{mealName}" with amount: {amount}. 
-
-Current nutritional values:
-- Calories: {calories}
-- Protein: {protein}g
-- Carbs: {carbs}g
-- Fats: {fats}g
-
-Please provide accurate nutritional information for this meal. Include:
-1. Calories per serving
-2. Protein content in grams
-3. Carbohydrates content in grams
-4. Fats content in grams
-5. Any additional nutritional insights
-
-Please format your response clearly so I can easily update my meal entry.`,
-    aiCustomUrl: '',
-    aiIncludeCurrentValues: true,
-    aiRequestFormat: 'detailed',
-    aiLanguage: 'english'
-  });
+  
+  // Use settings from context
+  const { settings, updateSetting } = useSettings();
 
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -85,17 +56,6 @@ Please format your response clearly so I can easily update my meal entry.`,
     if (typeof window === 'undefined') return;
 
     setIsClient(true);
-
-    // Load settings from localStorage on mount
-    const savedSettings = localStorage.getItem('healthTrackerSettings');
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings);
-        setSettings(prev => ({ ...prev, ...parsed }));
-      } catch (error) {
-        console.error('Error loading settings:', error);
-      }
-    }
   }, []);
 
   // Check theme on mount and when it changes
@@ -118,19 +78,7 @@ Please format your response clearly so I can easily update my meal entry.`,
     return () => observer.disconnect();
   }, []);
 
-  const updateSetting = (key, value) => {
-    // Only update if we're on the client side
-    if (typeof window === 'undefined') return;
-
-    setSettings(prev => {
-      const newSettings = { ...prev, [key]: value };
-
-      // Save to localStorage
-      localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
-
-      return newSettings;
-    });
-  };
+  // updateSetting is now from context, no need to redefine
 
   // Dark mode toggle handler
   const handleThemeToggle = () => {
@@ -283,9 +231,12 @@ Please format your response clearly so I can easily update my meal entry.`,
             <div key={groupIndex} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
               <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{group.title}</h4>
               <div className="space-y-4">
-                {group.settings.map((setting) => (
-                  <div key={setting.key}>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {group.settings.map((setting) => {
+                  const currentValue = settings[setting.key] || 'none';
+                  console.log(`Rendering setting ${setting.key} with value:`, currentValue);
+                  return (
+                    <div key={setting.key}>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           {setting.label}
@@ -298,25 +249,28 @@ Please format your response clearly so I can easily update my meal entry.`,
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={settings[setting.key]}
+                              checked={settings[setting.key] || false}
                               onChange={(e) => updateSetting(setting.key, e.target.checked)}
                               className="sr-only peer"
                             />
                             <div className="responsive-toggle bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:transition-all peer-checked:bg-blue-600"></div>
                           </label>
-                        ) : (
+                        ) : unitOptions[setting.key] ? (
                           <>
                             {/* Mobile: Checkboxes */}
                             <div className="flex flex-wrap gap-2 sm:hidden">
                               {unitOptions[setting.key].map((option) => (
-                                <label key={option.value} className="flex items-center gap-1 text-sm">
+                                <label key={option.value} className="flex items-center gap-1 text-sm cursor-pointer">
                                   <input
                                     type="radio"
                                     name={setting.key}
                                     value={option.value}
-                                    checked={settings[setting.key] === option.value}
-                                    onChange={(e) => updateSetting(setting.key, e.target.value)}
-                                    className="responsive-radio text-blue-600 border-gray-300 focus:ring-blue-500"
+                                    checked={(settings[setting.key] || 'none') === option.value}
+                                    onChange={(e) => {
+                                      console.log('Updating setting:', setting.key, 'to:', e.target.value);
+                                      updateSetting(setting.key, e.target.value);
+                                    }}
+                                    className="responsive-radio text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer"
                                   />
                                   <span className="text-xs">{option.label}</span>
                                 </label>
@@ -325,9 +279,14 @@ Please format your response clearly so I can easily update my meal entry.`,
 
                             {/* Desktop: Select dropdown */}
                             <select
-                              value={settings[setting.key]}
-                              onChange={(e) => updateSetting(setting.key, e.target.value)}
-                              className="hidden sm:block px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm"
+                              key={`select-${setting.key}-${currentValue}`}
+                              value={currentValue}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                console.log('Select onChange - setting:', setting.key, 'current value:', currentValue, 'new value:', newValue);
+                                updateSetting(setting.key, newValue);
+                              }}
+                              className="hidden sm:block px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white cursor-pointer"
                             >
                               {unitOptions[setting.key].map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -336,27 +295,30 @@ Please format your response clearly so I can easily update my meal entry.`,
                               ))}
                             </select>
                           </>
+                        ) : (
+                          <div className="text-sm text-red-500">Options not available for {setting.key}</div>
                         )}
                       </div>
-                    </div>
-                    {/* Custom URL Input - Show directly below AI Service */}
-                    {setting.key === 'aiService' && settings.aiService === 'custom' && (
-                      <div className="mt-4 ml-0 sm:ml-0">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Custom AI Service URL
-                        </label>
-                        <p className="text-sm text-gray-500 mb-3">Enter the base URL for your custom AI service. The prompt will be appended as a query parameter.</p>
-                        <input
-                          type="url"
-                          value={settings.aiCustomUrl}
-                          onChange={(e) => updateSetting('aiCustomUrl', e.target.value)}
-                          placeholder="https://your-ai-service.com/?q="
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
                       </div>
-                    )}
-                  </div>
-                ))}
+                      {/* Custom URL Input - Show directly below AI Service */}
+                      {setting.key === 'aiService' && settings.aiService === 'custom' && (
+                        <div className="mt-4 ml-0 sm:ml-0">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Custom AI Service URL
+                          </label>
+                          <p className="text-sm text-gray-500 mb-3">Enter the base URL for your custom AI service. The prompt will be appended as a query parameter.</p>
+                          <input
+                            type="url"
+                            value={settings.aiCustomUrl}
+                            onChange={(e) => updateSetting('aiCustomUrl', e.target.value)}
+                            placeholder="https://your-ai-service.com/?q="
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
