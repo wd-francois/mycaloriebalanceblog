@@ -631,19 +631,15 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
     function displayCalorieGoals() {
       const calculatorData = loadCalculatorData();
       
-      if (!calculatorData) {
-        return;
-      }
-
-      const weightLoss = calculatorData.weightLoss || 0;
-      const maintenance = calculatorData.maintenance || 0;
-      const weightGain = calculatorData.weightGain || 0;
+      const weightLoss = calculatorData ? (calculatorData.weightLoss || 0) : 0;
+      const maintenance = calculatorData ? (calculatorData.maintenance || 0) : 0;
+      const weightGain = calculatorData ? (calculatorData.weightGain || 0) : 0;
 
       // Get total calories from the dashboard
       const totalCaloriesEl = document.getElementById('totalCalories');
       const totalCalories = totalCaloriesEl ? parseInt(totalCaloriesEl.textContent) || 0 : 0;
 
-      // Update comparison section
+      // Update comparison section (always call this, even if no calculator data)
       updateCalorieComparison(totalCalories, weightLoss, maintenance, weightGain);
     }
 
@@ -676,10 +672,9 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
         (card as HTMLElement).classList.add('hidden');
       });
 
-      // Only show comparison if we have both total calories and at least one goal
-      if (totalCalories === 0 && (weightLossGoal === 0 && maintenanceGoal === 0 && weightGainGoal === 0)) {
-        return;
-      }
+      // Get references to message and container
+      const noGoalMessage = document.getElementById('noGoalSelectedMessage');
+      const goalsContainer = comparisonSection.querySelector('.space-y-4') as HTMLElement;
 
       // Determine which goal to show based on selected goal
       let goalToShow: string | null = null;
@@ -697,10 +692,7 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
       }
 
       // Show message if no goal selected or goal not available
-      const noGoalMessage = document.getElementById('noGoalSelectedMessage');
-      const goalsContainer = comparisonSection.querySelector('.space-y-4') as HTMLElement;
-      
-      if (!goalToShow || goalValue === 0) {
+      if (!goalToShow || goalValue === 0 || selectedGoal === 'none') {
         // Show the comparison section with the message
         comparisonSection.classList.remove('hidden');
         if (noGoalMessage) {
