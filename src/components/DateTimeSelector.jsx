@@ -82,7 +82,9 @@ const DateTimeSelector = () => {
           calories: entry.calories || '',
           protein: entry.protein || '',
           carbs: entry.carbs || '',
-          fats: entry.fats || ''
+          fats: entry.fats || '',
+          fibre: entry.fibre || '',
+          other: entry.other || ''
         };
 
         const existingFoods = await healthDB.getFoodItems(entry.name, 100);
@@ -93,7 +95,7 @@ const DateTimeSelector = () => {
         );
 
         if (!isDuplicate) {
-          await healthDB.saveFoodItem(foodData);
+          await healthDB.addFoodItem(foodData);
           console.log('Food added to database library:', entry.name);
         }
       } else if (entry.type === 'exercise') {
