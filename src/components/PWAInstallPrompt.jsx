@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 
 const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-
   const [isInstalled, setIsInstalled] = useState(false);
-
   const [userEngaged, setUserEngaged] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -120,13 +120,33 @@ const PWAInstallPrompt = () => {
   const handleDismiss = () => {
     setShowInstallPrompt(false);
     // Don't show again for this session
-    sessionStorage.setItem('pwa-prompt-dismissed', 'true');
-    // Also don't show for 7 days
-    localStorage.setItem('pwa-prompt-dismissed-until', Date.now() + (7 * 24 * 60 * 60 * 1000));
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('pwa-prompt-dismissed', 'true');
+      // Also don't show for 7 days
+      localStorage.setItem('pwa-prompt-dismissed-until', Date.now() + (7 * 24 * 60 * 60 * 1000));
+    }
   };
 
-  // TEMPORARILY DISABLED FOR DEBUGGING - Return early to disable component
-  // return null;
+  // Don't show if not on client, already installed, or prompt dismissed
+  if (!isClient || isInstalled) {
+    return null;
+  }
+
+  // Check if prompt was dismissed
+  if (typeof window !== 'undefined') {
+    const dismissedUntil = localStorage.getItem('pwa-prompt-dismissed-until');
+    if (dismissedUntil && Date.now() < parseInt(dismissedUntil)) {
+      return null;
+    }
+    if (sessionStorage.getItem('pwa-prompt-dismissed') === 'true') {
+      return null;
+    }
+  }
+
+  // Only show if user is engaged and we have a deferred prompt
+  if (!showInstallPrompt || !deferredPrompt) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-[60] md:bottom-4 md:left-auto md:right-4 md:max-w-sm">

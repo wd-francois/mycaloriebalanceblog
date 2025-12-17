@@ -28,7 +28,7 @@ const DateTimeSelector = () => {
   const [isClient, setIsClient] = useState(false);
 
   // Get settings from context
-  const { settings: contextSettings } = useSettings();
+  const { settings, updateSetting } = useSettings();
 
   // Entries state managed by useHealthData hook
   const { entries, isDBInitialized, addEntry, updateEntry } = useHealthData();
@@ -54,18 +54,6 @@ const DateTimeSelector = () => {
 
 
   const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings] = useState({
-    weightUnit: 'kg',
-    lengthUnit: 'cm',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h',
-    enableMeasurements: true,
-    enableExercise: true,
-    enableSleep: true,
-    enableQuickAddFood: true,
-    enableQuickAddExercise: true,
-    enableMeals: true
-  });
   const processedUrlParams = useRef(new Set());
   const modalOpenedViaEdit = useRef(false);
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
@@ -218,18 +206,7 @@ const DateTimeSelector = () => {
       console.log('Skipping localStorage form state load - edit/info params detected');
     }
 
-    // Load settings
-    try {
-      const savedSettings = localStorage.getItem('healthTrackerSettings');
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        setSettings(prev => ({ ...prev, ...parsed, enableMeasurements: true })); // Force enable measurements
-        console.log('Loaded settings from localStorage:', parsed);
-      }
-    } catch (error) {
-      console.error('Error loading settings from localStorage:', error);
-    }
-
+    // Settings are now loaded from SettingsContext automatically
     return () => clearTimeout(timeoutId);
   }, []);
 
@@ -261,20 +238,13 @@ const DateTimeSelector = () => {
     }
   }, [isDBInitialized, selectedDate, showModal]);
 
-  // Ensure measurements are always enabled
+  // Ensure measurements are always enabled (using context)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    setSettings(prev => {
-      if (!prev.enableMeasurements) {
-        const updatedSettings = { ...prev, enableMeasurements: true };
-        // Save to localStorage
-        localStorage.setItem('healthTrackerSettings', JSON.stringify(updatedSettings));
-        return updatedSettings;
-      }
-      return prev;
-    });
-  }, []);
+    if (!settings.enableMeasurements) {
+      updateSetting('enableMeasurements', true);
+    }
+  }, [settings.enableMeasurements, updateSetting]);
 
   // Initialize database and load data on component mount
   // Database initialization and data loading handled by useHealthData hook
@@ -303,17 +273,7 @@ const DateTimeSelector = () => {
     }
   }, [formState]);
 
-  // Update setting function for settings modal
-  const updateSetting = (key, value) => {
-    if (typeof window === 'undefined') return;
-    
-    setSettings(prev => {
-      const newSettings = { ...prev, [key]: value };
-      // Save to localStorage
-      localStorage.setItem('healthTrackerSettings', JSON.stringify(newSettings));
-      return newSettings;
-    });
-  };
+  // updateSetting is now from SettingsContext, no need for local function
 
 
 
@@ -413,7 +373,7 @@ const DateTimeSelector = () => {
     }
 
     // Get selected calorie goal from settings
-    const selectedGoal = contextSettings?.calorieGoal || 'none';
+    const selectedGoal = settings?.calorieGoal || 'none';
     
     if (selectedGoal === 'none') {
       return { goalValue: null, todayCalories: 0, goalType: null, goalLabel: null };
@@ -458,7 +418,7 @@ const DateTimeSelector = () => {
       goalType: selectedGoal,
       goalLabel: goalLabels[selectedGoal] || selectedGoal
     };
-  }, [isClient, contextSettings?.calorieGoal, todayEntries]);
+  }, [isClient, settings?.calorieGoal, todayEntries]);
 
 
 
@@ -923,7 +883,7 @@ const DateTimeSelector = () => {
                   </div>
                 </div>
               </div>
-            ) : (contextSettings?.calorieGoal === 'none' || !contextSettings?.calorieGoal) ? (
+            ) : (settings?.calorieGoal === 'none' || !settings?.calorieGoal) ? (
               <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4">
                 <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Calorie Goal</h3>
                 <div className="text-center py-4">
@@ -1909,6 +1869,10 @@ const DateTimeSelector = () => {
 
             {/* Content */}
             <div className="px-6 py-4 max-h-96 overflow-y-auto">
+              {!settings && (
+                <div className="text-center py-4 text-gray-500">Loading settings...</div>
+              )}
+              {settings && (
               <div className="space-y-6">
 
                 {/* Weight & Measurements */}
@@ -1927,7 +1891,7 @@ const DateTimeSelector = () => {
                             type="radio"
                             name="weightUnit"
                             value="lbs"
-                            checked={settings.weightUnit === 'lbs'}
+                            checked={(settings.weightUnit || 'kg') === 'lbs'}
                             onChange={(e) => updateSetting('weightUnit', e.target.value)}
                             className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
@@ -1938,7 +1902,7 @@ const DateTimeSelector = () => {
                             type="radio"
                             name="weightUnit"
                             value="kg"
-                            checked={settings.weightUnit === 'kg'}
+                            checked={(settings.weightUnit || 'kg') === 'kg'}
                             onChange={(e) => updateSetting('weightUnit', e.target.value)}
                             className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
@@ -1948,8 +1912,9 @@ const DateTimeSelector = () => {
 
                       {/* Desktop: Select dropdown */}
                       <select
+                        key={`weightUnit-${settings.weightUnit || 'kg'}`}
                         id="weightUnit"
-                        value={settings.weightUnit}
+                        value={settings.weightUnit || 'kg'}
                         onChange={(e) => updateSetting('weightUnit', e.target.value)}
                         className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                       >
@@ -1969,7 +1934,7 @@ const DateTimeSelector = () => {
                             type="radio"
                             name="lengthUnit"
                             value="in"
-                            checked={settings.lengthUnit === 'in'}
+                            checked={(settings.lengthUnit || 'cm') === 'in'}
                             onChange={(e) => updateSetting('lengthUnit', e.target.value)}
                             className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
@@ -1980,7 +1945,7 @@ const DateTimeSelector = () => {
                             type="radio"
                             name="lengthUnit"
                             value="cm"
-                            checked={settings.lengthUnit === 'cm'}
+                            checked={(settings.lengthUnit || 'cm') === 'cm'}
                             onChange={(e) => updateSetting('lengthUnit', e.target.value)}
                             className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
@@ -1990,9 +1955,13 @@ const DateTimeSelector = () => {
 
                       {/* Desktop: Select dropdown */}
                       <select
+                        key={`lengthUnit-${settings.lengthUnit || 'cm'}`}
                         id="lengthUnit"
-                        value={settings.lengthUnit}
-                        onChange={(e) => updateSetting('lengthUnit', e.target.value)}
+                        value={settings.lengthUnit || 'cm'}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          updateSetting('lengthUnit', e.target.value);
+                        }}
                         className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                       >
                         <option value="in">Inches (in)</option>
@@ -2018,7 +1987,7 @@ const DateTimeSelector = () => {
                             type="radio"
                             name="dateFormat"
                             value="MM/DD/YYYY"
-                            checked={settings.dateFormat === 'MM/DD/YYYY'}
+                            checked={(settings.dateFormat || 'MM/DD/YYYY') === 'MM/DD/YYYY'}
                             onChange={(e) => updateSetting('dateFormat', e.target.value)}
                             className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
@@ -2029,7 +1998,7 @@ const DateTimeSelector = () => {
                             type="radio"
                             name="dateFormat"
                             value="DD/MM/YYYY"
-                            checked={settings.dateFormat === 'DD/MM/YYYY'}
+                            checked={(settings.dateFormat || 'MM/DD/YYYY') === 'DD/MM/YYYY'}
                             onChange={(e) => updateSetting('dateFormat', e.target.value)}
                             className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
@@ -2039,9 +2008,13 @@ const DateTimeSelector = () => {
 
                       {/* Desktop: Select dropdown */}
                       <select
+                        key={`dateFormat-${settings.dateFormat || 'MM/DD/YYYY'}`}
                         id="dateFormat"
-                        value={settings.dateFormat}
-                        onChange={(e) => updateSetting('dateFormat', e.target.value)}
+                        value={settings.dateFormat || 'MM/DD/YYYY'}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          updateSetting('dateFormat', e.target.value);
+                        }}
                         className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                       >
                         <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -2060,7 +2033,7 @@ const DateTimeSelector = () => {
                             type="radio"
                             name="timeFormat"
                             value="12h"
-                            checked={settings.timeFormat === '12h'}
+                            checked={(settings.timeFormat || '12h') === '12h'}
                             onChange={(e) => updateSetting('timeFormat', e.target.value)}
                             className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
@@ -2071,7 +2044,7 @@ const DateTimeSelector = () => {
                             type="radio"
                             name="timeFormat"
                             value="24h"
-                            checked={settings.timeFormat === '24h'}
+                            checked={(settings.timeFormat || '12h') === '24h'}
                             onChange={(e) => updateSetting('timeFormat', e.target.value)}
                             className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                           />
@@ -2081,9 +2054,13 @@ const DateTimeSelector = () => {
 
                       {/* Desktop: Select dropdown */}
                       <select
+                        key={`timeFormat-${settings.timeFormat || '12h'}`}
                         id="timeFormat"
-                        value={settings.timeFormat}
-                        onChange={(e) => updateSetting('timeFormat', e.target.value)}
+                        value={settings.timeFormat || '12h'}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          updateSetting('timeFormat', e.target.value);
+                        }}
                         className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                       >
                         <option value="12h">12-hour (AM/PM)</option>
@@ -2092,7 +2069,121 @@ const DateTimeSelector = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* AI Assistant */}
+                <div className="border-b border-gray-200 pb-4">
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">AI Assistant</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="aiService" className="block text-sm font-medium text-gray-700 mb-1">
+                        AI Service
+                      </label>
+                      <select
+                        key={`aiService-${settings.aiService || 'chatgpt'}`}
+                        id="aiService"
+                        value={settings.aiService || 'chatgpt'}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          updateSetting('aiService', e.target.value);
+                        }}
+                        className="mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                      >
+                        <option value="chatgpt">ChatGPT</option>
+                        <option value="claude">Claude AI</option>
+                        <option value="gemini">Google Gemini</option>
+                        <option value="grok">Grok (X)</option>
+                        <option value="custom">Custom URL</option>
+                      </select>
+                      {settings.aiService === 'custom' && (
+                        <div className="mt-2">
+                          <label htmlFor="aiCustomUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                            Custom AI Service URL
+                          </label>
+                          <input
+                            type="url"
+                            id="aiCustomUrl"
+                            value={settings.aiCustomUrl || ''}
+                            onChange={(e) => updateSetting('aiCustomUrl', e.target.value)}
+                            placeholder="https://your-ai-service.com/?q="
+                            className="w-full px-3 py-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="aiRequestFormat" className="block text-sm font-medium text-gray-700 mb-1">
+                        Request Format
+                      </label>
+                      <select
+                        key={`aiRequestFormat-${settings.aiRequestFormat || 'detailed'}`}
+                        id="aiRequestFormat"
+                        value={settings.aiRequestFormat || 'detailed'}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          updateSetting('aiRequestFormat', e.target.value);
+                        }}
+                        className="mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                      >
+                        <option value="detailed">Detailed (Full prompt)</option>
+                        <option value="simple">Simple (Basic request)</option>
+                        <option value="custom">Custom Template</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="aiLanguage" className="block text-sm font-medium text-gray-700 mb-1">
+                        Language
+                      </label>
+                      <select
+                        key={`aiLanguage-${settings.aiLanguage || 'english'}`}
+                        id="aiLanguage"
+                        value={settings.aiLanguage || 'english'}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          updateSetting('aiLanguage', e.target.value);
+                        }}
+                        className="mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                      >
+                        <option value="english">English</option>
+                        <option value="spanish">Spanish</option>
+                        <option value="french">French</option>
+                        <option value="german">German</option>
+                        <option value="portuguese">Portuguese</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                        <input
+                          type="checkbox"
+                          checked={settings.aiIncludeCurrentValues !== false}
+                          onChange={(e) => updateSetting('aiIncludeCurrentValues', e.target.checked)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        Include Current Values
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">Include existing nutritional values in AI prompt</p>
+                    </div>
+                  </div>
+                  {settings.aiRequestFormat === 'custom' && (
+                    <div className="mt-4">
+                      <label htmlFor="aiPromptTemplate" className="block text-sm font-medium text-gray-700 mb-1">
+                        Custom Prompt Template
+                      </label>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Use placeholders: {'{mealName}'}, {'{amount}'}, {'{calories}'}, {'{protein}'}, {'{carbs}'}, {'{fats}'}, {'{fibre}'}, {'{other}'}
+                      </p>
+                      <textarea
+                        id="aiPromptTemplate"
+                        value={settings.aiPromptTemplate || ''}
+                        onChange={(e) => updateSetting('aiPromptTemplate', e.target.value)}
+                        rows={6}
+                        className="w-full px-3 py-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 font-mono"
+                        placeholder="Enter your custom prompt template..."
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
+              )}
             </div>
 
             {/* Footer */}

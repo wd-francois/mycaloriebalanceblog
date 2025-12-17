@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSettings } from '../contexts/SettingsContext.jsx';
+import { useSettings, SettingsProvider } from '../contexts/SettingsContext.jsx';
 
 // Custom CSS for responsive radio buttons and toggle switches
 const radioStyles = `
@@ -49,6 +49,11 @@ const Settings = ({ onClose: _onClose = null }) => {
   // Use settings from context
   const { settings, updateSetting } = useSettings();
 
+  // Debug: Log updateSetting on mount
+  useEffect(() => {
+    console.log('Settings component - updateSetting type:', typeof updateSetting, 'value:', updateSetting);
+  }, [updateSetting]);
+
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
@@ -78,6 +83,11 @@ const Settings = ({ onClose: _onClose = null }) => {
     return () => observer.disconnect();
   }, []);
 
+  // Debug: Log when settings change
+  useEffect(() => {
+    console.log('Settings changed:', settings);
+  }, [settings]);
+
   // updateSetting is now from context, no need to redefine
 
   // Dark mode toggle handler
@@ -96,8 +106,8 @@ const Settings = ({ onClose: _onClose = null }) => {
     }
   };
 
-  // Show loading state if not on client side yet
-  if (!isClient) {
+  // Show loading state if not on client side yet or settings not loaded
+  if (!isClient || !settings) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
         <div className="flex items-center justify-center py-8">
@@ -144,6 +154,20 @@ const Settings = ({ onClose: _onClose = null }) => {
       { value: 'german', label: 'German' },
       { value: 'portuguese', label: 'Portuguese' }
     ]
+  };
+
+  // Get default value based on setting key
+  const getDefaultValue = (key) => {
+    const defaults = {
+      weightUnit: 'kg',
+      lengthUnit: 'cm',
+      dateFormat: 'MM/DD/YYYY',
+      timeFormat: '12h',
+      aiService: 'chatgpt',
+      aiRequestFormat: 'detailed',
+      aiLanguage: 'english'
+    };
+    return defaults[key] || '';
   };
 
   const settingGroups = [
@@ -232,7 +256,7 @@ const Settings = ({ onClose: _onClose = null }) => {
               <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{group.title}</h4>
               <div className="space-y-4">
                 {group.settings.map((setting) => {
-                  const currentValue = settings[setting.key] || 'none';
+                  const currentValue = settings[setting.key] || getDefaultValue(setting.key);
                   console.log(`Rendering setting ${setting.key} with value:`, currentValue);
                   return (
                     <div key={setting.key}>
@@ -265,7 +289,7 @@ const Settings = ({ onClose: _onClose = null }) => {
                                     type="radio"
                                     name={setting.key}
                                     value={option.value}
-                                    checked={(settings[setting.key] || 'none') === option.value}
+                                    checked={(settings[setting.key] || getDefaultValue(setting.key)) === option.value}
                                     onChange={(e) => {
                                       console.log('Updating setting:', setting.key, 'to:', e.target.value);
                                       updateSetting(setting.key, e.target.value);
@@ -279,16 +303,25 @@ const Settings = ({ onClose: _onClose = null }) => {
 
                             {/* Desktop: Select dropdown */}
                             <select
-                              key={`select-${setting.key}-${currentValue}`}
-                              value={currentValue}
+                              id={`select-${setting.key}`}
+                              value={settings?.[setting.key] ?? getDefaultValue(setting.key)}
                               onChange={(e) => {
                                 const newValue = e.target.value;
-                                console.log('Select onChange - setting:', setting.key, 'current value:', currentValue, 'new value:', newValue);
-                                updateSetting(setting.key, newValue);
+                                console.log('Select onChange - setting:', setting.key, 'current:', settings?.[setting.key], 'new value:', newValue);
+                                console.log('updateSetting:', updateSetting, 'type:', typeof updateSetting);
+                                
+                                // Call updateSetting directly - it should always be available from context
+                                if (typeof updateSetting === 'function') {
+                                  console.log('Calling updateSetting with:', setting.key, newValue);
+                                  updateSetting(setting.key, newValue);
+                                  console.log('updateSetting call completed');
+                                } else {
+                                  console.error('updateSetting is not a function!', updateSetting);
+                                }
                               }}
-                              className="hidden sm:block px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-auto text-sm bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white cursor-pointer"
+                              className="block px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] w-full sm:w-auto text-sm bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white cursor-pointer"
                             >
-                              {unitOptions[setting.key].map((option) => (
+                              {unitOptions[setting.key]?.map((option) => (
                                 <option key={option.value} value={option.value}>
                                   {option.label}
                                 </option>
@@ -387,5 +420,16 @@ const Settings = ({ onClose: _onClose = null }) => {
   );
 };
 
+// Export the Settings component for use with provider
+export { Settings };
 
-export default Settings;
+// Wrapper component that includes the provider
+const SettingsWithProvider = () => {
+  return (
+    <SettingsProvider>
+      <Settings />
+    </SettingsProvider>
+  );
+};
+
+export default SettingsWithProvider;

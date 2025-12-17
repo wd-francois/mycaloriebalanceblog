@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 const SettingsContext = createContext();
 
@@ -78,10 +78,12 @@ Please format your response clearly so I can easily update my meal entry.`,
     aiLanguage: 'english' // 'english', 'spanish', 'french', etc.
   });
 
-  // Load settings from localStorage on mount
+  // Load settings from localStorage on mount (only once)
+  const [isInitialized, setIsInitialized] = useState(false);
+  
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === 'undefined') return;
+    // Only run on client side and only once
+    if (typeof window === 'undefined' || isInitialized) return;
 
     const savedSettings = localStorage.getItem('healthTrackerSettings');
     const healthEntries = localStorage.getItem('healthEntries');
@@ -112,7 +114,9 @@ Please format your response clearly so I can easily update my meal entry.`,
         console.error('Error loading health entries:', error);
       }
     }
-  }, []);
+    
+    setIsInitialized(true);
+  }, [isInitialized]);
 
   // Save settings to localStorage whenever they change
   useEffect(() => {
@@ -135,7 +139,7 @@ Please format your response clearly so I can easily update my meal entry.`,
     localStorage.setItem('healthEntries', JSON.stringify(updatedHealthEntries));
   }, [settings]);
 
-  const updateSetting = (key, value) => {
+  const updateSetting = useCallback((key, value) => {
     console.log('updateSetting called:', key, '=', value);
     setSettings(prev => {
       const newSettings = {
@@ -145,14 +149,14 @@ Please format your response clearly so I can easily update my meal entry.`,
       console.log('New settings:', newSettings);
       return newSettings;
     });
-  };
+  }, []);
 
-  const updateSettings = (newSettings) => {
+  const updateSettings = useCallback((newSettings) => {
     setSettings(prev => ({
       ...prev,
       ...newSettings
     }));
-  };
+  }, []);
 
   // Conversion functions
   const convertWeight = (value, fromUnit, toUnit) => {
@@ -231,16 +235,19 @@ Please format your response clearly so I can easily update my meal entry.`,
     }
   };
 
-  const value = {
-    settings,
-    updateSetting,
-    updateSettings,
-    convertWeight,
-    convertLength,
-    convertSkinfold,
-    generateAIPrompt,
-    getAIServiceUrl
-  };
+  const value = useMemo(() => {
+    console.log('Creating context value, updateSetting type:', typeof updateSetting);
+    return {
+      settings,
+      updateSetting,
+      updateSettings,
+      convertWeight,
+      convertLength,
+      convertSkinfold,
+      generateAIPrompt,
+      getAIServiceUrl
+    };
+  }, [settings, updateSetting, updateSettings]);
 
   return (
     <SettingsContext.Provider value={value}>
