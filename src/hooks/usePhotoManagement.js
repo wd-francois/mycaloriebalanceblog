@@ -111,6 +111,12 @@ export function usePhotoManagement(formState, setFormState, setFormError) {
       return;
     }
 
+    if (!addEntry || typeof addEntry !== 'function') {
+      setPhotoSaveError('Unable to save photo right now. Please try again.');
+      console.error('addEntry is not available');
+      return;
+    }
+
     // Database is initialized by useHealthData hook before component renders
     // No need to check isDBInitialized here as it causes unnecessary errors
 

@@ -1132,7 +1132,7 @@ const DateTimeSelector = () => {
                               <div className="mt-3">
                                 <button
                                   type="button"
-                                  onClick={() => handleSavePhotoToGallery(selectedDate, time, activeForm, isDBInitialized, addEntry)}
+                                  onClick={() => handleSavePhotoToGallery(selectedDate, time, activeForm, addEntry)}
                                   className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 border-green-400 dark:border-green-600 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-semibold hover:bg-green-200 dark:hover:bg-green-900/50 hover:border-green-500 dark:hover:border-green-500 hover:shadow-md transition-all duration-200 text-sm"
                                 >
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
