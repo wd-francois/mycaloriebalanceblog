@@ -63,6 +63,7 @@ Current nutritional values:
 - Protein: {protein}g
 - Carbs: {carbs}g
 - Fats: {fats}g
+- Fibre: {fibre}g
 
 Please provide accurate nutritional information for this meal. Include:
 1. Calories per serving
@@ -209,7 +210,7 @@ Please format your response clearly so I can easily update my meal entry.`,
 
     // If not including current values, remove that section
     if (!settings.aiIncludeCurrentValues) {
-      prompt = prompt.replace(/Current nutritional values:\s*- Calories: [^\n]*\n- Protein: [^\n]*\n- Carbs: [^\n]*\n- Fats: [^\n]*\n\n/g, '');
+      prompt = prompt.replace(/Current nutritional values:\s*- Calories: [^\n]*\n- Protein: [^\n]*\n- Carbs: [^\n]*\n- Fats: [^\n]*\n- Fibre: [^\n]*\n\n/g, '');
     }
 
     return prompt;

@@ -391,7 +391,8 @@ const Settings = ({ onClose: _onClose = null }) => {
                 .replace(/{calories}/g, 'not specified')
                 .replace(/{protein}/g, 'not specified')
                 .replace(/{carbs}/g, 'not specified')
-                .replace(/{fats}/g, 'not specified')}
+                .replace(/{fats}/g, 'not specified')
+                .replace(/{fibre}/g, 'not specified')}
             </div>
           </div>
         </div>
