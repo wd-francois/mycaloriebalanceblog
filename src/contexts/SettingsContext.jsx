@@ -94,7 +94,21 @@ Please format your response clearly so I can easily update my meal entry.`,
         const parsed = JSON.parse(savedSettings);
         console.log('Loading settings from localStorage:', parsed);
         setSettings(prev => {
-          const merged = { ...prev, ...parsed };
+          let merged = { ...prev, ...parsed };
+          // Migration: add Fibre line to existing AI prompt templates that have Fats but not Fibre
+          if (merged.aiPromptTemplate && typeof merged.aiPromptTemplate === 'string') {
+            const hasFats = /- Fats: \{fats\}g/i.test(merged.aiPromptTemplate);
+            const hasFibre = /- Fibre: \{fibre\}g/i.test(merged.aiPromptTemplate);
+            if (hasFats && !hasFibre) {
+              merged = {
+                ...merged,
+                aiPromptTemplate: merged.aiPromptTemplate.replace(
+                  /(- Fats: \{fats\}g)/i,
+                  '$1\n- Fibre: {fibre}g'
+                )
+              };
+            }
+          }
           console.log('Merged settings:', merged);
           return merged;
         });
