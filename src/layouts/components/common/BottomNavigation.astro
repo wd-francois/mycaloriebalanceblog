@@ -39,36 +39,6 @@ const currentUrl = Astro.url.pathname;
         <span class={`text-xs font-medium ${currentUrl === '/' ? 'text-[#2563eb] dark:text-blue-400' : ''}`}>Home</span>
       </a>
 
-      <!-- Library -->
-      <a 
-        href="/library/" 
-        class={`flex flex-col items-center justify-center py-2 px-3 min-h-[60px] min-w-[60px] transition-all duration-200 group ${
-          currentUrl === '/library/' 
-            ? 'text-[#2563eb] dark:text-blue-400 bg-[#eff6ff] dark:bg-blue-900/20 rounded-lg' 
-            : 'text-[#6b7280] dark:text-gray-400 hover:text-[#2563eb] dark:hover:text-blue-400'
-        }`}
-        aria-label="Library"
-      >
-        <svg 
-          class={`w-6 h-6 mb-1 transition-all duration-200 ${
-            currentUrl === '/library/' 
-              ? 'scale-110' 
-              : 'group-hover:scale-110'
-          }`}
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            stroke-linecap="round" 
-            stroke-linejoin="round" 
-            stroke-width="2" 
-            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" 
-          />
-        </svg>
-        <span class={`text-xs font-medium ${currentUrl === '/library/' ? 'text-[#2563eb] dark:text-blue-400' : ''}`}>Library</span>
-      </a>
-
       <!-- Gallery -->
       <a 
         href="/gallery/" 
@@ -130,8 +100,6 @@ const currentUrl = Astro.url.pathname;
         </svg>
         <span class={`text-xs font-medium ${currentUrl === '/tools/' ? 'text-[#2563eb] dark:text-blue-400' : ''}`}>Tools</span>
       </a>
-
-
 
     </div>
   </div>

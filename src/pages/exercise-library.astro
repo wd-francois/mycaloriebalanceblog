@@ -1,0 +1,51 @@
+---
+import Layout from '@layouts/Layout.astro';
+import ExerciseLibraryManager from '../components/ExerciseLibraryManager.jsx';
+import { siteConfig } from '@config/site';
+import PWAInstallPrompt from '../components/PWAInstallPrompt.jsx';
+import OfflineIndicator from '../components/OfflineIndicator.jsx';
+---
+
+<Layout
+  title="Exercise Library - " + siteConfig.title
+  description="Manage your personal Exercise Library - " + siteConfig.title
+  wideContent={true}
+  showBottomNav={true}
+  showFooter={false}
+  showHeader={false}
+  showTopNav={true}
+>
+  <main class="exercise-library-page w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto text-gray-900 dark:text-gray-100" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+    <div class="flex-1 py-6 sm:py-12 dark:bg-[var(--color-bg-base)]">
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-16">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Exercise Library
+          </h1>
+          <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Add, edit, delete, import exercises, and view your saved exercise history.
+          </p>
+        </div>
+      </section>
+
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-16">
+        <div class="exercise-library-card bg-white dark:bg-[var(--color-bg-base)] rounded-2xl shadow-xl shadow-gray-100/50 dark:shadow-black/40 p-4 sm:p-6 lg:p-8 border border-gray-100 dark:border-gray-700 relative">
+          <button
+            onclick="window.history.back()"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            title="Close"
+          >
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <ExerciseLibraryManager client:load />
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <PWAInstallPrompt client:load />
+  <OfflineIndicator client:load />
+</Layout>
+

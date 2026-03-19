@@ -9,6 +9,10 @@ import path from 'path';
 
 // https://astro.build/config
 export default defineConfig({
+  // Temporary: allow legacy content config until migrating to Content Layer API
+  legacy: {
+    collectionsBackwardsCompat: true,
+  },
   // Set the site URL for production
   site: 'https://mycaloriebalance.com',
   
@@ -29,6 +33,9 @@ export default defineConfig({
         '@assets': path.resolve('./src/assets'),
       },
       dedupe: ['react', 'react-dom'],
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom'],
     },
     plugins: [],
     server: {

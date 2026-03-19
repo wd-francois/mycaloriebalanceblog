@@ -31,7 +31,8 @@ const INITIAL_FORM_STATE = {
     subscapularSkinfold: '',
     suprailiacSkinfold: '',
     notes: '',
-    photo: null
+    photo: null,
+    durationMinutes: ''
 };
 
 /**
@@ -80,6 +81,12 @@ export function useFormState(addEntry, updateEntry, addToLibrary) {
             return false;
         }
 
+        // Validate exercise entries
+        if (!name && activeFormType === 'exercise') {
+            setFormError('Exercise name is required.');
+            return false;
+        }
+
         // Validate measurements
         if (activeFormType === 'measurements') {
             if (!data.weight || !data.weight.toString().trim()) {
@@ -116,7 +123,11 @@ export function useFormState(addEntry, updateEntry, addToLibrary) {
             type: activeFormType,
             date: normalizedDate,
             time,
-            ...(activeFormType === 'exercise' && { sets: data.sets }),
+            ...(activeFormType === 'exercise' && {
+                sets: Array.isArray(data.sets) && data.sets.length > 0 ? data.sets : null,
+                notes: (data.notes && data.notes.trim()) ? data.notes.trim() : '',
+                durationMinutes: (data.durationMinutes != null && String(data.durationMinutes).trim()) ? parseInt(String(data.durationMinutes), 10) : null
+            }),
             ...(activeFormType === 'meal' && {
                 amount: data.amount,
                 calories: data.calories,

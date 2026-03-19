@@ -1,0 +1,3712 @@
+[
+  {
+    "name": "Band Pec Minor Stretch",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Knee Extension",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Bicep Curl",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Chest Fly",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Chest Press",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Cuban Press",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Face Pull",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Face Pull to Overhead Press",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Half Kneeling Face Pull",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Hammer Curl",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band High to Low Chest Fly",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Lateral Raise",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Low Row",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Low to High Chest Fly",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Mid Row",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Overhead Press",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Band Pull Apart",
+    "category": "Band",
+    "tags": "Band",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Trap Bar Deadlift",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Safety Bar Squat",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Bulgarian Split Squat",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Back Squat",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Front Squat",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Forward Lunge",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Reverse Lunge",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Russian Step Up",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Split Squat",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Step Up",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Walking Lunge",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Bench Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Bent Over Row",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Bicep Curl",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Block Pull Deadlift",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Box Back Squat",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Close Grip Bench Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Close Grip Decline Bench Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Close Grip Incline Bench Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Close Grip Incline Push Up",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Conventional Deadlift",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Cuban Rotation",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Decline Bench Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Decline Bench Skull Crusher",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Deficit Deadlift",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Deficit Snatch Grip Deadlift",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Feet Elevated Glute Bridge",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Floor Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Floor Skull Crusher",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Front Raise",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Glute Bridge",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Good Morning",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Half Kneeling Overhead Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Hip Thrust",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Incline Bench Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Incline Bench Skull Crusher",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Incline Push Up",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Kneeling Rollout",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Low Bar Back Squat",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Pendlay Row",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Power Clean",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Prone Row",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Push Jerk",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Push Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Rack Pull",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Reverse Grip Bench Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Reverse Grip Bent Over Row",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Reverse Grip Bicep Curl",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Reverse Grip Decline Bench Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Reverse Grip Front Raise",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Reverse Grip Incline Bench Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Reverse Grip Incline Push Up",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Reverse Grip Overhead Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Romanian Deadlift",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Seated Calf Raise",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Seated Cuban Rotation",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Seated Feet Elevated Calf Raise",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Seated Good Morning",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Seated Overhead Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Seated Overhead Tricep Extension",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Seated Reverse Grip Overhead Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Seated Reverse Grip Wrist Curl",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Seated Wrist Curl",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Shrug",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Single Leg Bent Knee Bicep Curl",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Single Leg Hip Thrust",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Single Leg Standing Bent Knee Overhead Press",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Skull Crusher",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Snatch Grip Deadlift",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Spider Curl",
+    "category": "Biceps",
+    "tags": "Biceps",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Barbell Sumo Deadlift",
+    "category": "Barbell",
+    "tags": "Barbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Inverted Row",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Feet Elevated Inverted Row",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bear Crawl",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bench Feet Elevated Decline Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bent Knee Copenhagen Plank",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bent Knee Copenhagen Plank Side Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bent Knee Reverse Hyperextension",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bent Knee Windshield Wiper",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bicycle Crunch",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bird Dog",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bird Dog Knee to Elbow",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Box Feet Elevated Decline Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Box Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Box Pistol Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Broad Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bulgarian Split Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Bulgarian Split Squat Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Burpee",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Butterfly Sit Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Calf Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Copenhagen Plank",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Copenhagen Plank Knee to Elbow",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Copenhagen Plank Side Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Copenhagen Plank with Leg Lift",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Cossack Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Crunch",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Curtsy Lunge",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Cyclist Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Dead Bug",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Diamond Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Dips",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Dragon Flag",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Duck Walk",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Eccentric Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Extended Range Side Lying Hip Abduction",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Face the Wall Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Feet Elevated Calf Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Feet Elevated Frog Pump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Feet Elevated Glute Bridge",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Feet Elevated Pike Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Feet Elevated Russian Twist",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Feet On Wall Mountain Climber",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Fire Hydrant",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Flutter Kicks",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Foot Elevated Cossack Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Foot Elevated Knee Over Toe Split Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Forearm Plank",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Forearm Plank Alternating Knee to Elbow",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Forward Lunge",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Freestanding Handstand",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Freestanding Handstand Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Frog Pump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Frog Reverse Hyperextension",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Full Planche",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Full Planche Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Glute Bridge",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Glute Bridge Isometric with Alternating Single Leg Extension",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hamstring Walkout",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Calf Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Feet Elevated Calf Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Foot Elevated Knee Over Toe Split Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Foot Elevated Single Leg Calf Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Knee Over Toe Split Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Pistol Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Single Leg Calf Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Sissy Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Skater Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hand Assisted Split Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hip Thrust",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hollow Body Flutter Kicks",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hollow Body Hold",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Hollow Body Rock",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight In and Out Squat Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Inverted Hanging Oblique Crunch",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Ipsilateral Bird Dog",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Isometric Split Squat Calf Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Isometric Split Squat Foot Elevated Calf Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Isometric Split Squat Hold",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Knee Hover Bird Dog",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Knee Hover Quadruped Fire Hydrant",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Knee Over Toe Split Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Kneeling Forearm Plank",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Kneeling Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Kneeling Side Plank",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Kneeling Side Plank Clamshell",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight L Sit",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Lateral Bear Crawl",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Lateral Box Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Lateral Lunge",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Loaded Beast to Alternating Kick Through",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Low Switch Cossack Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight March",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Mountain Climber",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Nordic Hamstring Curl",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Oblique Crunch",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Pistol Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Plate Plyometric Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Reverse Crunch",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Reverse Hyperextension",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Reverse Lunge",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Reverse Nordic",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Reverse Plank",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Russian Step Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Russian Twist",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Seated Ab Circles",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Seated Wall Angels",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Shrimp Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Side Lying Clamshell",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Side Lying Hip Abduction",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Side Lying Hip Adduction",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Side Plank",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Side Plank Reach Through",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Single Arm Contralateral Single Leg Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Single Arm L Sit",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Single Arm Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Single Leg Box Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Single Leg Calf Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Single Leg Foot Elevated Glute Bridge",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Single Leg Glute Bridge",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Single Leg Hip Thrust",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Single Leg Romanian Deadlift Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Sissy Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Sit Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Skater Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Skater Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Split Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Split Squat Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Squat Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Squat to Bench",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Standing Walkout Plank",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Standing Walkout Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Standing Wall Angels",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Step Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Step Up Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Straddle L Sit",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Straddle Planche",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Straddle Planche Push Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Straddle Press Handstand",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Supine Alternating Single Leg Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Supine Leg Raise",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Toe Balance Squat",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Tricep Extension",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Tuck Jump",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Tuck L Sit",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight V Up",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Walking Lunge",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Wall Eccentric Straddle Press Handstand",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Bodyweight Wall Sit",
+    "category": "Bodyweight",
+    "tags": "Bodyweight",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Face Pull",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Fire Hydrant",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Glute Kickback",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Guillotine Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Half Kneeling Face Pull",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Half Kneeling Pallof Press",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Hip Abduction",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Hip Adduction",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Hip Rotation",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Isometric Split Squat Pallof Press",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Knee Hover Quadruped Fire Hydrant",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Kneeling Crunch",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Pallof Press",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Prone Bench Hamstring Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Prone Bench Single Leg Hamstring Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Prone Hamstring Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Prone Single Leg Hamstring Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Pull Through",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Quadruped Hip Abduction",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Reverse Crunch",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Reverse Grip Lat Pulldown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Decline Bench Skull Crusher",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Floor Skull Crusher",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Half Kneeling High to Low Chop",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Half Kneeling Low to High Chop",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Half Kneeling Rotation",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Hammer Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Incline Bench Skull Crusher",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Incline Bench Tricep Pushdown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Isometric Split Squat High to Low Chop",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Isometric Split Squat Low to High Chop",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Isometric Split Squat Rotation",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Overhead Tricep Extension",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Pullover",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Skull Crusher",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Staggered Stance High to Low Chop",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Staggered Stance Low to High Chop",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Tall Kneeling High to Low Chop",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Tall Kneeling Low to High Chop",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Tall Kneeling Overhead Tricep Extension",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Tall Kneeling Tricep Pushdown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Rope Tricep Pushdown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Seated Crunch",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Seated Face Pull",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Seated Single Leg Tibialis Raise",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Seated Tibialis Raise",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Single Leg Standing Bent Knee Hip External Rotation",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Standing Single Leg Hamstring Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Bicep Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Decline Bench Skull Crusher",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Drag Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Floor Skull Crusher",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Front Raise",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar High Bicep Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Incline Bench Skull Crusher",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Incline Bench Tricep Pushdown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Pullover",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Reverse Grip Bicep Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Reverse Grip Front Raise",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Reverse Grip Tricep Pushdown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Seated Bicep Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Skull Crusher",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Spider Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Tall Kneeling Tricep Pushdown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Straight Bar Tricep Pushdown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Supine Bicep Curl",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Tall Kneeling Face Pull",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Tall Kneeling Pallof Press",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Tall Kneeling Pull Through",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable V Grip Lat Pulldown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable V Grip Seated Floor Lat Pulldown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable V Grip Seated Low Row",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Wide Grip Lat Pulldown",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Double Chest Fly",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Decline Bench Chest Fly",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable High to Low Chest Fly",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Incline Bench Chest Fly",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Low to High Chest Fly",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Cable Seated Chest Fly",
+    "category": "Cable",
+    "tags": "Cable",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Arnold Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Chest Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Bent Over Reverse Fly",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Bent Over Row",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Bicep Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Chest Fly",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Close Grip Bench Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Cuban Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Decline Bench Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Floor Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Floor Skull Crusher",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Front Rack Bulgarian Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Double Dumbbell Front Raise",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Hammer Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Bicep Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Chest Fly",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Hammer Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Prone Hammer Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Prone Lateral Raise",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Prone Row",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Prone Tricep Kickback",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Prone Y Raise",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Skull Crusher",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Lateral Raise",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Double Dumbbell Overhead Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Double Dumbbell Overhead Reverse Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Double Dumbbell Overhead Russian Step Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Overhead Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Prone Row",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Push Jerk",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Push Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Renegade Row",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Romanian Deadlift",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Overhead Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Seated Bicep Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Seated Hammer Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Seated Lateral Raise",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Seated Overhead Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Seated Reverse Fly",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Single Leg Bent Over Row",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Single Leg Romanian Deadlift",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Skull Crusher",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Staggered Stance Romanian Deadlift",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Alternating Curtsy Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Alternating Forward Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Alternating Lateral Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Alternating Reverse Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Alternating Russian Step Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Alternating Step Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Bulgarian Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Bulgarian Split Squat Jump",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Calf Raise",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Farmers Carry",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Curtsy Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Deficit Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Foot Elevated Knee Over Toe Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Lateral Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Reverse Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Russian Step Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Step Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Suitcase Walking Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Thruster",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Tricep Kickback",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Plate Incline Bench Prone Y Raise",
+    "category": "Other",
+    "tags": "Other",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Bent Over Row",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Bicep Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Bicep Curl to Overhead Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Decline Bench Skull Crusher",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Floor Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Floor Skull Crusher",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Front Rack March",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Front Rack Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Hollow Body Flutter Kicks",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Hollow Body Hold",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Incline Bench Skull Crusher",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Otis Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Overhead March",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Overhead Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Overhead Tricep Extension",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Romanian Deadlift",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Seated Bicep Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Seated Good Morning",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Seated Overhead Tricep Extension",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Single Leg Romanian Deadlift",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Skull Crusher",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Spider Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Tall Kneeling Bicep Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Tall Kneeling Overhead Tricep Extension",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Crush Grip Z Press",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Feet Elevated Frog Pump",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Frog Pump",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Glute Bridge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Alternating Cossack Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Alternating Curtsy Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Alternating Forward Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Alternating Lateral Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Alternating Pistol Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Alternating Reverse Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Alternating Russian Step Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Alternating Step Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Bulgarian Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Carry",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Cossack Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Curtsy Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Cyclist Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Foot Elevated Knee Over Toe Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Forward Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Knee Over Toe Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Lateral Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Low Switch Cossack Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet March",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Pistol Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Reverse Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Russian Step Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Split Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Step Up",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Goblet Walking Lunge",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Half Kneeling Low to High Chop",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Hip Thrust",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Incline Bench Pullover",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Isometric Split Squat Low to High Chop",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Low Hold Alternating Cossack Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Low Hold Cossack Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Low Hold Foot Elevated Cossack Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Low Hold Low Switch Cossack Squat",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Overhead Tricep Extension",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Pullover",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Seated Overhead Tricep Extension",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Seated Tibialis Raise",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Tall Kneeling Overhead Tricep Extension",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Dumbbell Waiter Curl",
+    "category": "Dumbbell",
+    "tags": "Dumbbell",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Close Grip Bench Press",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Close Grip Bicep Curl",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Close Grip Decline Bench Press",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Close Grip Incline Bench Press",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Close Grip Strict Bicep Curl",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Decline Bench Skull Crusher",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Floor Skull Crusher",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Front Raise",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Incline Bench Lying Tricep Extension",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Incline Bench Skull Crusher",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Kneeling Rollout",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Lying Tricep Extension",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Overhead Press",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Overhead Tricep Extension",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Reverse Grip Bent Over Row",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Reverse Grip Bicep Curl",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Reverse Grip Front Raise",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Reverse Grip Overhead Press",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Reverse Grip Seated Overhead Press",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Seated Overhead Press",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Seated Overhead Tricep Extension",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Skull Crusher",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Spider Curl",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Standing Rollout",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Tall Kneeling Overhead Tricep Extension",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Wide Grip Bicep Curl",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "EZ Bar Wide Grip Strict Bicep Curl",
+    "category": "EZ Bar",
+    "tags": "EZ Bar",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Cyclist Thruster",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Feet Elevated Russian Twist",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Alternating Cossack Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Alternating Curtsy Lunge",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Alternating Lateral Lunge",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Alternating Reverse Lunge",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Bulgarian Split Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Cossack Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Curtsy Lunge",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Cyclist Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Foot Elevated Cossack Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Low Switch Cossack Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet March",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Split Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Goblet Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Half Kneeling Oblique Twist",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Isometric Split Squat Oblique Twist",
+    "category": "Other",
+    "tags": "",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Kneeling Rollout",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Low Hold Alternating Cossack Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Low Hold Alternating Lateral Lunge",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Low Hold Cossack Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Low Hold Foot Elevated Cossack Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Low Hold Lateral Lunge",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Low Hold Low Switch Cossack Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Overhead March",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Pivot Split Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Romanian Deadlift",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Russian Twist",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Standing Oblique Twist",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Standing Rollout",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Tall Kneeling Oblique Twist",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Thruster",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine V Grip Row",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine V Grip Tall Kneeling Chest Press",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Zercher Curtsy Lunge",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Landmine Zercher Skater Squat",
+    "category": "Landmine",
+    "tags": "Landmine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Machine Seated Row",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Machine Assisted Pull Ups",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Machine Assisted Close Grip Pull Ups",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Machine Horizontal Seated Leg Press",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Machine Single Leg Horizontal Seated Leg Press",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Machine Seated Leg Extension",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Machine Seated Single Leg Extensions",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Smith Machine Incline Chest Press",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Smith Machine Close Grip Chest Press",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Smith Machine Chest Press",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Smith Machine Decline Chest Press",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Smith Machine Bulgarian Split Squats",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Smith Machine Split Squat",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Smith Machine Front Feet Elevated Split Squat",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Smith Machine Bent Over Rows",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  },
+  {
+    "name": "Smith Machine Overhead Press",
+    "category": "Machine",
+    "tags": "Machine",
+    "description": "",
+    "videoUrl": ""
+  }
+]

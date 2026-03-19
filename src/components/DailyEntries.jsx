@@ -124,12 +124,11 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     return found;
   }, [entries, selectedDate]);
 
-  // Apply settings filters
+  // Apply settings filters (exercise entries always shown in View Entries once saved)
   const filteredDateEntries = useMemo(() => {
     return currentDateEntries.filter(entry => {
       if (entry.type === 'meal' && !settings.enableMeals) return false;
-      if (entry.type === 'exercise' && !settings.enableExercise) return false;
-      if (entry.type === 'sleep' && !settings.enableSleep) return false;
+      if (entry.type === 'sleep' && settings.enableSleep === false) return false;
       if (entry.type === 'measurements' && !settings.enableMeasurements) return false;
       return true;
     });
@@ -193,7 +192,17 @@ const DailyEntriesContent = ({ date: dateParam }) => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[var(--color-bg-muted)] border border-gray-200 dark:border-gray-700 rounded-3xl overflow-hidden shadow-lg p-6 md:p-8">
+          <div className="bg-white dark:bg-[var(--color-bg-muted)] border border-gray-200 dark:border-gray-700 rounded-3xl overflow-hidden shadow-lg p-6 md:p-8 relative">
+            {/* X - back to Add a new entry (inside card, top right) */}
+            <a
+              href={dateStr ? `/?date=${dateStr}&add=true` : '/'}
+              className="absolute top-4 right-4 flex items-center justify-center w-11 h-11 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+              aria-label="Back to Add a new entry"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </a>
             {filteredDateEntries.length > 0 ? (
               <>
                 {/* Action Buttons */}

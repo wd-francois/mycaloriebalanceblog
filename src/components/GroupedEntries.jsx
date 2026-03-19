@@ -38,43 +38,69 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
   };
 
 
-  // Separate sleep entries from other entries (measurements now included in time grouping)
-  const sleepEntries = entries.filter(entry => entry.type === 'sleep');
-  const otherEntries = entries.filter(entry => entry.type !== 'sleep');
+  // Group entries by category: Meals, Exercise, Measurements, Sleep
+  const getCategory = (entry) => {
+    if (entry.type === 'meal') return 'meal';
+    if (entry.type === 'exercise' || entry.type === 'activity' || !entry.type) return 'exercise';
+    if (entry.type === 'measurements') return 'measurements';
+    if (entry.type === 'sleep') return 'sleep';
+    return 'exercise';
+  };
 
-  // Group other entries by time
-  const groupedEntries = otherEntries.reduce((groups, entry) => {
-    const timeKey = formatTime(entry.time);
-    if (!groups[timeKey]) {
-      groups[timeKey] = [];
-    }
-    groups[timeKey].push(entry);
-    return groups;
+  const categoryOrder = ['meal', 'exercise', 'measurements', 'sleep'];
+  const categoryLabels = ['Meals', 'Exercise', 'Measurements', 'Sleep'];
+
+  const groupedByCategory = entries.reduce((acc, entry) => {
+    const cat = getCategory(entry);
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(entry);
+    return acc;
   }, {});
 
-  // Sort groups by time
-  const sortedGroups = Object.keys(groupedEntries).sort((a, b) => {
-    const timeA = groupedEntries[a][0].time;
-    const timeB = groupedEntries[b][0].time;
-
-    // Convert to 24-hour format for comparison
+  // Sort entries within each category by time (sleep uses bedtime)
+  const sortByTime = (a, b) => {
+    const timeA = a.type === 'sleep' ? a.bedtime : a.time;
+    const timeB = b.type === 'sleep' ? b.bedtime : b.time;
+    if (!timeA || !timeB) return 0;
     const hourA = timeA.period === 'AM' ? (timeA.hour === 12 ? 0 : timeA.hour) : (timeA.hour === 12 ? 12 : timeA.hour + 12);
     const hourB = timeB.period === 'AM' ? (timeB.hour === 12 ? 0 : timeB.hour) : (timeB.hour === 12 ? 12 : timeB.hour + 12);
-
     if (hourA !== hourB) return hourA - hourB;
-    return timeA.minute - timeB.minute;
+    return (timeA.minute || 0) - (timeB.minute || 0);
+  };
+
+  categoryOrder.forEach((cat) => {
+    if (groupedByCategory[cat]) {
+      groupedByCategory[cat].sort(sortByTime);
+    }
   });
 
-  const toggleTimeGroup = (timeKey) => {
+  const toggleCategory = (catKey) => {
     setCollapsedTimes(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(timeKey)) {
-        newSet.delete(timeKey);
+      if (newSet.has(catKey)) {
+        newSet.delete(catKey);
       } else {
-        newSet.add(timeKey);
+        newSet.add(catKey);
       }
       return newSet;
     });
+  };
+
+  const getGroupTimeRange = (group, formatTimeFn) => {
+    if (!formatTimeFn || !group || group.length === 0) return null;
+    const withTime = group
+      .map((e) => ({ t: e.type === 'sleep' ? e.bedtime : e.time }))
+      .filter((x) => x.t && typeof x.t === 'object' && x.t.hour != null)
+      .map((x) => x.t);
+    if (withTime.length === 0) return null;
+    withTime.sort((a, b) => {
+      const hourA = a.period === 'AM' ? (a.hour === 12 ? 0 : a.hour) : (a.hour === 12 ? 12 : a.hour + 12);
+      const hourB = b.period === 'AM' ? (b.hour === 12 ? 0 : b.hour) : (b.hour === 12 ? 12 : b.hour + 12);
+      if (hourA !== hourB) return hourA - hourB;
+      return (a.minute || 0) - (b.minute || 0);
+    });
+    const first = withTime[0];
+    return formatTimeFn(first);
   };
 
   const getTypeInfo = (type) => {
@@ -88,6 +114,7 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
           label: 'Meal'
         };
       case 'exercise':
+      case 'activity':
         return {
           emoji: '💪',
           color: 'green',
@@ -134,87 +161,47 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
     );
   }
 
+  const categoryStyles = {
+    meal: { bg: 'bg-blue-50', text: 'text-blue-800', emoji: '🍽️' },
+    exercise: { bg: 'bg-green-50', text: 'text-green-800', emoji: '💪' },
+    measurements: { bg: 'bg-orange-50', text: 'text-orange-800', emoji: '📏' },
+    sleep: { bg: 'bg-purple-50', text: 'text-purple-800', emoji: '😴' },
+  };
+
   return (
     <div className="space-y-3 sm:space-y-4">
-      {/* Sleep entries always on top */}
-      {sleepEntries.length > 0 && (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="bg-purple-50 px-3 sm:px-4 py-2 sm:py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                <span className="text-base sm:text-lg">😴</span>
-                <h3 className="font-semibold text-purple-800 text-sm sm:text-base">Sleep</h3>
-                {sleepEntries[0]?.bedtime && sleepEntries[0]?.waketime && (
-                  <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-purple-600 min-w-0">
-                    <span className="truncate">{sleepEntries[0].bedtime.hour}:{sleepEntries[0].bedtime.minute.toString().padStart(2, '0')} {sleepEntries[0].bedtime.period}</span>
-                    <span className="hidden sm:inline">→</span>
-                    <span className="sm:hidden">-</span>
-                    <span className="truncate">{sleepEntries[0].waketime.hour}:{sleepEntries[0].waketime.minute.toString().padStart(2, '0')} {sleepEntries[0].waketime.period}</span>
-                    {sleepEntries[0]?.duration && (
-                      <span className="font-medium hidden sm:inline">({sleepEntries[0].duration.replace('h', ' hours')})</span>
-                    )}
-                  </div>
-                )}
-              </div>
+      {categoryOrder.map((catKey) => {
+        const group = groupedByCategory[catKey];
+        if (!group || group.length === 0) return null;
 
-              {/* Action buttons */}
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                <button
-                  onClick={() => onInfoClick(sleepEntries[0])}
-                  className="p-2 sm:p-2 text-gray-400 hover:text-blue-600 transition-colors touch-manipulation"
-                  title="Add notes"
-                >
-                  <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => onEdit(sleepEntries[0])}
-                  className="p-2 sm:p-2 text-gray-400 hover:text-blue-600 transition-colors touch-manipulation"
-                  title="Edit entry"
-                >
-                  <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => onDelete(sleepEntries[0].id)}
-                  className="p-2 sm:p-2 text-gray-400 hover:text-red-600 transition-colors touch-manipulation"
-                  title="Delete entry"
-                >
-                  <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Measurements entries - expanded display */}
-
-      {/* Other entries grouped by time */}
-      {sortedGroups.map((timeKey) => {
-        const group = groupedEntries[timeKey];
-        const isCollapsed = collapsedTimes.has(timeKey);
+        const label = categoryLabels[categoryOrder.indexOf(catKey)];
         const entryCount = group.length;
+        const style = categoryStyles[catKey] || categoryStyles.exercise;
+        const isCollapsed = collapsedTimes.has(catKey);
+        const timeRange = getGroupTimeRange(group, formatTime);
 
         return (
-          <div key={timeKey} className="border border-gray-200 rounded-lg overflow-hidden">
-            {/* Time Group Header */}
+          <div key={catKey} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            {/* Category Header */}
             <div
-              className="bg-gray-50 px-3 sm:px-4 py-2 sm:py-3 cursor-pointer hover:bg-gray-100 transition-colors touch-manipulation"
-              onClick={() => toggleTimeGroup(timeKey)}
+              className={`${style.bg} dark:bg-opacity-20 px-3 sm:px-4 py-2 sm:py-3 cursor-pointer hover:opacity-90 transition-colors touch-manipulation`}
+              onClick={() => toggleCategory(catKey)}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                  <div className="px-2 sm:px-3 py-1 bg-gray-200 text-gray-800 text-xs sm:text-sm font-medium rounded-full flex items-center justify-center">
-                    {timeKey}
-                  </div>
-                  <span className="text-xs sm:text-sm text-gray-600">
-                    {entryCount} entr{entryCount === 1 ? 'y' : 'ies'}
-                  </span>
+                  <h3 className={`font-semibold ${style.text} text-sm sm:text-base flex items-center gap-2 flex-wrap`}>
+                    {timeRange && (
+                      <span className="font-normal opacity-90">
+                        {timeRange}
+                      </span>
+                    )}
+                    <span>
+                      {style.emoji}{label}
+                    </span>
+                    <span>
+                      - {entryCount} entr{entryCount === 1 ? 'y' : 'ies'}
+                    </span>
+                  </h3>
                 </div>
                 <svg
                   className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform flex-shrink-0 ${isCollapsed ? 'rotate-180' : ''}`}
@@ -244,11 +231,8 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                       className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-white hover:bg-gray-50 transition-colors cursor-move hover:border-blue-300 touch-manipulation"
                     >
                       <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <div className={`px-3 py-1 ${typeInfo.bgColor} ${typeInfo.textColor} text-xs font-medium rounded-full flex items-center justify-center`}>
-                            {typeInfo.emoji} {typeInfo.label}
-                          </div>
-                          <div className="font-medium text-gray-900 text-lg">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <div className="font-medium text-gray-900 dark:text-white text-lg">
                             {entry.name}
                           </div>
                         </div>
@@ -274,26 +258,37 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                           </div>
                         )}
 
-                        {entry.type === 'exercise' && entry.sets && entry.sets.length > 0 && (
-                          <div className="mt-2 text-sm text-gray-600">
+                        {(entry.type === 'exercise' || entry.type === 'activity') && entry.sets && entry.sets.length > 0 && (
+                          <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             <div className="mb-2">
-                              <span className="font-medium">{entry.sets.length} set{entry.sets.length !== 1 ? 's' : ''}</span>
+                              <span className="font-medium">Sets · Reps · Load/Time</span>
+                              {entry.durationMinutes != null && entry.durationMinutes !== '' && (
+                                <span className="ml-2">· {entry.durationMinutes} min</span>
+                              )}
                             </div>
                             <div className="space-y-1">
                               {entry.sets.map((set, index) => (
-                                <div key={index} className="flex items-center gap-2 text-xs bg-gray-50 px-2 py-1 rounded">
+                                <div key={index} className="flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-800/50 px-2 py-1 rounded">
                                   <span className="font-medium">Set {index + 1}:</span>
-                                  <span>{set.reps || 0} reps</span>
-                                  {set.load && <span>• {set.load}</span>}
+                                  <span>{set.reps || '—'} reps</span>
+                                  {(set.load !== '' && set.load != null) && <span>· {set.load}</span>}
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
 
-                        {entry.type === 'sleep' && entry.duration && (
+                        {entry.type === 'sleep' && (
                           <div className="mt-2 text-sm text-gray-600">
-                            Duration: {entry.duration}
+                            {entry.bedtime && entry.waketime && (
+                              <span>
+                                {entry.bedtime.hour}:{String(entry.bedtime.minute).padStart(2, '0')} {entry.bedtime.period} → {entry.waketime.hour}:{String(entry.waketime.minute).padStart(2, '0')} {entry.waketime.period}
+                                {entry.duration && <span className="ml-1">({entry.duration})</span>}
+                              </span>
+                            )}
+                            {(!entry.bedtime || !entry.waketime) && entry.duration && (
+                              <span>Duration: {entry.duration}</span>
+                            )}
                           </div>
                         )}
 

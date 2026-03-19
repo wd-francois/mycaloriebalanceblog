@@ -1,0 +1,57 @@
+---
+import Layout from '@layouts/Layout.astro';
+import AddMealFormPreview from '../components/newMealForm.jsx';
+import { siteConfig } from '@config/site';
+---
+
+<Layout
+  title="New Meal Form (Preview) - " + siteConfig.title
+  description="Preview of the new Add Meal form design - " + siteConfig.title
+  wideContent={true}
+  showBottomNav={true}
+  showFooter={false}
+  showHeader={false}
+  showTopNav={true}
+>
+  <main class="add-meal-preview-page w-full bg-[#fafaf9] dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto text-gray-900 dark:text-gray-100">
+    <div class="flex-1 py-6 sm:py-10 lg:py-12">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Preview banner -->
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <a
+              href="/add-meal"
+              class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              aria-label="Back to Add Meal"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Back to Add Meal</span>
+            </a>
+            <span class="hidden sm:inline text-gray-300 dark:text-gray-600">|</span>
+            <a
+              href="/library"
+              class="text-sm font-medium text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition-colors"
+            >
+              Food Library
+            </a>
+          </div>
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-xs font-semibold uppercase tracking-wider">
+            <span aria-hidden="true">👁</span>
+            <span>Preview — form does not save</span>
+          </div>
+        </div>
+
+        <!-- New meal form component preview -->
+        <AddMealFormPreview client:load />
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .dark .add-meal-preview-page {
+      background: var(--color-bg-base);
+    }
+  </style>
+</Layout>

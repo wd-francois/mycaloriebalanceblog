@@ -276,8 +276,8 @@ const {
     <!-- Top Navigation -->
     {showTopNav && <TopNavigation />}
     
-    <!-- Main content area with conditional width -->
-    <main class="flex-grow w-full dark:bg-[var(--color-bg-base)] flex items-center justify-center" style="touch-action: pan-y; -webkit-overflow-scrolling: touch; min-height: 100vh; overflow-y-auto;">
+    <!-- Main content area: align to top so content (e.g. Add Meal date) is not pushed above viewport -->
+    <main class="flex-grow w-full dark:bg-[var(--color-bg-base)] flex items-start justify-center" style="touch-action: pan-y; -webkit-overflow-scrolling: touch; min-height: 100vh; overflow-y-auto;">
       <div class={`w-full ${wideContent ? "" : "max-w-5xl mx-auto px-4 sm:px-6"}`}>
         <slot />
       </div>

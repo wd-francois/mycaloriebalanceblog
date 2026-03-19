@@ -15,7 +15,7 @@ export const useSettings = () => {
         dateFormat: 'MM/DD/YYYY',
         timeFormat: '12h',
         enableMeals: true,
-        enableExercise: false,
+        enableExercise: true,
         enableSleep: true,
         enableMeasurements: true,
         theme: 'light',
@@ -47,7 +47,7 @@ export const SettingsProvider = ({ children }) => {
     timeFormat: '12h', // '12h' or '24h'
     // Feature toggles
     enableMeals: true,
-    enableExercise: false, // Temporarily disabled
+    enableExercise: true,
     enableSleep: true,
     enableMeasurements: true,
     // Theme

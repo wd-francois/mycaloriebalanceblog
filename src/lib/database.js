@@ -234,10 +234,15 @@ class HealthDatabase {
     const transaction = this.db.transaction(['userEntries'], 'readwrite');
     const store = transaction.objectStore('userEntries');
       
-      // Ensure entry has proper date format for indexing
+      // Store date as local YYYY-MM-DD so calendar day is correct in all timezones (avoid toISOString() shifting day)
+      let dateToSave = entry.date;
+      if (entry.date instanceof Date) {
+        const d = entry.date;
+        dateToSave = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
       const entryToSave = {
         ...entry,
-        date: entry.date instanceof Date ? entry.date.toISOString() : entry.date
+        date: dateToSave
       };
       
       const request = store.put(entryToSave);

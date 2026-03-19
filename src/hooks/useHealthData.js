@@ -26,6 +26,8 @@ export function useHealthData() {
                         let entryDate;
                         if (entry.date instanceof Date) {
                             entryDate = entry.date;
+                        } else if (typeof entry.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
+                            entryDate = new Date(entry.date + 'T12:00:00');
                         } else if (typeof entry.date === 'string') {
                             entryDate = new Date(entry.date);
                         } else {
@@ -93,7 +95,15 @@ export function useHealthData() {
                 dbEntries.forEach(entry => {
                     if (!entry || !entry.date) return;
 
-                    let entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
+                    let entryDate;
+                    if (entry.date instanceof Date) {
+                        entryDate = entry.date;
+                    } else if (typeof entry.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
+                        // Local date-only string (YYYY-MM-DD): parse as local noon to avoid UTC shifting the day
+                        entryDate = new Date(entry.date + 'T12:00:00');
+                    } else {
+                        entryDate = new Date(entry.date);
+                    }
                     if (isNaN(entryDate.getTime())) return;
 
                     entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());

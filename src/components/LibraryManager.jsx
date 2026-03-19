@@ -149,105 +149,11 @@ const LibraryManager = () => {
   };
 
   const handleAddItem = () => {
-    setEditingItem(null);
-    setFormData({
-      name: '',
-      amount: '',
-      calories: '',
-      protein: '',
-      carbs: '',
-      fats: '',
-      fibre: '',
-      other: '',
-      description: '',
-      category: '',
-      defaultSets: '',
-      defaultReps: '',
-      muscleGroups: '',
-      difficulty: ''
-    });
-    setShowAddModal(true);
+    window.location.href = '/add-meal';
   };
 
   const handleEditItem = (item) => {
-    setEditingItem(item);
-    setFormData({
-      name: item.name || '',
-      amount: item.amount || '',
-      calories: item.calories || '',
-      protein: item.protein || '',
-      carbs: item.carbs || '',
-      fats: item.fats || '',
-      fibre: item.fibre || '',
-      other: item.other || '',
-      notes: item.notes || '',
-      description: item.description || '',
-      category: item.category || '',
-      defaultSets: item.defaultSets || '',
-      defaultReps: item.defaultReps || '',
-      muscleGroups: item.muscleGroups || '',
-      difficulty: item.difficulty || ''
-    });
-    setShowAddModal(true);
-  };
-
-  const handleSaveItem = async () => {
-    try {
-      if (!formData.name.trim()) {
-        alert('Please enter a name for the item.');
-        return;
-      }
-
-      const itemData = {
-        name: formData.name.trim(),
-        amount: formData.amount.trim(),
-        calories: formData.calories ? parseInt(formData.calories) : null,
-        protein: formData.protein ? parseInt(formData.protein) : null,
-        carbs: formData.carbs ? parseInt(formData.carbs) : null,
-        fats: formData.fats ? parseInt(formData.fats) : null,
-        notes: formData.notes || ''
-      };
-
-      // Try IndexedDB first, fallback to localStorage
-      try {
-        if (editingItem) {
-          // Update existing item
-          await healthDB.updateItem('food', editingItem.id, itemData);
-        } else {
-          // Add new item
-          await healthDB.addItem('food', itemData);
-        }
-      } catch (indexedDBError) {
-        console.warn('IndexedDB save failed, using localStorage:', indexedDBError);
-        // Fallback to localStorage
-        const storageKey = 'mealLibrary';
-        const currentItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
-
-        if (editingItem) {
-          // Update existing item
-          const updatedItems = currentItems.map(item =>
-            item.id === editingItem.id ? { ...item, ...itemData } : item
-          );
-          localStorage.setItem(storageKey, JSON.stringify(updatedItems));
-        } else {
-          // Add new item
-          const newItem = { id: Date.now(), ...itemData };
-          currentItems.push(newItem);
-          localStorage.setItem(storageKey, JSON.stringify(currentItems));
-        }
-      }
-
-      setShowAddModal(false);
-
-      // Show success message
-      alert(`${activeTab === 'exercises' ? 'Exercise' : 'Meal'} ${editingItem ? 'updated' : 'added'} successfully!`);
-
-      // Reload data
-      await loadData();
-    } catch (error) {
-      console.error('Error saving item:', error);
-      alert('Error saving item. Please try again.');
-    }
+    window.location.href = `/add-meal?edit=${item.id}`;
   };
 
   const handleDeleteItem = async (item) => {
@@ -303,7 +209,7 @@ const LibraryManager = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
-        <span className="ml-2 text-gray-600 dark:text-gray-300">Loading library...</span>
+        <span className="ml-2 text-gray-600 dark:text-gray-300">Loading Food Library...</span>
       </div>
     );
   }
@@ -338,7 +244,7 @@ const LibraryManager = () => {
       {/* Add Buttons */}
       <div className="mb-6 flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Meal Library
+          Food Library
         </h2>
         <div className="flex gap-3">
           <button
@@ -348,7 +254,7 @@ const LibraryManager = () => {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
             </svg>
-            Add to Library
+            Add to Food Library
           </button>
         </div>
       </div>
@@ -432,168 +338,6 @@ const LibraryManager = () => {
           >
             Add Meal
           </button>
-        </div>
-      )}
-
-      {/* Add/Edit Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="absolute inset-0" onClick={() => setShowAddModal(false)} />
-          <div className="relative w-full max-w-md bg-white dark:bg-[var(--color-bg-muted)] rounded-xl shadow-xl mx-4 z-10">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {editingItem ? 'Edit' : 'Add'} Meal
-                </h3>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                  title="Close"
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="px-6 py-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Meal Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
-                  placeholder="e.g., Breakfast, Lunch, Dinner, Snack"
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Amount
-                </label>
-                <input
-                  type="text"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
-                  placeholder="e.g., 1 cup, 500 grams, 2 slices"
-                />
-              </div>
-
-              {/* Nutrition Information */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Calories
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.calories}
-                    onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
-                    placeholder="e.g., 250"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Protein (g)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.protein}
-                    onChange={(e) => setFormData({ ...formData, protein: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
-                    placeholder="e.g., 20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Carbs (g)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.carbs}
-                    onChange={(e) => setFormData({ ...formData, carbs: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
-                    placeholder="e.g., 30"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Fats (g)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.fats}
-                    onChange={(e) => setFormData({ ...formData, fats: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
-                    placeholder="e.g., 10"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Fibre (g)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.fibre}
-                    onChange={(e) => setFormData({ ...formData, fibre: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
-                    placeholder="e.g., 5"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Other
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.other}
-                    onChange={(e) => setFormData({ ...formData, other: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
-                    placeholder="e.g., Additional notes or nutrients"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Notes
-                </label>
-                <textarea
-                  value={formData.notes || ''}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[var(--color-bg-subtle)] dark:text-white"
-                  placeholder="Add any notes about this meal..."
-                  rows={3}
-                />
-              </div>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveItem}
-                disabled={!formData.name}
-                className={`px-4 py-2 rounded-lg text-white font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${activeTab === 'exercises'
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
-              >
-                {editingItem ? 'Update' : 'Add'} {activeTab === 'exercises' ? 'Exercise' : 'Meal'}
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
