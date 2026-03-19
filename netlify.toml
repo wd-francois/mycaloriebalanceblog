@@ -8,4 +8,6 @@
   # Node.js version
   NODE_VERSION = "20"
   # Ensure npm ci is used for faster, reliable builds
-  NPM_FLAGS = "--prefer-offline --no-audit"
+  # Include legacy peer deps because @astrojs/tailwind currently has a peer
+  # range conflict with Astro 6 in this project dependency set.
+  NPM_FLAGS = "--prefer-offline --no-audit --legacy-peer-deps"
