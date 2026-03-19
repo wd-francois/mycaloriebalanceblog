@@ -3,6 +3,9 @@
   "description": "A modern, responsive blog theme for Astro with support for tags, categories, and series",
   "type": "module",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
