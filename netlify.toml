@@ -6,7 +6,7 @@
 
 [build.environment]
   # Node.js version
-  NODE_VERSION = "22.20.1"
+  NODE_VERSION = "22"
   # Ensure npm ci is used for faster, reliable builds
   # Include legacy peer deps because @astrojs/tailwind currently has a peer
   # range conflict with Astro 6 in this project dependency set.
