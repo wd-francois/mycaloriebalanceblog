@@ -117,13 +117,17 @@ Please format your response clearly so I can easily update my meal entry.`,
       }
     }
 
-    // Load feature toggles from healthEntries if available
+    // Load feature toggles from healthEntries if present (same object also stores per-day entry arrays — never merge those into settings)
     if (healthEntries) {
       try {
         const parsed = JSON.parse(healthEntries);
-        if (parsed.enableMeals !== undefined || parsed.enableExercise !== undefined ||
-          parsed.enableSleep !== undefined || parsed.enableMeasurements !== undefined) {
-          setSettings(prev => ({ ...prev, ...parsed }));
+        const toggleKeys = ['enableMeals', 'enableExercise', 'enableSleep', 'enableMeasurements'];
+        const toggles = {};
+        for (const key of toggleKeys) {
+          if (parsed[key] !== undefined) toggles[key] = parsed[key];
+        }
+        if (Object.keys(toggles).length > 0) {
+          setSettings((prev) => ({ ...prev, ...toggles }));
         }
       } catch (error) {
         console.error('Error loading health entries:', error);

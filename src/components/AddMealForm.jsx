@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import healthDB from '../lib/database.js';
 import TimePicker from './TimePicker.jsx';
 import { getCurrentTimeParts, parseDateLocalYYYYMMDD, formatDateForDisplay } from '../lib/dateUtils.js';
@@ -30,6 +30,9 @@ const getDateFromUrl = () => {
 const AddMealForm = () => {
   const [formData, setFormData] = useState(initialFormData);
   const [editingId, setEditingId] = useState(null);
+  /** Food library row vs calendar userEntries meal (same ?edit=id URL from library vs home calendar) */
+  const [editTarget, setEditTarget] = useState('food');
+  const calendarEntryBaselineRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() =>
@@ -50,24 +53,61 @@ const AddMealForm = () => {
         return;
       }
     }
+    setEditingId(null);
+    setEditTarget('food');
+    calendarEntryBaselineRef.current = null;
   }, []);
 
   const loadItem = async (id) => {
     try {
       if (!healthDB.db) await healthDB.init();
-      const item = await healthDB.getFoodItem(id);
-      if (item) {
+      const foodItem = await healthDB.getFoodItem(id);
+      if (foodItem) {
+        setEditTarget('food');
+        calendarEntryBaselineRef.current = null;
         setFormData({
-          name: item.name || '',
-          amount: item.amount || '',
-          calories: item.calories ?? '',
-          protein: item.protein ?? '',
-          carbs: item.carbs ?? '',
-          fats: item.fats ?? '',
-          fibre: item.fibre ?? '',
-          other: item.other ?? '',
-          notes: item.notes || '',
+          name: foodItem.name || '',
+          amount: foodItem.amount || '',
+          calories: foodItem.calories ?? '',
+          protein: foodItem.protein ?? '',
+          carbs: foodItem.carbs ?? '',
+          fats: foodItem.fats ?? '',
+          fibre: foodItem.fibre ?? '',
+          other: foodItem.other ?? '',
+          notes: foodItem.notes || '',
         });
+        setLoading(false);
+        return;
+      }
+
+      const userEntry = await healthDB.getUserEntryById(id);
+      if (userEntry && userEntry.type === 'meal') {
+        setEditTarget('calendar');
+        calendarEntryBaselineRef.current = userEntry;
+        const rawDate = userEntry.date;
+        if (typeof rawDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+          const [y, m, day] = rawDate.split('-').map(Number);
+          setSelectedDate(new Date(y, m - 1, day));
+        } else if (rawDate) {
+          const dt = rawDate instanceof Date ? rawDate : new Date(rawDate);
+          if (!isNaN(dt.getTime())) {
+            setSelectedDate(new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()));
+          }
+        }
+        if (userEntry.time) setTime(userEntry.time);
+        setFormData({
+          name: userEntry.name || '',
+          amount: userEntry.amount || '',
+          calories: userEntry.calories ?? '',
+          protein: userEntry.protein ?? '',
+          carbs: userEntry.carbs ?? '',
+          fats: userEntry.fats ?? '',
+          fibre: userEntry.fibre ?? '',
+          other: userEntry.other ?? '',
+          notes: userEntry.notes || '',
+        });
+        setLoading(false);
+        return;
       }
     } catch (e) {
       console.warn('Load meal failed, using localStorage fallback:', e);
@@ -75,6 +115,8 @@ const AddMealForm = () => {
         const items = JSON.parse(localStorage.getItem('mealLibrary') || '[]');
         const item = items.find((i) => i.id === id);
         if (item) {
+          setEditTarget('food');
+          calendarEntryBaselineRef.current = null;
           setFormData({
             name: item.name || '',
             amount: item.amount || '',
@@ -113,24 +155,74 @@ const AddMealForm = () => {
 
       try {
         if (!healthDB.db) await healthDB.init();
-        if (editingId) {
+        if (editingId && editTarget === 'calendar' && calendarEntryBaselineRef.current) {
+          const base = calendarEntryBaselineRef.current;
+          const d = selectedDate || getDateFromUrl();
+          const normalizedDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+          const updatedCalendarEntry = {
+            ...base,
+            id: base.id,
+            type: 'meal',
+            name: itemData.name,
+            amount: itemData.amount || '',
+            calories: itemData.calories,
+            protein: itemData.protein,
+            carbs: itemData.carbs,
+            fats: itemData.fats,
+            fibre: itemData.fibre,
+            other: itemData.other || '',
+            notes: itemData.notes || '',
+            date: normalizedDate,
+            time,
+          };
+          await healthDB.saveUserEntry(updatedCalendarEntry);
+        } else if (editingId) {
           await healthDB.updateItem('food', editingId, itemData);
         } else {
           await healthDB.addItem('food', itemData);
         }
       } catch (indexedDBError) {
         console.warn('IndexedDB save failed, using localStorage:', indexedDBError);
-        const storageKey = 'mealLibrary';
-        const currentItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        if (editingId) {
-          const updated = currentItems.map((item) =>
-            item.id === editingId ? { ...item, ...itemData } : item
-          );
-          localStorage.setItem(storageKey, JSON.stringify(updated));
+        if (editingId && editTarget === 'calendar' && calendarEntryBaselineRef.current) {
+          const base = calendarEntryBaselineRef.current;
+          const d = selectedDate || getDateFromUrl();
+          const normalizedDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+          const dateKey = normalizedDate.toDateString();
+          const updatedCalendarEntry = {
+            ...base,
+            id: base.id,
+            type: 'meal',
+            name: itemData.name,
+            amount: itemData.amount || '',
+            calories: itemData.calories,
+            protein: itemData.protein,
+            carbs: itemData.carbs,
+            fats: itemData.fats,
+            fibre: itemData.fibre,
+            other: itemData.other || '',
+            notes: itemData.notes || '',
+            date: normalizedDate,
+            time,
+          };
+          const currentData = JSON.parse(localStorage.getItem('healthEntries') || '{}');
+          if (!currentData[dateKey]) currentData[dateKey] = [];
+          const idx = currentData[dateKey].findIndex((e) => e.id === base.id);
+          if (idx >= 0) currentData[dateKey][idx] = { ...updatedCalendarEntry, date: updatedCalendarEntry.date };
+          else currentData[dateKey].push({ ...updatedCalendarEntry, date: updatedCalendarEntry.date });
+          localStorage.setItem('healthEntries', JSON.stringify(currentData));
         } else {
-          const newItem = { id: Date.now(), ...itemData };
-          currentItems.push(newItem);
-          localStorage.setItem(storageKey, JSON.stringify(currentItems));
+          const storageKey = 'mealLibrary';
+          const currentItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
+          if (editingId) {
+            const updated = currentItems.map((item) =>
+              item.id === editingId ? { ...item, ...itemData } : item
+            );
+            localStorage.setItem(storageKey, JSON.stringify(updated));
+          } else {
+            const newItem = { id: Date.now(), ...itemData };
+            currentItems.push(newItem);
+            localStorage.setItem(storageKey, JSON.stringify(currentItems));
+          }
         }
       }
 

@@ -274,6 +274,16 @@ class HealthDatabase {
     });
   }
 
+  async getUserEntryById(id) {
+    const transaction = this.db.transaction(['userEntries'], 'readonly');
+    const store = transaction.objectStore('userEntries');
+    return new Promise((resolve, reject) => {
+      const request = store.get(id);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async deleteUserEntry(id) {
     return new Promise((resolve, reject) => {
     const transaction = this.db.transaction(['userEntries'], 'readwrite');
@@ -414,6 +424,10 @@ class HealthDatabase {
             });
           }
         });
+
+        if (entries.length === 0) {
+          return false;
+        }
 
         // Save all entries to IndexedDB
         for (const entry of entries) {

@@ -245,6 +245,8 @@ export function useFormState(addEntry, updateEntry, addToLibrary) {
             protein: entry.protein || '',
             carbs: entry.carbs || '',
             fats: entry.fats || '',
+            fibre: entry.fibre || '',
+            other: entry.other || '',
             bedtime: entry.bedtime || { hour: 10, minute: 0, period: 'PM' },
             waketime: entry.waketime || { hour: 6, minute: 0, period: 'AM' },
             duration: entry.duration || '',

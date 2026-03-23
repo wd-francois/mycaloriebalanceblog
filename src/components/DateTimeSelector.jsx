@@ -58,6 +58,8 @@ const DateTimeSelector = () => {
   const processedUrlParams = useRef(new Set());
   const modalOpenedViaEdit = useRef(false);
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
+  /** Skip the first persist: the save effect runs before the load-from-LS effect's setState applies, which would otherwise wipe healthFormState with an empty form (noticeable after tab switch / AI / remount). */
+  const skipInitialFormStatePersistRef = useRef(true);
 
   // Auto-add to library function (needed by useFormState)
   const addToLibrary = async (entry) => {
@@ -253,15 +255,15 @@ const DateTimeSelector = () => {
   // Entries saving handled by useHealthData hook
 
 
-  // Save form state to localStorage whenever it changes
+  // Save form state to localStorage whenever it changes (not on the first run — see skipInitialFormStatePersistRef)
   useEffect(() => {
-    // Only run on client side
     if (typeof window === 'undefined') return;
-
+    if (skipInitialFormStatePersistRef.current) {
+      skipInitialFormStatePersistRef.current = false;
+      return;
+    }
     try {
-      console.log('Saving form state to localStorage:', formState);
       localStorage.setItem('healthFormState', JSON.stringify(formState));
-      console.log('Successfully saved form state to localStorage');
     } catch (error) {
       console.error('Error saving form state to localStorage:', error);
     }
