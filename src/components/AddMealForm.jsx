@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import healthDB from '../lib/database.js';
+import AutocompleteInput from './AutocompleteInput.jsx';
 import TimePicker from './TimePicker.jsx';
+import { useLibraryPlaceholders } from '../hooks/useLibraryPlaceholders.js';
 import { getCurrentTimeParts, parseDateLocalYYYYMMDD, formatDateForDisplay } from '../lib/dateUtils.js';
 
 const initialFormData = {
@@ -39,6 +41,22 @@ const AddMealForm = () => {
     typeof window !== 'undefined' ? getDateFromUrl() : new Date()
   );
   const [time, setTime] = useState(() => getCurrentTimeParts());
+  const libPh = useLibraryPlaceholders({ enabled: typeof window !== 'undefined' });
+
+  const handleLibraryMealSelect = (item) => {
+    if (!item) return;
+    setFormData((prev) => ({
+      ...prev,
+      name: item.name || prev.name,
+      amount: item.amount != null && String(item.amount).trim() !== '' ? String(item.amount) : prev.amount,
+      calories: item.calories != null && item.calories !== '' ? String(item.calories) : prev.calories,
+      protein: item.protein != null && item.protein !== '' ? String(item.protein) : prev.protein,
+      carbs: item.carbs != null && item.carbs !== '' ? String(item.carbs) : prev.carbs,
+      fats: item.fats != null && item.fats !== '' ? String(item.fats) : prev.fats,
+      fibre: item.fibre != null && item.fibre !== '' ? String(item.fibre) : prev.fibre,
+      other: item.other != null && String(item.other).trim() !== '' ? String(item.other) : prev.other,
+    }));
+  };
 
   useEffect(() => {
     setSelectedDate(getDateFromUrl());
@@ -349,13 +367,14 @@ const AddMealForm = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Meal Name <span className="text-gray-700 dark:text-gray-300 font-medium">*</span>
                 </label>
-                <input
-                  type="text"
+                <AutocompleteInput
+                  type="food"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full h-12 px-4 py-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-subtle)] text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:border-gray-500 transition-all"
-                  placeholder="e.g., Breakfast, Lunch, Dinner, Snack"
+                  onChange={(v) => setFormData({ ...formData, name: v })}
+                  onSelect={handleLibraryMealSelect}
+                  placeholder={libPh.mealNamePlaceholder}
                   autoFocus
+                  className="min-h-12 rounded-xl border-gray-200 dark:border-gray-700 py-3 text-base focus:ring-gray-500 focus:border-gray-500"
                 />
               </div>
 
@@ -365,11 +384,18 @@ const AddMealForm = () => {
                 </label>
                 <input
                   type="text"
+                  list="add-meal-amount-datalist"
+                  autoComplete="off"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   className="w-full h-12 px-4 py-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-subtle)] text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:border-gray-500 transition-all"
-                  placeholder="e.g., 1 cup, 500 grams, 2 slices"
+                  placeholder={libPh.mealAmountPlaceholder}
                 />
+                <datalist id="add-meal-amount-datalist">
+                  {libPh.mealAmountOptions.map((a) => (
+                    <option key={a} value={a} />
+                  ))}
+                </datalist>
               </div>
             </div>
           </section>
@@ -394,7 +420,7 @@ const AddMealForm = () => {
                   value={formData.calories}
                   onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
                   className="w-full h-12 px-4 py-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-subtle)] text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:border-gray-500 transition-all"
-                  placeholder="e.g., 250"
+                  placeholder={libPh.mealCaloriesPlaceholder}
                 />
               </div>
               <div>
@@ -406,7 +432,7 @@ const AddMealForm = () => {
                   value={formData.protein}
                   onChange={(e) => setFormData({ ...formData, protein: e.target.value })}
                   className="w-full h-12 px-4 py-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-subtle)] text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:border-gray-500 transition-all"
-                  placeholder="e.g., 20"
+                  placeholder={libPh.mealProteinPlaceholder}
                 />
               </div>
               <div>
@@ -418,7 +444,7 @@ const AddMealForm = () => {
                   value={formData.carbs}
                   onChange={(e) => setFormData({ ...formData, carbs: e.target.value })}
                   className="w-full h-12 px-4 py-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-subtle)] text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:border-gray-500 transition-all"
-                  placeholder="e.g., 30"
+                  placeholder={libPh.mealCarbsPlaceholder}
                 />
               </div>
               <div>
@@ -430,7 +456,7 @@ const AddMealForm = () => {
                   value={formData.fats}
                   onChange={(e) => setFormData({ ...formData, fats: e.target.value })}
                   className="w-full h-12 px-4 py-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-subtle)] text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:border-gray-500 transition-all"
-                  placeholder="e.g., 10"
+                  placeholder={libPh.mealFatsPlaceholder}
                 />
               </div>
               <div>
@@ -442,7 +468,7 @@ const AddMealForm = () => {
                   value={formData.fibre}
                   onChange={(e) => setFormData({ ...formData, fibre: e.target.value })}
                   className="w-full h-12 px-4 py-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-subtle)] text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:border-gray-500 transition-all"
-                  placeholder="e.g., 5"
+                  placeholder={libPh.mealFibrePlaceholder}
                 />
               </div>
               <div>
@@ -454,7 +480,7 @@ const AddMealForm = () => {
                   value={formData.other}
                   onChange={(e) => setFormData({ ...formData, other: e.target.value })}
                   className="w-full h-12 px-4 py-0 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-subtle)] text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:border-gray-500 transition-all"
-                  placeholder="e.g., Additional notes or nutrients"
+                  placeholder={libPh.mealOtherPlaceholder}
                 />
               </div>
             </div>

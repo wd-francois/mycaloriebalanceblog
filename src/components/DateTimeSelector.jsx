@@ -3,7 +3,7 @@ import Calendar from './Calendar';
 
 import AutocompleteInput from './AutocompleteInput';
 import TimePicker from './TimePicker';
-import ExerciseForm from './AddExerciseForm.jsx';
+import ExerciseForm from './ExerciseForm.jsx';
 
 import healthDB from '../lib/database.js';
 import { SettingsProvider, useSettings } from '../contexts/SettingsContext.jsx';
@@ -11,6 +11,7 @@ import { formatDate, formatTime } from '../lib/utils';
 import { getCurrentTimeParts, calculateSleepDuration, formatDateLocalYYYYMMDD } from '../lib/dateUtils';
 
 import { useHealthData } from '../hooks/useHealthData';
+import { useLibraryPlaceholders } from '../hooks/useLibraryPlaceholders.js';
 import { useFormState } from '../hooks/useFormState';
 import { usePhotoManagement } from '../hooks/usePhotoManagement';
 
@@ -34,6 +35,7 @@ const DateTimeSelector = () => {
 
   // Entries state managed by useHealthData hook
   const { entries, isDBInitialized, addEntry, updateEntry } = useHealthData();
+  const mealLibPh = useLibraryPlaceholders({ enabled: isDBInitialized });
 
 
 
@@ -954,8 +956,8 @@ const DateTimeSelector = () => {
   return (
     <div className="w-full">
       {!hasEditOrInfoParam && !showModal && (
-        <div className="w-full min-h-[calc(100vh-160px)] bg-white dark:bg-[var(--color-bg-base)] flex items-center justify-center overflow-y-auto py-4 sm:py-6" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
-          <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full justify-center">
+        <div className="w-full min-h-[calc(100vh-160px)] bg-white dark:bg-[var(--color-bg-base)] flex items-start justify-center overflow-y-auto py-4 sm:py-6 pb-8" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+          <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full shrink-0">
             {/* Calorie Goal Card */}
             {calorieGoalData.goalValue ? (
               <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4">
@@ -1333,9 +1335,10 @@ const DateTimeSelector = () => {
                                     value={formState.name}
                                     onChange={(value) => setFormState((s) => ({ ...s, name: value }))}
                                     onSelect={handleAutocompleteSelect}
-                                    placeholder="e.g., Breakfast, Lunch, Dinner, Snack"
+                                    placeholder={mealLibPh.mealNamePlaceholder}
                                     autoFocus
                                     id="meal-name"
+                                    className="dark:border-gray-600 dark:bg-[var(--color-bg-subtle)] dark:text-white dark:placeholder-gray-400"
                                   />
                                 </div>
                               </div>
@@ -1348,12 +1351,19 @@ const DateTimeSelector = () => {
                               <input
                                 id="meal-amount"
                                 type="text"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                placeholder="e.g., 1 cup, 500 grams, 2 slices"
+                                list="meal-amount-datalist"
+                                autoComplete="off"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                placeholder={mealLibPh.mealAmountPlaceholder}
                                 value={formState.amount}
                                 onChange={(e) => setFormState((s) => ({ ...s, amount: e.target.value }))}
                                 onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                               />
+                              <datalist id="meal-amount-datalist">
+                                {mealLibPh.mealAmountOptions.map((a) => (
+                                  <option key={a} value={a} />
+                                ))}
+                              </datalist>
                             </div>
 
                             {/* Nutrition Information */}
@@ -1365,8 +1375,8 @@ const DateTimeSelector = () => {
                                 <input
                                   id="meal-calories"
                                   type="number"
-                                  className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder="e.g., 250"
+                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  placeholder={mealLibPh.mealCaloriesPlaceholder}
                                   value={formState.calories}
                                   onChange={(e) => setFormState((s) => ({ ...s, calories: e.target.value }))}
                                   onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
@@ -1379,8 +1389,8 @@ const DateTimeSelector = () => {
                                 <input
                                   id="meal-protein"
                                   type="number"
-                                  className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder="e.g., 20"
+                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  placeholder={mealLibPh.mealProteinPlaceholder}
                                   value={formState.protein}
                                   onChange={(e) => setFormState((s) => ({ ...s, protein: e.target.value }))}
                                   onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
@@ -1393,8 +1403,8 @@ const DateTimeSelector = () => {
                                 <input
                                   id="meal-carbs"
                                   type="number"
-                                  className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder="e.g., 30"
+                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  placeholder={mealLibPh.mealCarbsPlaceholder}
                                   value={formState.carbs}
                                   onChange={(e) => setFormState((s) => ({ ...s, carbs: e.target.value }))}
                                   onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
@@ -1407,8 +1417,8 @@ const DateTimeSelector = () => {
                                 <input
                                   id="meal-fats"
                                   type="number"
-                                  className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder="e.g., 10"
+                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  placeholder={mealLibPh.mealFatsPlaceholder}
                                   value={formState.fats}
                                   onChange={(e) => setFormState((s) => ({ ...s, fats: e.target.value }))}
                                   onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
@@ -1421,8 +1431,8 @@ const DateTimeSelector = () => {
                                 <input
                                   id="meal-fibre"
                                   type="number"
-                                  className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder="e.g., 5"
+                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  placeholder={mealLibPh.mealFibrePlaceholder}
                                   value={formState.fibre}
                                   onChange={(e) => setFormState((s) => ({ ...s, fibre: e.target.value }))}
                                   onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
@@ -1435,8 +1445,8 @@ const DateTimeSelector = () => {
                                 <input
                                   id="meal-other"
                                   type="text"
-                                  className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder="e.g., Additional notes or nutrients"
+                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                  placeholder={mealLibPh.mealOtherPlaceholder}
                                   value={formState.other}
                                   onChange={(e) => setFormState((s) => ({ ...s, other: e.target.value }))}
                                   onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}

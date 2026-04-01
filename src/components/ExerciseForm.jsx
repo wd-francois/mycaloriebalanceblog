@@ -1,4 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import healthDB from "../lib/database.js";
+import { useLibraryPlaceholders } from "../hooks/useLibraryPlaceholders.js";
 
 // ─── Mock history (simulates saved past workouts) ───────────────────────────
 const WORKOUT_HISTORY = [
@@ -92,6 +94,7 @@ const PencilIcon = () => (
 export function ExerciseSearch({
   value,
   onChange,
+  onSelectLibraryItem,
   placeholder = "e.g. Bench Press",
   suggestions: customSuggestions,
   inputClassName,
@@ -101,10 +104,44 @@ export function ExerciseSearch({
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState(value || "");
   const ref = useRef(null);
-  const suggestions = customSuggestions ?? EXERCISE_SUGGESTIONS;
-  const filtered = q.length > 0
-    ? suggestions.filter(e => (typeof e === "string" ? e : e.name || e).toLowerCase().includes(q.toLowerCase())).slice(0, 6)
-    : [];
+  const staticSuggestions = customSuggestions ?? EXERCISE_SUGGESTIONS;
+  const [libraryItems, setLibraryItems] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (typeof window === "undefined") return;
+        if (!healthDB.db) await healthDB.init();
+        const items = await healthDB.getExerciseItems("", 48);
+        if (!cancelled) setLibraryItems(items || []);
+      } catch {
+        if (!cancelled) setLibraryItems([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const options = useMemo(() => {
+    const lib = libraryItems
+      .filter((it) => it?.name && String(it.name).trim())
+      .map((item) => ({ kind: "lib", label: String(item.name).trim(), item }));
+    const seen = new Set(lib.map((o) => o.label.toLowerCase()));
+    const rest = [];
+    for (const s of staticSuggestions) {
+      const str = typeof s === "string" ? s : (s?.name ?? "");
+      if (!str || seen.has(str.toLowerCase())) continue;
+      seen.add(str.toLowerCase());
+      rest.push({ kind: "str", label: str });
+    }
+    return [...lib, ...rest];
+  }, [libraryItems, staticSuggestions]);
+
+  const filtered = useMemo(() => {
+    const qn = (q || "").trim().toLowerCase();
+    if (!qn) return options.slice(0, 10);
+    return options.filter((o) => o.label.toLowerCase().includes(qn)).slice(0, 10);
+  }, [q, options]);
 
   useEffect(() => {
     setQ(value ?? "");
@@ -116,15 +153,15 @@ export function ExerciseSearch({
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  const select = (item) => {
-    const name = typeof item === "string" ? item : (item?.name ?? "");
-    setQ(name);
-    onChange(name);
+  const selectOption = (o) => {
+    setQ(o.label);
+    onChange(o.label);
+    if (o.kind === "lib" && onSelectLibraryItem) onSelectLibraryItem(o.item);
     setOpen(false);
   };
 
   const defaultInput = "w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors";
-  const defaultDropdown = "absolute z-30 top-full mt-1 w-full bg-white dark:bg-[var(--color-bg-muted)] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden";
+  const defaultDropdown = "absolute z-30 top-full mt-1 w-full bg-white dark:bg-[var(--color-bg-muted)] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden max-h-56 overflow-y-auto";
   const defaultOption = "w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors";
 
   return (
@@ -133,19 +170,32 @@ export function ExerciseSearch({
         type="text"
         value={q}
         placeholder={placeholder}
+        autoComplete="off"
         className={inputClassName ?? defaultInput}
-        onChange={e => { setQ(e.target.value); onChange(e.target.value); setOpen(true); }}
-        onFocus={() => q.length > 0 && setOpen(true)}
+        onChange={(e) => { setQ(e.target.value); onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
       />
       {open && filtered.length > 0 && (
         <div className={dropdownClassName ?? defaultDropdown}>
-          {filtered.map(s => {
-            const label = typeof s === "string" ? s : (s.name ?? "");
-            return (
-              <button key={label} type="button" className={optionClassName ?? defaultOption}
-                onMouseDown={() => select(s)}>{label}</button>
-            );
-          })}
+          {filtered.map((o) => (
+            <button
+              key={o.kind === "lib" ? `lib-${o.item.id ?? o.label}` : `st-${o.label}`}
+              type="button"
+              className={optionClassName ?? defaultOption}
+              onMouseDown={(ev) => ev.preventDefault()}
+              onClick={() => selectOption(o)}
+            >
+              {o.label}
+              {o.kind === "lib" && (o.item.defaultSets || o.item.defaultReps) && (
+                <span className="block text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">
+                  {o.item.defaultSets != null && `${o.item.defaultSets} sets`}
+                  {o.item.defaultSets != null && o.item.defaultReps != null && " · "}
+                  {o.item.defaultReps != null && `${o.item.defaultReps} reps`}
+                  {o.item.defaultLoad != null && String(o.item.defaultLoad).trim() !== "" && ` · ${o.item.defaultLoad}`}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -155,7 +205,17 @@ export function ExerciseSearch({
 export { EXERCISE_SUGGESTIONS };
 
 // ─── Single exercise card ────────────────────────────────────────────────────
-function ExerciseCard({ exercise, index, onChange, onRemove, historyMatch, onAddExercise }) {
+function ExerciseCard({
+  exercise,
+  index,
+  onChange,
+  onRemove,
+  historyMatch,
+  onAddExercise,
+  namePlaceholder = "e.g. Bench press",
+  repsPlaceholder = "8",
+  loadPlaceholder = "80",
+}) {
   const isComplete = exercise.name && exercise.sets && exercise.reps;
 
   const applyHistory = () => {
@@ -223,7 +283,27 @@ function ExerciseCard({ exercise, index, onChange, onRemove, historyMatch, onAdd
           {/* Name */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Exercise</label>
-            <ExerciseSearch value={exercise.name} onChange={val => onChange({ ...exercise, name: val, fromHistory: false })} />
+            <ExerciseSearch
+              value={exercise.name}
+              placeholder={namePlaceholder}
+              onChange={(val) => onChange({ ...exercise, name: val, fromHistory: false })}
+              onSelectLibraryItem={(item) => {
+                onChange({
+                  ...exercise,
+                  name: item.name || exercise.name,
+                  fromHistory: false,
+                  ...(item.defaultReps != null && String(item.defaultReps).trim() !== ""
+                    ? { reps: String(item.defaultReps) }
+                    : {}),
+                  ...(item.defaultLoad != null && String(item.defaultLoad).trim() !== ""
+                    ? { load: String(item.defaultLoad) }
+                    : {}),
+                  ...(item.defaultSets != null && String(item.defaultSets).trim() !== ""
+                    ? { sets: String(item.defaultSets) }
+                    : {}),
+                });
+              }}
+            />
           </div>
 
           {/* Set / Reps / Load/Time - header + primary set */}
@@ -264,14 +344,18 @@ function ExerciseCard({ exercise, index, onChange, onRemove, historyMatch, onAdd
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            {[["sets","4"],["reps","8"],["load","80"]].map(([key, ph]) => (
+            {[
+              ["sets", "4"],
+              ["reps", repsPlaceholder],
+              ["load", loadPlaceholder],
+            ].map(([key, ph]) => (
               <div key={key}>
                 <input
                   type="text"
                   placeholder={ph}
                   value={exercise[key]}
-                  aria-label={key === 'sets' ? 'Set' : key === 'reps' ? 'Reps' : 'Load/Time'}
-                  onChange={e => onChange({ ...exercise, [key]: e.target.value, fromHistory: false })}
+                  aria-label={key === "sets" ? "Set" : key === "reps" ? "Reps" : "Load/Time"}
+                  onChange={(e) => onChange({ ...exercise, [key]: e.target.value, fromHistory: false })}
                   className="w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-center"
                 />
               </div>
@@ -305,7 +389,7 @@ function ExerciseCard({ exercise, index, onChange, onRemove, historyMatch, onAdd
                     </label>
                     <input
                       type="text"
-                      placeholder="8"
+                      placeholder={repsPlaceholder}
                       value={s.reps || ''}
                       onChange={e => {
                         const next = [...exercise.extraSets];
@@ -321,7 +405,7 @@ function ExerciseCard({ exercise, index, onChange, onRemove, historyMatch, onAdd
                     </label>
                     <input
                       type="text"
-                      placeholder="80"
+                      placeholder={loadPlaceholder}
                       value={s.load || ''}
                       onChange={e => {
                         const next = [...exercise.extraSets];
@@ -424,6 +508,8 @@ function WorkoutHistoryPanel({ onRepeat }) {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 export default function WorkoutLogger({ embedded, selectedDate, time, onSave, onCancel, initialExercises, editId }) {
+  const libPh = useLibraryPlaceholders({ enabled: typeof window !== "undefined" });
+
   const today   = new Date().toISOString().split("T")[0];
   const nowTime = new Date().toTimeString().slice(0, 5);
 
@@ -545,6 +631,9 @@ export default function WorkoutLogger({ embedded, selectedDate, time, onSave, on
             onRemove={() => remove(ex.id)}
             historyMatch={ex.name ? lastUsed[ex.name] : null}
             onAddExercise={addExercise}
+            namePlaceholder={libPh.exerciseNamePlaceholder}
+            repsPlaceholder={libPh.exerciseRepsPlaceholder}
+            loadPlaceholder={libPh.exerciseLoadPlaceholder}
           />
         ))}
       </div>
