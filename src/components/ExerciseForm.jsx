@@ -89,6 +89,7 @@ const PencilIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
   </svg>
 );
+const XIcon = () => <Icon className="w-4 h-4" d="M6 18L18 6M6 6l12 12" />;
 
 // ─── Exercise name autocomplete (exported for use in DateTimeSelector) ─────────
 export function ExerciseSearch({
@@ -205,6 +206,10 @@ export function ExerciseSearch({
 export { EXERCISE_SUGGESTIONS };
 
 // ─── Single exercise card ────────────────────────────────────────────────────
+/** Wider pill inputs for the set / reps / load grid (workout-log style). */
+const tableSetInput =
+  "w-full min-w-0 bg-white/95 dark:bg-white/[0.08] border border-gray-200 dark:border-gray-600/60 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 placeholder:text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/45 focus:border-blue-500 transition-colors text-center";
+
 function ExerciseCard({
   exercise,
   index,
@@ -212,14 +217,51 @@ function ExerciseCard({
   onRemove,
   historyMatch,
   onAddExercise,
-  namePlaceholder = "e.g. Bench press",
-  repsPlaceholder = "8",
-  loadPlaceholder = "80",
+  repsPlaceholder = "",
+  loadPlaceholder = "",
 }) {
   const isComplete = exercise.name && exercise.sets && exercise.reps;
+  const totalSetRows = 1 + (Array.isArray(exercise.extraSets) ? exercise.extraSets.length : 0);
 
   const applyHistory = () => {
     onChange({ ...exercise, sets: historyMatch.sets, reps: historyMatch.reps, load: historyMatch.load, notes: historyMatch.notes, fromHistory: true });
+  };
+
+  const appendExtraSet = () => {
+    const extra = Array.isArray(exercise.extraSets) ? exercise.extraSets : [];
+    const nextExtra = [...extra, { sets: '', reps: '', load: '' }];
+    const totalSets = 1 + nextExtra.length;
+    onChange({
+      ...exercise,
+      extraSets: nextExtra,
+      sets: String(totalSets),
+      fromHistory: false,
+    });
+  };
+
+  const removeSetAt = (rowIndex) => {
+    const extra = Array.isArray(exercise.extraSets) ? [...exercise.extraSets] : [];
+    if (rowIndex === 0) {
+      if (extra.length === 0) return;
+      const [promoted, ...rest] = extra;
+      onChange({
+        ...exercise,
+        reps: promoted?.reps ?? "",
+        load: promoted?.load ?? "",
+        extraSets: rest,
+        sets: String(1 + rest.length),
+        fromHistory: false,
+      });
+      return;
+    }
+    const i = rowIndex - 1;
+    const nextExtra = extra.filter((_, j) => j !== i);
+    onChange({
+      ...exercise,
+      extraSets: nextExtra,
+      sets: String(1 + nextExtra.length),
+      fromHistory: false,
+    });
   };
 
   return (
@@ -230,14 +272,13 @@ function ExerciseCard({
         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${isComplete ? "bg-blue-600 text-white" : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400"}`}>
           {isComplete ? <CheckIcon /> : index + 1}
         </div>
-        <span className={`flex-1 text-sm font-semibold truncate ${exercise.name ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}>
+        <span className={`flex-1 text-sm font-semibold truncate min-w-0 ${exercise.name ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}>
           {exercise.name || "New exercise"}
         </span>
-        {isComplete && (
-          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 mr-1">
-            {exercise.sets}x{exercise.reps}{exercise.load ? ` · ${exercise.load}kg` : ""}
-          </span>
-        )}
+        <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 whitespace-nowrap mr-1 max-[380px]:hidden">
+          {totalSetRows} set{totalSetRows === 1 ? "" : "s"}
+          {isComplete && exercise.reps ? ` · ${exercise.reps} reps` : ""}
+        </span>
         <button
           type="button"
           onClick={e => { e.stopPropagation(); onChange({ ...exercise, expanded: !exercise.expanded }); }}
@@ -260,7 +301,7 @@ function ExerciseCard({
       </div>
 
       {exercise.expanded && (
-        <div className="px-3.5 pb-3.5 space-y-3 border-t border-gray-200 dark:border-gray-700 pt-3">
+        <div className="px-3.5 pb-3.5 space-y-4 border-t border-gray-200 dark:border-gray-600/50 pt-3">
 
           {/* "Use last" banner — shown when name matches history and not yet loaded */}
           {historyMatch && !exercise.fromHistory && (
@@ -285,7 +326,7 @@ function ExerciseCard({
             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Exercise</label>
             <ExerciseSearch
               value={exercise.name}
-              placeholder={namePlaceholder}
+              placeholder=""
               onChange={(val) => onChange({ ...exercise, name: val, fromHistory: false })}
               onSelectLibraryItem={(item) => {
                 onChange({
@@ -306,153 +347,133 @@ function ExerciseCard({
             />
           </div>
 
-          {/* Set / Reps / Load/Time - header + primary set */}
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="grid grid-cols-3 gap-2 flex-1">
-              {["Set", "Reps", "Load/Time"].map(label => (
-                <div key={label}>
-                  <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {label}
-                  </span>
-                </div>
-              ))}
+          {/* Sets grid — Set / Reps / Load table + row remove + Add Set (reference UI) */}
+          <div className="rounded-xl border border-gray-200/90 dark:border-gray-600/45 bg-white/55 dark:bg-white/[0.05] dark:backdrop-blur-md p-3 sm:p-4 space-y-2 shadow-sm dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
+            <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_minmax(0,1fr)_2.25rem] gap-x-2 sm:gap-3 items-end px-0.5 pb-1">
+              <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">
+                Set
+              </span>
+              <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Reps
+              </span>
+              <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Load
+              </span>
+              <span className="sr-only">Remove set</span>
             </div>
-            {onAddExercise && (
-              <button
-                type="button"
-                onClick={() => {
-                  const extra = Array.isArray(exercise.extraSets) ? exercise.extraSets : [];
-                  const nextExtra = [...extra, { sets: '', reps: '', load: '' }];
-                  const totalSets = 1 + nextExtra.length;
-                  onChange({
-                    ...exercise,
-                    extraSets: nextExtra,
-                    sets: String(totalSets),
-                    fromHistory: false
-                  });
-                }}
-                className="ml-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-full border border-dashed border-blue-400 text-[11px] font-medium text-blue-600 dark:text-blue-300 bg-blue-50/40 dark:bg-blue-900/10 hover:bg-blue-50 dark:hover:bg-blue-900/25 hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
-              >
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 text-white">
-                  <svg className="w-2.5 h-2.5" viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M7 3a1 1 0 0 1 2 0v4h4a1 1 0 1 1 0 2H9v4a1 1 0 1 1-2 0V9H3a1 1 0 1 1 0-2h4V3z" fill="currentColor" />
-                  </svg>
-                </span>
-                <span>Add set</span>
-              </button>
-            )}
-          </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              ["sets", "4"],
-              ["reps", repsPlaceholder],
-              ["load", loadPlaceholder],
-            ].map(([key, ph]) => (
-              <div key={key}>
-                <input
-                  type="text"
-                  placeholder={ph}
-                  value={exercise[key]}
-                  aria-label={key === "sets" ? "Set" : key === "reps" ? "Reps" : "Load/Time"}
-                  onChange={(e) => onChange({ ...exercise, [key]: e.target.value, fromHistory: false })}
-                  className="w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-center"
-                />
+            <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_minmax(0,1fr)_2.25rem] gap-x-2 sm:gap-3 items-center">
+              <div className="flex justify-center text-sm font-medium tabular-nums text-gray-700 dark:text-gray-200">
+                1
               </div>
-            ))}
-          </div>
-
-          {/* Additional sets */}
-          {Array.isArray(exercise.extraSets) && exercise.extraSets.length > 0 && (
-            <div className="mt-2 space-y-1.5">
-              {exercise.extraSets.map((s, idx) => (
-                <div key={idx} className="grid grid-cols-[repeat(3,minmax(0,1fr))_auto] gap-2 items-end">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
-                      {`Set ${idx + 2}`}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="4"
-                      value={s.sets || ''}
-                      onChange={e => {
-                        const next = [...exercise.extraSets];
-                        next[idx] = { ...next[idx], sets: e.target.value };
-                        onChange({ ...exercise, extraSets: next, fromHistory: false });
-                      }}
-                      className="w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-center"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
-                      Reps
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={repsPlaceholder}
-                      value={s.reps || ''}
-                      onChange={e => {
-                        const next = [...exercise.extraSets];
-                        next[idx] = { ...next[idx], reps: e.target.value };
-                        onChange({ ...exercise, extraSets: next, fromHistory: false });
-                      }}
-                      className="w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-center"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
-                      Load/Time
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={loadPlaceholder}
-                      value={s.load || ''}
-                      onChange={e => {
-                        const next = [...exercise.extraSets];
-                        next[idx] = { ...next[idx], load: e.target.value };
-                        onChange({ ...exercise, extraSets: next, fromHistory: false });
-                      }}
-                      className="w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-center"
-                    />
-                  </div>
+              <input
+                type="text"
+                value={exercise.reps}
+                placeholder={repsPlaceholder}
+                aria-label="Reps for set 1"
+                onChange={(e) => onChange({ ...exercise, reps: e.target.value, fromHistory: false })}
+                className={tableSetInput}
+              />
+              <input
+                type="text"
+                value={exercise.load}
+                placeholder={loadPlaceholder}
+                aria-label="Load or time for set 1"
+                title="Load (weight) or time"
+                onChange={(e) => onChange({ ...exercise, load: e.target.value, fromHistory: false })}
+                className={tableSetInput}
+              />
+              <div className="flex justify-center">
+                {totalSetRows > 1 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      const extra = Array.isArray(exercise.extraSets) ? exercise.extraSets : [];
-                      const nextExtra = extra.filter((_, i) => i !== idx);
-                      const totalSets = 1 + nextExtra.length;
-                      onChange({
-                        ...exercise,
-                        extraSets: nextExtra,
-                        sets: String(totalSets),
-                        fromHistory: false
-                      });
-                    }}
-                    className="self-center p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                    title="Delete set"
-                    aria-label="Delete set"
+                    onClick={(e) => { e.stopPropagation(); removeSetAt(0); }}
+                    className="p-1.5 rounded-lg text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-500/10 transition-colors touch-manipulation"
+                    title="Remove set"
+                    aria-label="Remove set 1"
                   >
-                    <TrashIcon />
+                    <XIcon />
                   </button>
-                </div>
-              ))}
+                )}
+              </div>
             </div>
-          )}
+
+            {Array.isArray(exercise.extraSets) && exercise.extraSets.map((s, idx) => (
+              <div key={idx} className="grid grid-cols-[2.5rem_minmax(0,1fr)_minmax(0,1fr)_2.25rem] gap-x-2 sm:gap-3 items-center">
+                <div className="flex justify-center text-sm font-medium tabular-nums text-gray-700 dark:text-gray-200">
+                  {idx + 2}
+                </div>
+                <input
+                  type="text"
+                  value={s.reps || ""}
+                  placeholder={repsPlaceholder}
+                  aria-label={`Reps for set ${idx + 2}`}
+                  onChange={(e) => {
+                    const next = [...exercise.extraSets];
+                    next[idx] = { ...next[idx], reps: e.target.value };
+                    onChange({ ...exercise, extraSets: next, fromHistory: false });
+                  }}
+                  className={tableSetInput}
+                />
+                <input
+                  type="text"
+                  value={s.load || ""}
+                  placeholder={loadPlaceholder}
+                  aria-label={`Load or time for set ${idx + 2}`}
+                  title="Load (weight) or time"
+                  onChange={(e) => {
+                    const next = [...exercise.extraSets];
+                    next[idx] = { ...next[idx], load: e.target.value };
+                    onChange({ ...exercise, extraSets: next, fromHistory: false });
+                  }}
+                  className={tableSetInput}
+                />
+                <div className="flex justify-center">
+                  {totalSetRows > 1 && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); removeSetAt(idx + 1); }}
+                      className="p-1.5 rounded-lg text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-500/10 transition-colors touch-manipulation"
+                      title="Remove set"
+                      aria-label={`Remove set ${idx + 2}`}
+                    >
+                      <XIcon />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {onAddExercise && (
+              <div className="flex justify-center pt-2">
+                <button
+                  type="button"
+                  title="Add set"
+                  aria-label="Add set"
+                  onClick={(e) => { e.stopPropagation(); appendExtraSet(); }}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-800 dark:text-gray-100 bg-white/90 dark:bg-white/[0.08] border border-gray-200 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500/60 hover:text-blue-600 dark:hover:text-blue-300 transition-colors touch-manipulation shadow-sm"
+                >
+                  <PlusIcon /> Add Set
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Notes */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Notes</label>
-            <textarea placeholder="Cues, tempo, RPE..." rows={2} value={exercise.notes}
+            <textarea rows={3} value={exercise.notes}
+              placeholder="Additional notes..."
               onChange={e => onChange({ ...exercise, notes: e.target.value })}
-              className="w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none" />
+              className="w-full bg-white/95 dark:bg-white/[0.07] border border-gray-200 dark:border-gray-600/60 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/45 focus:border-blue-500 transition-colors resize-none min-h-[5rem]" />
           </div>
 
           {/* Video */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Video Link</label>
-            <input type="url" placeholder="https://youtube.com/..." value={exercise.videoUrl}
+            <input type="url" value={exercise.videoUrl}
               onChange={e => onChange({ ...exercise, videoUrl: e.target.value })}
-              className="w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" />
+              className="w-full bg-white/95 dark:bg-white/[0.07] border border-gray-200 dark:border-gray-600/60 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/45 focus:border-blue-500 transition-colors" />
           </div>
         </div>
       )}
@@ -631,7 +652,6 @@ export default function WorkoutLogger({ embedded, selectedDate, time, onSave, on
             onRemove={() => remove(ex.id)}
             historyMatch={ex.name ? lastUsed[ex.name] : null}
             onAddExercise={addExercise}
-            namePlaceholder={libPh.exerciseNamePlaceholder}
             repsPlaceholder={libPh.exerciseRepsPlaceholder}
             loadPlaceholder={libPh.exerciseLoadPlaceholder}
           />
@@ -670,14 +690,14 @@ export default function WorkoutLogger({ embedded, selectedDate, time, onSave, on
 
   if (isEmbedded) {
     return (
-      <div className="bg-gray-50 dark:bg-[var(--color-bg-muted)] text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5">
+      <>
         {flash && (
           <div className="mb-4 text-xs bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-3 py-2 rounded-lg flex items-center gap-2">
             <ZapIcon /> {flash}
           </div>
         )}
         {content}
-      </div>
+      </>
     );
   }
 
