@@ -2,7 +2,20 @@ import { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext.jsx';
 import { defaultGenerateAIPrompt, defaultGetAIServiceUrl } from '../lib/utils';
 
-const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, onDragStart, onDragEnd, onDragOver, onDrop, settings = { weightUnit: 'lbs', lengthUnit: 'in' } }) => {
+const GroupedEntries = ({
+  entries,
+  formatTime,
+  onEdit,
+  onDelete,
+  onInfoClick,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDrop,
+  settings = { weightUnit: 'lbs', lengthUnit: 'in' },
+  /** YYYY-MM-DD — when set, shows “Add exercise” under the Exercise section */
+  dateStr = '',
+}) => {
   const [collapsedTimes, setCollapsedTimes] = useState(new Set());
 
   // Reset collapsed times when entries change (e.g., when navigating back from another page)
@@ -379,6 +392,22 @@ const GroupedEntries = ({ entries, formatTime, onEdit, onDelete, onInfoClick, on
                     </div>
                   );
                 })}
+                {catKey === 'exercise' && dateStr && group.length > 0 && (
+                  <div className="p-3 sm:p-4 bg-white dark:bg-gray-950/30">
+                    {/* Open the same calendar time session as the last listed exercise and pre-add one blank row */}
+                    <a
+                      href={`/?date=${encodeURIComponent(dateStr)}&edit=${encodeURIComponent(String(group[group.length - 1].id))}&appendExercise=1`}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-sm font-semibold group no-underline"
+                    >
+                      <span className="group-hover:rotate-90 transition-transform duration-200" aria-hidden="true">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                      </span>
+                      Add Exercise
+                    </a>
+                  </div>
+                )}
               </div>
             )}
           </div>

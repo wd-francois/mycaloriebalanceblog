@@ -107,6 +107,18 @@ export function getCurrentTimeParts() {
 }
 
 /**
+ * Compare two 12h time parts ({ hour, minute, period }) for equality.
+ */
+export function timePartsEqual(a, b) {
+  if (!a || !b) return false;
+  return (
+    Number(a.hour) === Number(b.hour) &&
+    Number(a.minute) === Number(b.minute) &&
+    String(a.period || '').toUpperCase() === String(b.period || '').toUpperCase()
+  );
+}
+
+/**
  * Convert 12h time parts to 24h "HH:MM" string (for TimeInput24Hour).
  * @param {{ hour: number, minute: number, period: string }} time
  * @returns {string} e.g. "14:30"

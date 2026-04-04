@@ -246,6 +246,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                   entries={filteredDateEntries}
                   formatTime={formatTime}
                   settings={settings}
+                  dateStr={dateStr}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onInfoClick={handleInfoClick}

@@ -528,7 +528,18 @@ function WorkoutHistoryPanel({ onRepeat }) {
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────────
-export default function WorkoutLogger({ embedded, selectedDate, time, onSave, onCancel, initialExercises, editId }) {
+export default function WorkoutLogger({
+  embedded,
+  selectedDate,
+  time,
+  onSave,
+  onCancel,
+  initialExercises,
+  editId,
+  editSessionEntryIds,
+  /** When true (embedded edit session), start with an extra blank row like clicking “Add Exercise” in-form */
+  initialAppendBlankExercise = false,
+}) {
   const libPh = useLibraryPlaceholders({ enabled: typeof window !== "undefined" });
 
   const today   = new Date().toISOString().split("T")[0];
@@ -538,14 +549,21 @@ export default function WorkoutLogger({ embedded, selectedDate, time, onSave, on
   const [timeLocal, setTimeLocal]  = useState(nowTime);
   const [exercises, setExercises]  = useState(() => {
     if (initialExercises && Array.isArray(initialExercises) && initialExercises.length > 0) {
-      return initialExercises.map((e, i) => newEx({
+      let rows = initialExercises.map((e, i) => newEx({
         name: e.name ?? "",
         sets: e.sets ?? "",
         reps: e.reps ?? "",
         load: e.load ?? "",
+        extraSets: Array.isArray(e.extraSets) ? e.extraSets : [],
         notes: e.notes ?? "",
+        videoUrl: e.videoUrl ?? "",
+        entryId: e.entryId,
         expanded: i === 0
       }));
+      if (initialAppendBlankExercise) {
+        rows = [...rows.map((e) => ({ ...e, expanded: false })), newEx({ expanded: true })];
+      }
+      return rows;
     }
     return [newEx()];
   });
@@ -583,7 +601,10 @@ export default function WorkoutLogger({ embedded, selectedDate, time, onSave, on
         showFlash("Add at least one exercise with a name.");
         return;
       }
-      onSave(withNames, editId);
+      onSave(withNames, {
+        primaryEditId: editId,
+        sessionEntryIds: Array.isArray(editSessionEntryIds) ? editSessionEntryIds : [],
+      });
     } else {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);

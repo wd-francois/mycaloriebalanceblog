@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Calendar from './Calendar';
 
 import AutocompleteInput from './AutocompleteInput';
@@ -8,22 +8,43 @@ import ExerciseForm from './ExerciseForm.jsx';
 import healthDB from '../lib/database.js';
 import { SettingsProvider, useSettings } from '../contexts/SettingsContext.jsx';
 import { formatDate, formatTime } from '../lib/utils';
-import { getCurrentTimeParts, calculateSleepDuration, formatDateLocalYYYYMMDD } from '../lib/dateUtils';
+import { getCurrentTimeParts, calculateSleepDuration, formatDateLocalYYYYMMDD, timePartsEqual } from '../lib/dateUtils';
 
 import { useHealthData } from '../hooks/useHealthData';
 import { useLibraryPlaceholders } from '../hooks/useLibraryPlaceholders.js';
 import { useFormState } from '../hooks/useFormState';
 import { usePhotoManagement } from '../hooks/usePhotoManagement';
 
-
+/** Map a calendar userEntry (exercise) to ExerciseForm initial exercise row (includes entryId for save/sync). */
+function calendarEntryToInitialExercise(entry) {
+  if (!entry) return null;
+  const sets = Array.isArray(entry.sets) && entry.sets.length > 0 ? entry.sets : [{ reps: '', load: '' }];
+  return {
+    entryId: entry.id,
+    name: entry.name || '',
+    sets: String(sets.length),
+    reps: sets[0] ? String(sets[0].reps ?? '') : '',
+    load: sets[0] ? String(sets[0].load ?? '') : '',
+    extraSets: sets.length > 1
+      ? sets.slice(1).map((s) => ({
+          sets: '',
+          reps: String(s.reps ?? ''),
+          load: String(s.load ?? ''),
+        }))
+      : [],
+    notes: entry.notes || '',
+    videoUrl: entry.videoUrl || '',
+  };
+}
 
 const DateTimeSelector = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [time, setTime] = useState(() => getCurrentTimeParts());
-  // Initialize showModal to true if we have edit/info params in URL
+  // Initialize showModal to true for edit/info/add — add opens before useLayoutEffect wires exercise UI
   const [showModal, setShowModal] = useState(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('add') === 'true') return true;
       return !!(urlParams.get('edit') || urlParams.get('info'));
     }
     return false;
@@ -34,7 +55,7 @@ const DateTimeSelector = () => {
   const { settings, updateSetting } = useSettings();
 
   // Entries state managed by useHealthData hook
-  const { entries, isDBInitialized, addEntry, updateEntry } = useHealthData();
+  const { entries, isDBInitialized, addEntry, updateEntry, deleteEntry } = useHealthData();
   const mealLibPh = useLibraryPlaceholders({ enabled: isDBInitialized });
 
 
@@ -48,6 +69,8 @@ const DateTimeSelector = () => {
   const [showSleepInput, setShowSleepInput] = useState(false);
   const [showMeasurementsInput, setShowMeasurementsInput] = useState(false);
   const setShowExerciseInput = (v) => { if (typeof v === 'function') setShowActivityInput(v()); else setShowActivityInput(!!v); };
+  /** View Entries “Add Exercise”: open session with one blank row prefilled (see appendExercise URL param) */
+  const [initialAppendBlankExercise, setInitialAppendBlankExercise] = useState(false);
 
   // Other state
 
@@ -123,7 +146,33 @@ const DateTimeSelector = () => {
     handleSavePhotoToGallery
   } = usePhotoManagement(formState, setFormState, setFormError);
 
-
+  /** All exercise calendar rows same local time as the entry being edited (so user can add/remove/edit as one session). */
+  const exerciseEditSession = useMemo(() => {
+    if (formState?.id == null || activeForm !== 'exercise' || !selectedDate) return null;
+    const key = selectedDate.toDateString();
+    const dayEntries = entries[key];
+    if (!Array.isArray(dayEntries) || dayEntries.length === 0) return null;
+    const anchor = dayEntries.find((e) => e.id === formState.id);
+    if (!anchor || (anchor.type !== 'exercise' && anchor.type !== 'activity')) return null;
+    const anchorTime = anchor.time;
+    let siblings;
+    if (anchorTime) {
+      siblings = dayEntries
+        .filter(
+          (e) =>
+            (e.type === 'exercise' || e.type === 'activity') &&
+            e.time &&
+            timePartsEqual(e.time, anchorTime)
+        )
+        .sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+    } else {
+      siblings = [anchor];
+    }
+    const initialExercises = siblings.map(calendarEntryToInitialExercise).filter(Boolean);
+    const sessionEntryIds = siblings.map((s) => s.id);
+    if (initialExercises.length === 0) return null;
+    return { initialExercises, sessionEntryIds };
+  }, [formState?.id, activeForm, selectedDate, entries]);
 
   // Load form state and settings from localStorage on mount
   useEffect(() => {
@@ -171,12 +220,12 @@ const DateTimeSelector = () => {
       }
     }, 1000);
 
-    // Check if we have edit/info URL params - if so, don't load form state from localStorage
+    // Don't load persisted form when URL drives a specific flow (edit / info / add entry)
     const urlParamsCheck = new URLSearchParams(window.location.search);
     const hasEditOrInfo = urlParamsCheck.get('edit') || urlParamsCheck.get('info');
+    const hasAdd = urlParamsCheck.get('add') === 'true';
 
-    // Load form state only if not editing/adding info
-    if (!hasEditOrInfo) {
+    if (!hasEditOrInfo && !hasAdd) {
       try {
         const savedFormState = localStorage.getItem('healthFormState');
         if (savedFormState) {
@@ -192,30 +241,20 @@ const DateTimeSelector = () => {
         console.error('Error loading form state from localStorage:', error);
       }
     } else {
-      console.log('Skipping localStorage form state load - edit/info params detected');
+      console.log('Skipping localStorage form state load - edit/info/add params detected');
     }
 
     // Settings are now loaded from SettingsContext automatically
     return () => clearTimeout(timeoutId);
   }, []);
 
-  useEffect(() => {
-    if (showModal && formState.id == null) {
-      setTime(getCurrentTimeParts());
-    }
-  }, [showModal, formState.id]);
+  // Open add flow from URL (?date=&add=true[&type=exercise]) before paint — no DB wait; avoids rAF/LS races
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get('add') !== 'true') return;
 
-  // Open modal when navigating with date and add parameter (?date=xxx&add=true)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !isDBInitialized || showModal) return;
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const dateParam = urlParams.get('date');
-    const addParam = urlParams.get('add');
-
-    if (addParam !== 'true') return;
-
-    // Set date from URL if we have it (so selectedDate is set before or when we open modal)
+    const dateParam = p.get('date');
     if (dateParam) {
       try {
         const [year, month, day] = dateParam.split('-').map(Number);
@@ -223,18 +262,34 @@ const DateTimeSelector = () => {
         if (!isNaN(urlDate.getTime())) {
           setSelectedDate(new Date(urlDate.getFullYear(), urlDate.getMonth(), urlDate.getDate()));
         }
-      } catch (_) {}
+      } catch (_) {
+        /* ignore */
+      }
     } else {
       setSelectedDate((prev) => prev || new Date());
     }
 
-    // Open the Add a New Entry modal
-    const frameId = requestAnimationFrame(() => {
-      const currentParams = new URLSearchParams(window.location.search);
-      if (currentParams.get('add') === 'true') setShowModal(true);
-    });
-    return () => cancelAnimationFrame(frameId);
-  }, [isDBInitialized, showModal]);
+    const entryType = (p.get('type') || '').toLowerCase();
+    if (entryType === 'exercise') {
+      setActiveForm('exercise');
+      const base = { id: null, name: '', type: 'exercise', notes: '', durationMinutes: '', photo: null };
+      setFormState((prev) => ({
+        ...prev,
+        ...base,
+        sets: prev.sets && prev.sets.length > 0 ? prev.sets : [{ reps: '', load: '' }],
+      }));
+      setShowActivityInput(true);
+    } else {
+      setShowActivityInput(false);
+    }
+    setShowModal(true);
+  }, []);
+
+  useEffect(() => {
+    if (showModal && formState.id == null) {
+      setTime(getCurrentTimeParts());
+    }
+  }, [showModal, formState.id]);
 
   // Ensure measurements are always enabled (using context)
   useEffect(() => {
@@ -466,23 +521,26 @@ const DateTimeSelector = () => {
     setShowModal(true);
   }
 
-  const handleExerciseFormSave = async (exercises, editId) => {
+  const handleExerciseFormSave = async (exercises, saveMeta = {}) => {
     if (!selectedDate) return;
     const normalizedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     if (isNaN(normalizedDate.getTime())) return;
 
+    const sessionEntryIdsRaw = Array.isArray(saveMeta.sessionEntryIds) ? saveMeta.sessionEntryIds : [];
+    const primaryEditId = saveMeta.primaryEditId;
+    let sessionEntryIds = [...sessionEntryIdsRaw];
+    if (sessionEntryIds.length === 0 && primaryEditId != null) {
+      sessionEntryIds = [primaryEditId];
+    }
+
     const buildExerciseEntry = (e, id) => {
       const sets = [];
-
-      // Primary set from main fields
       sets.push({
         reps: e.reps || '',
         load: e.load || ''
       });
-
-      // Additional sets from extraSets array, if present
       if (Array.isArray(e.extraSets)) {
-        e.extraSets.forEach(s => {
+        e.extraSets.forEach((s) => {
           if (!s) return;
           const reps = s.reps || '';
           const load = s.load || s.loadKg || '';
@@ -490,8 +548,7 @@ const DateTimeSelector = () => {
           sets.push({ reps, load });
         });
       }
-
-      return {
+      const entry = {
         id,
         name: String(e.name).trim(),
         type: 'exercise',
@@ -500,27 +557,46 @@ const DateTimeSelector = () => {
         sets,
         notes: (e.notes && String(e.notes).trim()) || ''
       };
+      if (e.videoUrl && String(e.videoUrl).trim()) {
+        entry.videoUrl = String(e.videoUrl).trim();
+      }
+      return entry;
     };
 
     setFormError('');
     try {
-      if (editId != null && exercises.length > 0) {
-        const entry = buildExerciseEntry(exercises[0], editId);
-        await updateEntry(entry);
-        for (let i = 1; i < exercises.length; i++) {
-          const ex = exercises[i];
-          if (!ex.name || !String(ex.name).trim()) continue;
-          await addEntry(buildExerciseEntry(ex, Date.now() + i));
+      const named = exercises.filter((e) => e.name && String(e.name).trim());
+
+      if (sessionEntryIds.length > 0 && named.length === 0) {
+        for (const entryId of sessionEntryIds) {
+          await deleteEntry(entryId, normalizedDate);
         }
-      } else {
-        for (let i = 0; i < exercises.length; i++) {
-          const e = exercises[i];
-          if (!e.name || !String(e.name).trim()) continue;
-          await addEntry(buildExerciseEntry(e, Date.now() + i));
+        setShowActivityInput(false);
+        setInitialAppendBlankExercise(false);
+        setFormSuccessMessage('Exercise entries removed from calendar.');
+        setTimeout(() => setFormSuccessMessage(''), 3000);
+        return;
+      }
+
+      const keptEntryIds = named.map((e) => e.entryId).filter((id) => id != null);
+      const toDelete = sessionEntryIds.filter((id) => !keptEntryIds.includes(id));
+      for (const entryId of toDelete) {
+        await deleteEntry(entryId, normalizedDate);
+      }
+
+      for (let i = 0; i < named.length; i++) {
+        const e = named[i];
+        const existingId = e.entryId;
+        if (existingId != null) {
+          await updateEntry(buildExerciseEntry(e, existingId));
+        } else {
+          await addEntry(buildExerciseEntry(e, Date.now() + i * 1000 + Math.floor(Math.random() * 1000)));
         }
       }
+
       setShowActivityInput(false);
-      setFormSuccessMessage(`Saved ${exercises.filter(e => e.name && String(e.name).trim()).length} exercise(s) to calendar.`);
+      setInitialAppendBlankExercise(false);
+      setFormSuccessMessage(`Saved ${named.length} exercise(s) to calendar.`);
       setTimeout(() => setFormSuccessMessage(''), 3000);
     } catch (err) {
       console.error('Failed to save exercise entries:', err);
@@ -552,6 +628,7 @@ const DateTimeSelector = () => {
     // Close the modal
     setShowModal(false);
     modalOpenedViaEdit.current = false; // Reset the flag when modal is closed
+    setInitialAppendBlankExercise(false);
 
     // Reset form inputs so next open shows the 4 buttons (Meal, Exercise, Sleep, Measure)
     setShowMealInput(false);
@@ -646,9 +723,10 @@ const DateTimeSelector = () => {
     const dateParam = urlParams.get('date');
     const editParam = urlParams.get('edit');
     const infoParam = urlParams.get('info');
+    const appendExerciseParam = urlParams.get('appendExercise');
 
     // Create a unique key for this URL param combination
-    const urlKey = `${dateParam || ''}-${editParam || ''}-${infoParam || ''}`;
+    const urlKey = `${dateParam || ''}-${editParam || ''}-${infoParam || ''}-${appendExerciseParam || ''}`;
 
     // Skip if we've already processed these params
     if (processedUrlParams.current.has(urlKey)) {
@@ -760,12 +838,14 @@ const DateTimeSelector = () => {
           setShowActivityInput(true);
           setShowModal(true);
           modalOpenedViaEdit.current = true;
+          setInitialAppendBlankExercise(appendExerciseParam === '1');
           // Clear loading flag now that exercise form is ready
           setIsLoadingEdit(false);
           // Optionally clean up URL 'edit' param while keeping modal open
           if (typeof window !== 'undefined') {
             const newUrl = new URL(window.location);
             newUrl.searchParams.delete('edit');
+            newUrl.searchParams.delete('appendExercise');
             window.history.replaceState({}, '', newUrl);
           }
           processedUrlParams.current.add(urlKey);
@@ -1518,30 +1598,36 @@ const DateTimeSelector = () => {
                             </div>
                           </section>
                           <ExerciseForm
-                            key={formState.id ?? 'new'}
+                            key={`ex-${formState.id ?? 'new'}-${(exerciseEditSession?.sessionEntryIds || []).join('-')}${initialAppendBlankExercise ? '-append' : ''}`}
                             embedded
                             selectedDate={selectedDate}
                             time={time}
                             onSave={handleExerciseFormSave}
-                            onCancel={() => setShowActivityInput(false)}
-                            initialExercises={formState.id != null ? [{
-                              name: formState.name || '',
-                              // Total sets count comes from number of set objects
-                              sets: Array.isArray(formState.sets) && formState.sets.length > 0 ? String(formState.sets.length) : '',
-                              // First set values populate the primary row
-                              reps: formState.sets?.[0] ? String(formState.sets[0].reps ?? '') : '',
-                              load: formState.sets?.[0] ? String(formState.sets[0].load ?? '') : '',
-                              // Remaining set objects become extraSets for additional rows
-                              extraSets: Array.isArray(formState.sets) && formState.sets.length > 1
-                                ? formState.sets.slice(1).map(s => ({
-                                    sets: '',
-                                    reps: String(s.reps ?? ''),
-                                    load: String(s.load ?? '')
-                                  }))
-                                : [],
-                              notes: formState.notes || ''
-                            }] : undefined}
+                            onCancel={() => {
+                              setShowActivityInput(false);
+                              setInitialAppendBlankExercise(false);
+                            }}
+                            initialAppendBlankExercise={initialAppendBlankExercise}
+                            initialExercises={
+                              formState.id != null
+                                ? exerciseEditSession?.initialExercises?.length
+                                  ? exerciseEditSession.initialExercises
+                                  : [calendarEntryToInitialExercise({
+                                      id: formState.id,
+                                      name: formState.name,
+                                      type: 'exercise',
+                                      sets: formState.sets,
+                                      notes: formState.notes,
+                                      videoUrl: formState.videoUrl,
+                                    })].filter(Boolean)
+                                : undefined
+                            }
                             editId={formState.id != null ? formState.id : undefined}
+                            editSessionEntryIds={
+                              formState.id != null
+                                ? exerciseEditSession?.sessionEntryIds ?? [formState.id]
+                                : []
+                            }
                           />
                         </div>
                       )}
