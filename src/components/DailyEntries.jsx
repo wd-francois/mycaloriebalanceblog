@@ -166,6 +166,10 @@ const DailyEntriesContent = ({ date: dateParam }) => {
   const dateStr = selectedDate
     ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
     : '';
+  const closeHref = dateStr ? `/?date=${dateStr}&add=true` : '/';
+  // Match DateTimeSelector modal + daily-calories / daily-weight / daily-sleep close control
+  const closeButtonClass =
+    'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 no-underline';
 
   if (loading) {
     return (
@@ -193,11 +197,12 @@ const DailyEntriesContent = ({ date: dateParam }) => {
           </div>
 
           <div className="bg-white dark:bg-[var(--color-bg-muted)] border border-gray-200 dark:border-gray-700 rounded-3xl overflow-hidden shadow-lg p-6 md:p-8 relative">
-            {/* X - back to Add a new entry (inside card, top right) */}
+            {/* Close — desktop / tablet: top-right corner */}
             <a
-              href={dateStr ? `/?date=${dateStr}&add=true` : '/'}
-              className="absolute top-4 right-4 flex items-center justify-center w-11 h-11 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
-              aria-label="Back to Add a new entry"
+              href={closeHref}
+              className={`absolute top-4 right-2 z-10 hidden md:flex ${closeButtonClass}`}
+              title="Close"
+              aria-label="Close"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -205,40 +210,53 @@ const DailyEntriesContent = ({ date: dateParam }) => {
             </a>
             {filteredDateEntries.length > 0 ? (
               <>
-                {/* Action Buttons */}
+                {/* Action buttons — compact on mobile; close sits next to Export */}
                 <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-start gap-2 md:gap-3">
+                  <div className="flex flex-wrap items-center justify-start gap-1.5 md:gap-3">
                     <a
                       href={`/daily-calories?date=${dateStr}`}
-                      className="flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
+                      className="flex items-center justify-center px-2 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md border border-blue-100 transition-colors duration-200 md:px-4 md:py-2 md:text-sm md:rounded-lg"
                       title={`View calorie intake graph (${dateStr})`}
                     >
                       <span className="whitespace-nowrap">Calories</span>
                     </a>
                     <a
                       href={`/daily-sleep?date=${dateStr}`}
-                      className="flex items-center justify-center px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg border border-purple-100 transition-colors duration-200"
+                      className="flex items-center justify-center px-2 py-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md border border-purple-100 transition-colors duration-200 md:px-4 md:py-2 md:text-sm md:rounded-lg"
                       title="View sleep statistics"
                     >
                       <span className="whitespace-nowrap">Sleep</span>
                     </a>
                     <a
                       href={`/daily-weight?date=${dateStr}`}
-                      className="flex items-center justify-center px-4 py-2 text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg border border-green-100 transition-colors duration-200"
+                      className="flex items-center justify-center px-2 py-1.5 text-xs font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md border border-green-100 transition-colors duration-200 md:px-4 md:py-2 md:text-sm md:rounded-lg"
                       title="View weight progress"
                     >
                       <span className="whitespace-nowrap">Weight</span>
                     </a>
-                    <button
-                      onClick={() => exportToCSV(entries, selectedDate)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors duration-200"
-                      title="Export daily entries"
-                    >
-                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span className="whitespace-nowrap">Export</span>
-                    </button>
+                    <div className="inline-flex items-center gap-0.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => exportToCSV(entries, selectedDate)}
+                        className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md border border-blue-100 transition-colors duration-200 md:gap-2 md:px-4 md:py-2 md:text-sm md:rounded-lg"
+                        title="Export daily entries"
+                      >
+                        <svg className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="whitespace-nowrap">Export</span>
+                      </button>
+                      <a
+                        href={closeHref}
+                        className={`md:hidden shrink-0 ${closeButtonClass}`}
+                        title="Close"
+                        aria-label="Close"
+                      >
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </a>
+                    </div>
                   </div>
                 </div>
                 <GroupedEntries
@@ -272,7 +290,18 @@ const DailyEntriesContent = ({ date: dateParam }) => {
               </>
             ) : (
               !loading && entriesLoaded && filteredDateEntries.length === 0 && (
-                <div className="text-center py-12">
+                <div className="text-center py-12 relative">
+                  {/* Mobile close — no action row, so keep corner control */}
+                  <a
+                    href={closeHref}
+                    className={`absolute top-0 right-0 z-10 md:hidden flex ${closeButtonClass}`}
+                    title="Close"
+                    aria-label="Close"
+                  >
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </a>
                   {/* Onboarding banner */}
                   {isFirstTimeUser && (
                     <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200">
