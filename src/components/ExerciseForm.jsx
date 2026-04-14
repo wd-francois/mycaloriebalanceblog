@@ -190,9 +190,10 @@ export function ExerciseSearch({
               {o.kind === "lib" && (o.item.defaultSets || o.item.defaultReps) && (
                 <span className="block text-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">
                   {o.item.defaultSets != null && `${o.item.defaultSets} sets`}
-                  {o.item.defaultSets != null && o.item.defaultReps != null && " · "}
+                  {o.item.defaultSets != null && o.item.defaultLoad != null && String(o.item.defaultLoad).trim() !== "" && " · "}
+                  {o.item.defaultLoad != null && String(o.item.defaultLoad).trim() !== "" && `${o.item.defaultLoad}`}
+                  {((o.item.defaultSets != null) || (o.item.defaultLoad != null && String(o.item.defaultLoad).trim() !== "")) && o.item.defaultReps != null && " · "}
                   {o.item.defaultReps != null && `${o.item.defaultReps} reps`}
-                  {o.item.defaultLoad != null && String(o.item.defaultLoad).trim() !== "" && ` · ${o.item.defaultLoad}`}
                 </span>
               )}
             </button>
@@ -229,7 +230,7 @@ function ExerciseCard({
 
   const appendExtraSet = () => {
     const extra = Array.isArray(exercise.extraSets) ? exercise.extraSets : [];
-    const nextExtra = [...extra, { sets: '', reps: '', load: '' }];
+    const nextExtra = [...extra, { sets: '', reps: exercise.reps || '', load: exercise.load || '' }];
     const totalSets = 1 + nextExtra.length;
     onChange({
       ...exercise,
@@ -237,6 +238,28 @@ function ExerciseCard({
       sets: String(totalSets),
       fromHistory: false,
     });
+  };
+
+  const handlePrimaryRepsChange = (value) => {
+    const extra = Array.isArray(exercise.extraSets) ? exercise.extraSets : [];
+    const syncedExtra = extra.map((set) => {
+      if ((set?.reps == null || String(set.reps).trim() === '') && value.trim() !== '') {
+        return { ...set, reps: value };
+      }
+      return set;
+    });
+    onChange({ ...exercise, reps: value, extraSets: syncedExtra, fromHistory: false });
+  };
+
+  const handlePrimaryLoadChange = (value) => {
+    const extra = Array.isArray(exercise.extraSets) ? exercise.extraSets : [];
+    const syncedExtra = extra.map((set) => {
+      if ((set?.load == null || String(set.load).trim() === '') && value.trim() !== '') {
+        return { ...set, load: value };
+      }
+      return set;
+    });
+    onChange({ ...exercise, load: value, extraSets: syncedExtra, fromHistory: false });
   };
 
   const removeSetAt = (rowIndex) => {
@@ -277,7 +300,7 @@ function ExerciseCard({
         </span>
         <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 whitespace-nowrap mr-1 max-[380px]:hidden">
           {totalSetRows} set{totalSetRows === 1 ? "" : "s"}
-          {isComplete && exercise.reps ? ` · ${exercise.reps} reps` : ""}
+          {isComplete && (exercise.load || exercise.reps) ? ` · ${exercise.load || '—'} · ${exercise.reps || '—'} reps` : ""}
         </span>
         <button
           type="button"
@@ -309,7 +332,7 @@ function ExerciseCard({
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 active:scale-95 transition-all text-xs font-semibold">
               <ClockIcon />
               <span className="flex-1 text-left">
-                Last: {historyMatch.sets}x{historyMatch.reps}{historyMatch.load ? ` @ ${historyMatch.load}kg` : ""}
+                Last: {historyMatch.sets} sets{historyMatch.load ? ` · ${historyMatch.load}kg` : " · —"}{historyMatch.reps ? ` · ${historyMatch.reps} reps` : ""}
                 {historyMatch.notes ? ` — "${historyMatch.notes}"` : ""}
               </span>
               <span className="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap">Use →</span>
@@ -347,17 +370,17 @@ function ExerciseCard({
             />
           </div>
 
-          {/* Sets grid — Set / Reps / Load table + row remove + Add Set (reference UI) */}
+          {/* Sets grid — Set / Load / Reps table + row remove + Add Set (reference UI) */}
           <div className="rounded-xl border border-gray-200/90 dark:border-gray-600/45 bg-white/55 dark:bg-white/[0.05] dark:backdrop-blur-md p-3 sm:p-4 space-y-2 shadow-sm dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
             <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_minmax(0,1fr)_2.25rem] gap-x-2 sm:gap-3 items-end px-0.5 pb-1">
               <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">
                 Set
               </span>
               <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Reps
+                Load
               </span>
               <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Load
+                Reps
               </span>
               <span className="sr-only">Remove set</span>
             </div>
@@ -368,19 +391,19 @@ function ExerciseCard({
               </div>
               <input
                 type="text"
-                value={exercise.reps}
-                placeholder={repsPlaceholder}
-                aria-label="Reps for set 1"
-                onChange={(e) => onChange({ ...exercise, reps: e.target.value, fromHistory: false })}
-                className={tableSetInput}
-              />
-              <input
-                type="text"
                 value={exercise.load}
                 placeholder={loadPlaceholder}
                 aria-label="Load or time for set 1"
                 title="Load (weight) or time"
-                onChange={(e) => onChange({ ...exercise, load: e.target.value, fromHistory: false })}
+                onChange={(e) => handlePrimaryLoadChange(e.target.value)}
+                className={tableSetInput}
+              />
+              <input
+                type="text"
+                value={exercise.reps}
+                placeholder={repsPlaceholder}
+                aria-label="Reps for set 1"
+                onChange={(e) => handlePrimaryRepsChange(e.target.value)}
                 className={tableSetInput}
               />
               <div className="flex justify-center">
@@ -405,18 +428,6 @@ function ExerciseCard({
                 </div>
                 <input
                   type="text"
-                  value={s.reps || ""}
-                  placeholder={repsPlaceholder}
-                  aria-label={`Reps for set ${idx + 2}`}
-                  onChange={(e) => {
-                    const next = [...exercise.extraSets];
-                    next[idx] = { ...next[idx], reps: e.target.value };
-                    onChange({ ...exercise, extraSets: next, fromHistory: false });
-                  }}
-                  className={tableSetInput}
-                />
-                <input
-                  type="text"
                   value={s.load || ""}
                   placeholder={loadPlaceholder}
                   aria-label={`Load or time for set ${idx + 2}`}
@@ -424,6 +435,18 @@ function ExerciseCard({
                   onChange={(e) => {
                     const next = [...exercise.extraSets];
                     next[idx] = { ...next[idx], load: e.target.value };
+                    onChange({ ...exercise, extraSets: next, fromHistory: false });
+                  }}
+                  className={tableSetInput}
+                />
+                <input
+                  type="text"
+                  value={s.reps || ""}
+                  placeholder={repsPlaceholder}
+                  aria-label={`Reps for set ${idx + 2}`}
+                  onChange={(e) => {
+                    const next = [...exercise.extraSets];
+                    next[idx] = { ...next[idx], reps: e.target.value };
                     onChange({ ...exercise, extraSets: next, fromHistory: false });
                   }}
                   className={tableSetInput}

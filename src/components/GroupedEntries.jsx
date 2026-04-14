@@ -274,7 +274,7 @@ const GroupedEntries = ({
                         {(entry.type === 'exercise' || entry.type === 'activity') && entry.sets && entry.sets.length > 0 && (
                           <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             <div className="mb-2">
-                              <span className="font-medium">Sets · Reps · Load/Time</span>
+                              <span className="font-medium">Sets · Load/Time · Reps</span>
                               {entry.durationMinutes != null && entry.durationMinutes !== '' && (
                                 <span className="ml-2">· {entry.durationMinutes} min</span>
                               )}
@@ -283,8 +283,8 @@ const GroupedEntries = ({
                               {entry.sets.map((set, index) => (
                                 <div key={index} className="flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-800/50 px-2 py-1 rounded">
                                   <span className="font-medium">Set {index + 1}:</span>
-                                  <span>{set.reps || '—'} reps</span>
-                                  {(set.load !== '' && set.load != null) && <span>· {set.load}</span>}
+                                  {(set.load !== '' && set.load != null) ? <span>{set.load}</span> : <span>—</span>}
+                                  <span>· {set.reps || '—'} reps</span>
                                 </div>
                               ))}
                             </div>

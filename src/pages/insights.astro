@@ -325,9 +325,55 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         measurements: 'Measurements Details'
       };
       detailTitle.textContent = titleMap[category] || 'Details';
+      detailList.innerHTML = '';
+
+      if (category === 'exercise') {
+        const allEntries = this.getAllEntriesWithDate().filter((entry) => entry.type === 'exercise');
+        if (!allEntries.length) {
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+        const groupedByDate = {};
+        allEntries.forEach((entry) => {
+          if (!groupedByDate[entry.__dateKey]) groupedByDate[entry.__dateKey] = [];
+          groupedByDate[entry.__dateKey].push(entry);
+        });
+
+        Object.keys(groupedByDate).forEach((dateKey) => {
+          const headerLi = document.createElement('li');
+          headerLi.className = 'text-xs font-semibold uppercase tracking-wide text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg px-3 py-2';
+          headerLi.textContent = new Date(dateKey).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+          detailList.appendChild(headerLi);
+
+          groupedByDate[dateKey].forEach((entry) => {
+            const setsText = Array.isArray(entry.sets) && entry.sets.length > 0
+              ? ` · ${entry.sets.length} set${entry.sets.length === 1 ? '' : 's'}`
+              : '';
+            const durationText = entry.durationMinutes ? ` · ${entry.durationMinutes} min` : '';
+
+            const entryLi = document.createElement('li');
+            entryLi.className = 'text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2';
+            const setsLines = Array.isArray(entry.sets) && entry.sets.length > 0
+              ? entry.sets.map((set, index) => {
+                const reps = set?.reps != null && String(set.reps).trim() !== '' ? `${set.reps} reps` : '— reps';
+                const load = set?.load != null && String(set.load).trim() !== '' ? `${set.load}` : '—';
+                return `Set ${index + 1}: ${load} x ${reps}`;
+              }).join('<br>')
+              : '';
+
+            entryLi.innerHTML = `
+              <div class="font-medium">${entry.name || 'Exercise'}${durationText}${setsText}</div>
+              ${setsLines ? `<div class="mt-1 text-xs text-gray-600 dark:text-gray-400 leading-5">${setsLines}</div>` : ''}
+            `;
+            detailList.appendChild(entryLi);
+          });
+        });
+        return;
+      }
 
       const rows = this.buildDetailRows(category);
-      detailList.innerHTML = '';
 
       if (!rows.length) {
         emptyState.classList.remove('hidden');
