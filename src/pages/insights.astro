@@ -1,0 +1,311 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
+import PWAInstallPrompt from '../components/PWAInstallPrompt.jsx';
+import OfflineIndicator from '../components/OfflineIndicator.jsx';
+---
+
+<Layout
+  title="Insights - My Calorie Balance"
+  description={"View data-driven insights and trends - " + siteConfig.title}
+  showBottomNav={true}
+  wideContent={true}
+  showTopNav={true}
+  showFooter={false}
+>
+  <main class="insights-page w-full bg-gray-50 dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+    <section class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div class="w-full max-w-4xl">
+        <div class="mb-6 text-center">
+          <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Insights</h1>
+          <p class="mt-2 text-base sm:text-lg text-gray-600 dark:text-gray-300">
+            Snapshot of your health data from Health Statistics.
+          </p>
+        </div>
+
+        <div class="bg-white dark:bg-[var(--color-bg-muted)] border border-gray-200 dark:border-gray-700 rounded-3xl shadow-lg p-5 sm:p-8">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+            <article class="insight-card">
+              <h2 class="insight-title text-blue-700 dark:text-blue-300">Calories</h2>
+              <p class="insight-value text-blue-600 dark:text-blue-400" id="insight-calories-main">-</p>
+              <p class="insight-subtext" id="insight-calories-sub">Loading...</p>
+            </article>
+
+            <article class="insight-card">
+              <h2 class="insight-title text-orange-700 dark:text-orange-300">Exercise</h2>
+              <p class="insight-value text-orange-600 dark:text-orange-400" id="insight-exercise-main">-</p>
+              <p class="insight-subtext" id="insight-exercise-sub">Loading...</p>
+            </article>
+
+            <article class="insight-card">
+              <h2 class="insight-title text-purple-700 dark:text-purple-300">Sleep</h2>
+              <p class="insight-value text-purple-600 dark:text-purple-400" id="insight-sleep-main">-</p>
+              <p class="insight-subtext" id="insight-sleep-sub">Loading...</p>
+            </article>
+
+            <article class="insight-card">
+              <h2 class="insight-title text-green-700 dark:text-green-300">Measurements</h2>
+              <p class="insight-value text-green-600 dark:text-green-400" id="insight-weight-main">-</p>
+              <p class="insight-subtext" id="insight-weight-sub">Loading...</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <PWAInstallPrompt client:load />
+  <OfflineIndicator client:load />
+</Layout>
+
+<script is:inline>
+  class InsightsDashboard {
+    constructor() {
+      this.entries = {};
+      this.init();
+    }
+
+    async init() {
+      await this.loadEntries();
+      this.renderInsights();
+    }
+
+    async loadEntries() {
+      try {
+        if (typeof indexedDB !== 'undefined') {
+          const indexedDbEntries = await this.loadFromIndexedDB();
+          if (indexedDbEntries && indexedDbEntries.length > 0) {
+            this.entries = this.groupEntriesByDate(indexedDbEntries);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('IndexedDB load failed, using localStorage fallback:', error);
+      }
+
+      this.loadFromLocalStorage();
+    }
+
+    loadFromIndexedDB() {
+      return new Promise((resolve) => {
+        try {
+          const request = indexedDB.open('HealthTrackerDB', 2);
+
+          request.onsuccess = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains('userEntries')) {
+              resolve([]);
+              return;
+            }
+
+            const tx = db.transaction(['userEntries'], 'readonly');
+            const store = tx.objectStore('userEntries');
+            const getAllRequest = store.getAll();
+
+            getAllRequest.onsuccess = () => {
+              resolve(getAllRequest.result || []);
+            };
+
+            getAllRequest.onerror = () => resolve([]);
+          };
+
+          request.onerror = () => resolve([]);
+        } catch (error) {
+          resolve([]);
+        }
+      });
+    }
+
+    loadFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem('healthEntries');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        Object.keys(parsed || {}).forEach((key) => {
+          if (Array.isArray(parsed[key])) {
+            this.entries[key] = parsed[key];
+          }
+        });
+      } catch (error) {
+        console.warn('Failed to parse localStorage healthEntries:', error);
+      }
+    }
+
+    groupEntriesByDate(allEntries) {
+      const grouped = {};
+      allEntries.forEach((entry) => {
+        if (!entry || !entry.date) return;
+        const dateObj = new Date(entry.date);
+        if (isNaN(dateObj.getTime())) return;
+
+        const normalized = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+        const dateKey = normalized.toDateString();
+        if (!grouped[dateKey]) grouped[dateKey] = [];
+        grouped[dateKey].push({ ...entry, date: normalized });
+      });
+      return grouped;
+    }
+
+    getDatesSorted() {
+      return Object.keys(this.entries).sort((a, b) => new Date(a) - new Date(b));
+    }
+
+    getCaloriesInsights() {
+      const dates = this.getDatesSorted();
+      if (dates.length === 0) {
+        return { main: '0 kcal', sub: 'No meal entries yet' };
+      }
+
+      const dailyCalories = dates.map((dateKey) => {
+        const dayEntries = this.entries[dateKey] || [];
+        return dayEntries
+          .filter((entry) => entry.type === 'meal')
+          .reduce((sum, entry) => sum + (parseFloat(entry.calories) || 0), 0);
+      });
+
+      const nonZeroDays = dailyCalories.filter((cals) => cals > 0);
+      const avgCalories = nonZeroDays.length
+        ? Math.round(nonZeroDays.reduce((sum, cals) => sum + cals, 0) / nonZeroDays.length)
+        : 0;
+      const latestCalories = dailyCalories[dailyCalories.length - 1] || 0;
+
+      return {
+        main: `${avgCalories} kcal`,
+        sub: `Avg daily calories · latest day ${Math.round(latestCalories)} kcal`
+      };
+    }
+
+    getExerciseInsights() {
+      const all = Object.values(this.entries).flat();
+      const exerciseEntries = all.filter((entry) => entry && entry.type === 'exercise');
+      if (exerciseEntries.length === 0) {
+        return { main: '0 sessions', sub: 'No exercise entries yet' };
+      }
+
+      const totalDuration = exerciseEntries.reduce(
+        (sum, entry) => sum + (parseInt(entry.durationMinutes, 10) || 0),
+        0
+      );
+
+      return {
+        main: `${exerciseEntries.length} sessions`,
+        sub: `${totalDuration} min total duration`
+      };
+    }
+
+    getSleepInsights() {
+      const all = Object.values(this.entries).flat();
+      const sleepEntries = all.filter((entry) => entry && entry.type === 'sleep');
+      if (sleepEntries.length === 0) {
+        return { main: '0.0 hrs', sub: 'No sleep entries yet' };
+      }
+
+      const sleepDurations = sleepEntries
+        .map((entry) => parseFloat(entry.duration))
+        .filter((duration) => !isNaN(duration) && duration > 0);
+
+      const avgSleep = sleepDurations.length
+        ? (sleepDurations.reduce((sum, d) => sum + d, 0) / sleepDurations.length).toFixed(1)
+        : '0.0';
+
+      return {
+        main: `${avgSleep} hrs`,
+        sub: `Average sleep duration (${sleepDurations.length} nights)`
+      };
+    }
+
+    getWeightInsights() {
+      const dates = this.getDatesSorted();
+      const weights = [];
+
+      dates.forEach((dateKey) => {
+        const dayEntries = this.entries[dateKey] || [];
+        const measurement = dayEntries.find((entry) => entry.type === 'measurements' && entry.weight);
+        if (measurement) {
+          weights.push({
+            date: dateKey,
+            value: parseFloat(measurement.weight)
+          });
+        }
+      });
+
+      if (weights.length === 0) {
+        return { main: 'No data', sub: 'No weight measurements yet' };
+      }
+
+      const latest = weights[weights.length - 1].value;
+      const first = weights[0].value;
+      const change = latest - first;
+      const changeText = `${change >= 0 ? '+' : ''}${change.toFixed(1)} kg`;
+
+      return {
+        main: `${latest.toFixed(1)} kg`,
+        sub: `Latest weight · change ${changeText}`
+      };
+    }
+
+    setText(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
+    renderInsights() {
+      const calories = this.getCaloriesInsights();
+      const exercise = this.getExerciseInsights();
+      const sleep = this.getSleepInsights();
+      const weight = this.getWeightInsights();
+
+      this.setText('insight-calories-main', calories.main);
+      this.setText('insight-calories-sub', calories.sub);
+      this.setText('insight-exercise-main', exercise.main);
+      this.setText('insight-exercise-sub', exercise.sub);
+      this.setText('insight-sleep-main', sleep.main);
+      this.setText('insight-sleep-sub', sleep.sub);
+      this.setText('insight-weight-main', weight.main);
+      this.setText('insight-weight-sub', weight.sub);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    new InsightsDashboard();
+  });
+</script>
+
+<style>
+  .insight-card {
+    border: 1px solid rgb(229 231 235);
+    border-radius: 1rem;
+    padding: 1rem;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  }
+
+  :global(.dark) .insight-card {
+    border-color: rgb(55 65 81);
+    background: rgb(17 24 39 / 0.55);
+    box-shadow: none;
+  }
+
+  .insight-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .insight-value {
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .insight-subtext {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    color: rgb(75 85 99);
+  }
+
+  :global(.dark) .insight-subtext {
+    color: rgb(156 163 175);
+  }
+</style>
