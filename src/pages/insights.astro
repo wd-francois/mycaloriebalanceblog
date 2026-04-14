@@ -25,29 +25,38 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
 
         <div class="bg-white dark:bg-[var(--color-bg-muted)] border border-gray-200 dark:border-gray-700 rounded-3xl shadow-lg p-5 sm:p-8">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-            <article class="insight-card">
+            <article class="insight-card insight-card-clickable" data-category="calories" role="button" tabindex="0" aria-label="Show calorie details">
               <h2 class="insight-title text-blue-700 dark:text-blue-300">Calories</h2>
               <p class="insight-value text-blue-600 dark:text-blue-400" id="insight-calories-main">-</p>
               <p class="insight-subtext" id="insight-calories-sub">Loading...</p>
             </article>
 
-            <article class="insight-card">
+            <article class="insight-card insight-card-clickable" data-category="exercise" role="button" tabindex="0" aria-label="Show exercise details">
               <h2 class="insight-title text-orange-700 dark:text-orange-300">Exercise</h2>
               <p class="insight-value text-orange-600 dark:text-orange-400" id="insight-exercise-main">-</p>
               <p class="insight-subtext" id="insight-exercise-sub">Loading...</p>
             </article>
 
-            <article class="insight-card">
+            <article class="insight-card insight-card-clickable" data-category="sleep" role="button" tabindex="0" aria-label="Show sleep details">
               <h2 class="insight-title text-purple-700 dark:text-purple-300">Sleep</h2>
               <p class="insight-value text-purple-600 dark:text-purple-400" id="insight-sleep-main">-</p>
               <p class="insight-subtext" id="insight-sleep-sub">Loading...</p>
             </article>
 
-            <article class="insight-card">
+            <article class="insight-card insight-card-clickable" data-category="measurements" role="button" tabindex="0" aria-label="Show measurement details">
               <h2 class="insight-title text-green-700 dark:text-green-300">Measurements</h2>
               <p class="insight-value text-green-600 dark:text-green-400" id="insight-weight-main">-</p>
               <p class="insight-subtext" id="insight-weight-sub">Loading...</p>
             </article>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-900/30 p-4 sm:p-5">
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <h3 id="insight-detail-title" class="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Calories Details</h3>
+              <span class="text-xs text-gray-500 dark:text-gray-400">Tap another card to switch</span>
+            </div>
+            <ul id="insight-detail-list" class="space-y-2 max-h-64 overflow-y-auto pr-1"></ul>
+            <p id="insight-detail-empty" class="hidden text-sm text-gray-500 dark:text-gray-400">No data available yet for this category.</p>
           </div>
         </div>
       </div>
@@ -150,6 +159,21 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
       return Object.keys(this.entries).sort((a, b) => new Date(a) - new Date(b));
     }
 
+    getAllEntriesWithDate() {
+      const rows = [];
+      Object.keys(this.entries).forEach((dateKey) => {
+        const dayEntries = this.entries[dateKey] || [];
+        dayEntries.forEach((entry) => {
+          rows.push({
+            ...entry,
+            __dateKey: dateKey,
+            __dateObj: new Date(dateKey)
+          });
+        });
+      });
+      return rows.sort((a, b) => b.__dateObj - a.__dateObj);
+    }
+
     getCaloriesInsights() {
       const dates = this.getDatesSorted();
       if (dates.length === 0) {
@@ -249,6 +273,100 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
       if (el) el.textContent = value;
     }
 
+    buildDetailRows(category) {
+      const allEntries = this.getAllEntriesWithDate();
+      if (category === 'calories') {
+        const byDate = this.getDatesSorted().map((dateKey) => {
+          const dayEntries = this.entries[dateKey] || [];
+          const total = dayEntries
+            .filter((entry) => entry.type === 'meal')
+            .reduce((sum, entry) => sum + (parseFloat(entry.calories) || 0), 0);
+          return { date: dateKey, text: `${Math.round(total)} kcal total` };
+        }).filter((row) => row.text !== '0 kcal total');
+        return byDate.reverse();
+      }
+
+      if (category === 'exercise') {
+        return allEntries
+          .filter((entry) => entry.type === 'exercise')
+          .map((entry) => ({
+            date: entry.__dateKey,
+            text: `${entry.name || 'Exercise'}${entry.durationMinutes ? ` - ${entry.durationMinutes} min` : ''}`
+          }));
+      }
+
+      if (category === 'sleep') {
+        return allEntries
+          .filter((entry) => entry.type === 'sleep')
+          .map((entry) => ({
+            date: entry.__dateKey,
+            text: `${entry.duration ? `${entry.duration} hrs` : 'Sleep entry'}`
+          }));
+      }
+
+      return allEntries
+        .filter((entry) => entry.type === 'measurements' && entry.weight)
+        .map((entry) => ({
+          date: entry.__dateKey,
+          text: `Weight: ${parseFloat(entry.weight).toFixed(1)} kg`
+        }));
+    }
+
+    renderDetails(category) {
+      const detailTitle = document.getElementById('insight-detail-title');
+      const detailList = document.getElementById('insight-detail-list');
+      const emptyState = document.getElementById('insight-detail-empty');
+      if (!detailTitle || !detailList || !emptyState) return;
+
+      const titleMap = {
+        calories: 'Calories Details',
+        exercise: 'Exercise Details',
+        sleep: 'Sleep Details',
+        measurements: 'Measurements Details'
+      };
+      detailTitle.textContent = titleMap[category] || 'Details';
+
+      const rows = this.buildDetailRows(category);
+      detailList.innerHTML = '';
+
+      if (!rows.length) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      rows.forEach((row) => {
+        const li = document.createElement('li');
+        li.className = 'text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 flex items-center justify-between gap-3';
+        const dateText = new Date(row.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        li.innerHTML = `<span>${row.text}</span><span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">${dateText}</span>`;
+        detailList.appendChild(li);
+      });
+    }
+
+    setupCardInteractions() {
+      const cards = document.querySelectorAll('.insight-card-clickable');
+      cards.forEach((card) => {
+        const activate = () => {
+          cards.forEach((item) => item.classList.remove('insight-card-active'));
+          card.classList.add('insight-card-active');
+          const category = card.getAttribute('data-category') || 'calories';
+          this.renderDetails(category);
+        };
+
+        card.addEventListener('click', activate);
+        card.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            activate();
+          }
+        });
+      });
+
+      const defaultCard = document.querySelector('.insight-card-clickable[data-category="calories"]');
+      if (defaultCard) defaultCard.dispatchEvent(new Event('click'));
+    }
+
     renderInsights() {
       const calories = this.getCaloriesInsights();
       const exercise = this.getExerciseInsights();
@@ -263,6 +381,7 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
       this.setText('insight-sleep-sub', sleep.sub);
       this.setText('insight-weight-main', weight.main);
       this.setText('insight-weight-sub', weight.sub);
+      this.setupCardInteractions();
     }
   }
 
@@ -278,6 +397,26 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
     padding: 1rem;
     background: #fff;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  }
+
+  .insight-card-clickable {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .insight-card-clickable:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  }
+
+  .insight-card-clickable:focus-visible {
+    outline: 2px solid rgb(59 130 246);
+    outline-offset: 2px;
+  }
+
+  .insight-card-active {
+    border-color: rgb(59 130 246);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   }
 
   :global(.dark) .insight-card {
