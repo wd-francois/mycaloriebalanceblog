@@ -1,0 +1,241 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
+import PWAInstallPrompt from '../../components/PWAInstallPrompt.jsx';
+import OfflineIndicator from '../../components/OfflineIndicator.jsx';
+
+export function getStaticPaths() {
+  return ['calories', 'exercise', 'sleep', 'measurements'].map((category) => ({ params: { category } }));
+}
+
+const { category } = Astro.params;
+
+if (
+  !category ||
+  !['calories', 'exercise', 'sleep', 'measurements'].includes(category)
+) {
+  return Astro.redirect('/insights/');
+}
+
+const META: Record<
+  string,
+  { label: string; pageTitle: string; accent: string; description: string }
+> = {
+  calories: {
+    label: 'Calories',
+    pageTitle: 'Calories — Insights',
+    accent: 'blue',
+    description: 'Daily calorie totals from your meal logs.',
+  },
+  exercise: {
+    label: 'Exercise',
+    pageTitle: 'Exercise — Insights',
+    accent: 'orange',
+    description: 'Training sessions and duration from your exercise entries.',
+  },
+  sleep: {
+    label: 'Sleep',
+    pageTitle: 'Sleep — Insights',
+    accent: 'purple',
+    description: 'Sleep duration trends from your sleep logs.',
+  },
+  measurements: {
+    label: 'Measurements',
+    pageTitle: 'Measurements — Insights',
+    accent: 'green',
+    description: 'Body weight entries from your measurements.',
+  },
+};
+
+const meta = META[category];
+---
+
+<Layout
+  title={`${meta.pageTitle} - ${siteConfig.title}`}
+  description={meta.description + ' — ' + siteConfig.title}
+  showBottomNav={true}
+  wideContent={true}
+  showTopNav={true}
+  showFooter={false}
+>
+  <main
+    class="insights-category-page w-full bg-gray-50 dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto"
+    style="touch-action: pan-y; -webkit-overflow-scrolling: touch;"
+    data-insight-category={category}
+  >
+    <section class="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div class="w-full max-w-4xl mx-auto">
+        <a
+          href="/insights/"
+          class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-6 touch-manipulation"
+        >
+          <span aria-hidden="true">←</span> Insights
+        </a>
+
+        <div class="mb-6">
+          <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">{meta.label}</h1>
+          <p class="mt-2 text-base text-gray-600 dark:text-gray-300">{meta.description}</p>
+        </div>
+
+        <div
+          class="rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] shadow-lg p-5 sm:p-8 mb-5"
+        >
+          <p
+            class={`insight-value text-3xl sm:text-4xl font-extrabold mb-1 ${
+              category === 'calories'
+                ? 'text-blue-600 dark:text-blue-400'
+                : category === 'exercise'
+                  ? 'text-orange-600 dark:text-orange-400'
+                  : category === 'sleep'
+                    ? 'text-purple-600 dark:text-purple-400'
+                    : 'text-green-600 dark:text-green-400'
+            }`}
+            id="insight-page-main"
+          >
+            -
+          </p>
+          <p class="insight-subtext text-sm sm:text-base" id="insight-page-sub">Loading...</p>
+        </div>
+
+        <div class="mb-5">
+          <h2 class="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3">Summary</h2>
+          <div
+            id="insight-stats-grid"
+            class="grid grid-cols-2 lg:grid-cols-4 gap-3"
+          >
+          </div>
+        </div>
+
+        <div id="insight-chart-section" class="space-y-5 mb-5">
+          <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-4 sm:p-5 shadow-sm">
+            <h2 class="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3">Trend</h2>
+            {
+              category === 'calories' && (
+                <div
+                  id="insight-calorie-period-wrap"
+                  class="flex flex-wrap items-center gap-3 mb-4"
+                >
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-400">View</span>
+                  <div
+                    class="inline-flex rounded-xl border border-gray-200 dark:border-gray-600 p-1 bg-gray-50 dark:bg-gray-800/80 gap-0.5"
+                    role="group"
+                    aria-label="Calorie chart period"
+                  >
+                    <button
+                      type="button"
+                      data-calorie-period="daily"
+                      class="insight-period-btn px-3 py-1.5 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-sm dark:bg-blue-500"
+                      aria-pressed="true"
+                    >
+                      Daily
+                    </button>
+                    <button
+                      type="button"
+                      data-calorie-period="weekly"
+                      class="insight-period-btn px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-gray-700 dark:text-gray-200"
+                      aria-pressed="false"
+                    >
+                      Weekly
+                    </button>
+                    <button
+                      type="button"
+                      data-calorie-period="monthly"
+                      class="insight-period-btn px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-gray-700 dark:text-gray-200"
+                      aria-pressed="false"
+                    >
+                      Monthly
+                    </button>
+                  </div>
+                </div>
+              )
+            }
+            <div id="insight-chart-main-wrap" class="relative h-56 sm:h-72 w-full min-h-[14rem]">
+              <canvas id="insight-chart-main" aria-label="Category trend chart"></canvas>
+            </div>
+            <p id="insight-chart-empty" class="hidden text-sm text-center text-gray-500 dark:text-gray-400 py-10">
+              Not enough data to plot a chart yet. Log entries and check back.
+            </p>
+          </div>
+
+          <div
+            id="insight-chart-secondary-block"
+            class="hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-4 sm:p-5 shadow-sm"
+          >
+            <h2 id="insight-chart-secondary-title" class="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3">
+              Breakdown
+            </h2>
+            <div class="relative mx-auto h-52 sm:h-64 max-w-md min-h-[13rem] w-full">
+              <canvas id="insight-chart-secondary" aria-label="Breakdown chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-900/30 p-4 sm:p-5"
+        >
+          <h2
+            id="insight-detail-title"
+            class="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3"
+          >
+            Details
+          </h2>
+          <ul id="insight-detail-list" class="space-y-2 max-h-[min(70vh,28rem)] overflow-y-auto pr-1"></ul>
+          <p id="insight-detail-empty" class="hidden text-sm text-gray-500 dark:text-gray-400">
+            No data available yet for this category.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <PWAInstallPrompt client:load />
+  <OfflineIndicator client:load />
+</Layout>
+
+<script>
+  import { InsightsDashboard } from '../../scripts/insightsDashboard.js';
+
+  async function bootInsightsCategory() {
+    const root = document.querySelector('[data-insight-category]');
+    const category = root?.getAttribute('data-insight-category');
+    if (!category) return;
+    const dash = new InsightsDashboard({ category });
+    await dash.init();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      void bootInsightsCategory();
+    });
+  } else {
+    void bootInsightsCategory();
+  }
+</script>
+
+<style>
+  .insight-value {
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .insight-subtext {
+    margin-top: 0.35rem;
+    color: rgb(75 85 99);
+  }
+
+  :global(.dark) .insight-subtext {
+    color: rgb(156 163 175);
+  }
+
+  .insight-action-info:hover {
+    color: rgb(37 99 235);
+  }
+
+  .insight-action-edit:hover {
+    color: rgb(37 99 235);
+  }
+
+  .insight-action-delete:hover {
+    color: rgb(220 38 38);
+  }
+</style>
