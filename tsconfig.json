@@ -5,8 +5,7 @@
     "src/**/*.ts",
     "src/**/*.js",
     "src/**/*.tsx",
-    "src/**/*.jsx",
-    "src/**/*.astro"
+    "src/**/*.jsx"
   ],
   "exclude": [
     "dist",
@@ -36,7 +35,6 @@
         "./src/assets/*"
       ]
     },
-    "jsx": "react-jsx",
     "jsxImportSource": "react"
   }
 }
