@@ -44,6 +44,14 @@ const WORKOUT_HISTORY = [
   },
 ];
 
+const ACTIVITY_SUGGESTIONS = [
+  "Walking", "Running", "Jogging", "Cycling", "Swimming",
+  "Hiking", "Steps", "Jump Rope", "Rowing", "Yoga",
+  "Pilates", "Dancing", "Rock Climbing", "Kayaking",
+  "Stretching", "HIIT", "Circuit Training", "Gardening",
+  "Housework", "Football", "Basketball", "Tennis", "Golf",
+];
+
 const EXERCISE_SUGGESTIONS = [
   "Back Squat","Front Squat","Goblet Squat","Hack Squat",
   "Bench Press","Incline Bench Press","Decline Bench Press","Dumbbell Bench Press",
@@ -510,6 +518,134 @@ function ExerciseCard({
   );
 }
 
+// ─── Activity ────────────────────────────────────────────────────────────────
+const newActivity = (overrides = {}) => ({
+  id: Date.now() + Math.random(),
+  name: "",
+  duration: "",
+  distance: "",
+  steps: "",
+  notes: "",
+  expanded: true,
+  isActivity: true,
+  ...overrides,
+});
+
+const activityInput =
+  "w-full bg-white/95 dark:bg-white/[0.08] border border-gray-200 dark:border-gray-600/60 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/45 focus:border-green-500 transition-colors";
+
+function ActivityCard({ activity, index, onChange, onRemove }) {
+  const isComplete = activity.name && activity.duration;
+
+  return (
+    <div className={`rounded-xl border transition-all duration-200 ${isComplete ? "border-green-500/30 bg-gray-50 dark:bg-[var(--color-bg-muted)]" : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[var(--color-bg-muted)]"}`}>
+      {/* Header */}
+      <div
+        className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer select-none"
+        onClick={() => onChange({ ...activity, expanded: !activity.expanded })}
+      >
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${isComplete ? "bg-green-600 text-white" : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400"}`}>
+          {isComplete ? <CheckIcon /> : index + 1}
+        </div>
+        <span className={`flex-1 text-sm font-semibold truncate min-w-0 ${activity.name ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}>
+          {activity.name || "New activity"}
+        </span>
+        {activity.duration && (
+          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 whitespace-nowrap mr-1 max-[380px]:hidden">
+            {activity.duration} min
+            {activity.distance ? ` · ${activity.distance} km` : ""}
+            {activity.steps ? ` · ${activity.steps} steps` : ""}
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); onChange({ ...activity, expanded: !activity.expanded }); }}
+          className="p-2 text-gray-400 hover:text-green-600 transition-colors touch-manipulation shrink-0"
+          title={activity.expanded ? "Done editing" : "Edit activity"}
+          aria-label={activity.expanded ? "Done editing" : "Edit activity"}
+        >
+          <PencilIcon />
+        </button>
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); onRemove(); }}
+          className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors touch-manipulation shrink-0"
+          title="Remove activity"
+          aria-label="Remove activity"
+        >
+          <TrashIcon />
+        </button>
+        <ChevronDown open={activity.expanded} cls="text-gray-500 dark:text-gray-400 shrink-0" />
+      </div>
+
+      {activity.expanded && (
+        <div className="px-3.5 pb-3.5 space-y-4 border-t border-gray-200 dark:border-gray-600/50 pt-3">
+          {/* Name */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Activity</label>
+            <ExerciseSearch
+              value={activity.name}
+              placeholder="e.g. Walking"
+              suggestions={ACTIVITY_SUGGESTIONS}
+              onChange={val => onChange({ ...activity, name: val })}
+            />
+          </div>
+
+          {/* Duration + Distance + Steps */}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Duration (min)</label>
+              <input
+                type="number"
+                min="1"
+                value={activity.duration}
+                placeholder="30"
+                onChange={e => onChange({ ...activity, duration: e.target.value })}
+                className={activityInput}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Distance (km)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={activity.distance}
+                placeholder="—"
+                onChange={e => onChange({ ...activity, distance: e.target.value })}
+                className={activityInput}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Steps</label>
+              <input
+                type="number"
+                min="0"
+                value={activity.steps}
+                placeholder="—"
+                onChange={e => onChange({ ...activity, steps: e.target.value })}
+                className={activityInput}
+              />
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Notes</label>
+            <textarea
+              rows={2}
+              value={activity.notes}
+              placeholder="Additional notes..."
+              onChange={e => onChange({ ...activity, notes: e.target.value })}
+              className="w-full bg-white/95 dark:bg-white/[0.07] border border-gray-200 dark:border-gray-600/60 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/45 focus:border-green-500 transition-colors resize-none"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Previous workout repeat panel ──────────────────────────────────────────
 function WorkoutHistoryPanel({ onRepeat }) {
   const [open, setOpen] = useState(false);
@@ -596,8 +732,9 @@ export default function WorkoutLogger({
     }
     return [newEx()];
   });
-  const [saved, setSaved]         = useState(false);
-  const { toasts, showToast }     = useToast();
+  const [activities, setActivities] = useState([]);
+  const [saved, setSaved]           = useState(false);
+  const { toasts, showToast }       = useToast();
 
   const isEmbedded = !!embedded;
 
@@ -620,8 +757,14 @@ export default function WorkoutLogger({
   const addExercise = () =>
     setExercises(prev => [...prev.map(e => ({ ...e, expanded: false })), newEx()]);
 
+  const addActivity = () =>
+    setActivities(prev => [...prev.map(a => ({ ...a, expanded: false })), newActivity()]);
+
   const update = (id, updated) => setExercises(prev => prev.map(e => e.id === id ? updated : e));
   const remove = (id)          => setExercises(prev => prev.filter(e => e.id !== id));
+
+  const updateActivity = (id, updated) => setActivities(prev => prev.map(a => a.id === id ? updated : a));
+  const removeActivity = (id)          => setActivities(prev => prev.filter(a => a.id !== id));
 
   const handleSave = () => {
     if (isEmbedded && onSave) {
@@ -712,6 +855,26 @@ export default function WorkoutLogger({
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-sm font-semibold group">
         <span className="group-hover:rotate-90 transition-transform duration-200"><PlusIcon /></span>
         Add Exercise
+      </button>
+
+      {activities.length > 0 && (
+        <div className="space-y-2.5">
+          {activities.map((act, i) => (
+            <ActivityCard
+              key={act.id}
+              activity={act}
+              index={i}
+              onChange={u => updateActivity(act.id, u)}
+              onRemove={() => removeActivity(act.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      <button type="button" onClick={addActivity}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all text-sm font-semibold group">
+        <span className="group-hover:rotate-90 transition-transform duration-200"><PlusIcon /></span>
+        Add Activity
       </button>
 
       {isEmbedded ? (
