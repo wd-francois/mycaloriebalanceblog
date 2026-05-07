@@ -563,17 +563,35 @@ const DateTimeSelector = () => {
       return entry;
     };
 
+    const buildActivityEntry = (a, id) => {
+      const entry = {
+        id,
+        name: String(a.name).trim(),
+        type: 'activity',
+        date: normalizedDate,
+        time: { ...time },
+        notes: (a.notes && String(a.notes).trim()) || ''
+      };
+      if (a.duration && String(a.duration).trim()) entry.durationMinutes = String(a.duration).trim();
+      if (a.distance && String(a.distance).trim()) entry.distance = String(a.distance).trim();
+      if (a.steps && String(a.steps).trim()) entry.steps = String(a.steps).trim();
+      return entry;
+    };
+
     setFormError('');
     try {
       const named = exercises.filter((e) => e.name && String(e.name).trim());
+      const namedActivities = Array.isArray(saveMeta.activities)
+        ? saveMeta.activities.filter((a) => a.name && String(a.name).trim())
+        : [];
 
-      if (sessionEntryIds.length > 0 && named.length === 0) {
+      if (sessionEntryIds.length > 0 && named.length === 0 && namedActivities.length === 0) {
         for (const entryId of sessionEntryIds) {
           await deleteEntry(entryId, normalizedDate);
         }
         setShowActivityInput(false);
         setInitialAppendBlankExercise(false);
-        setFormSuccessMessage('Exercise entries removed from calendar.');
+        setFormSuccessMessage('Entries removed from calendar.');
         setTimeout(() => setFormSuccessMessage(''), 3000);
         return;
       }
@@ -594,9 +612,23 @@ const DateTimeSelector = () => {
         }
       }
 
+      for (let i = 0; i < namedActivities.length; i++) {
+        const a = namedActivities[i];
+        const existingId = a.entryId;
+        const offset = (named.length + i) * 1000 + Math.floor(Math.random() * 1000);
+        if (existingId != null) {
+          await updateEntry(buildActivityEntry(a, existingId));
+        } else {
+          await addEntry(buildActivityEntry(a, Date.now() + offset));
+        }
+      }
+
       setShowActivityInput(false);
       setInitialAppendBlankExercise(false);
-      setFormSuccessMessage(`Saved ${named.length} exercise(s) to calendar.`);
+      const parts = [];
+      if (named.length > 0) parts.push(`${named.length} exercise(s)`);
+      if (namedActivities.length > 0) parts.push(`${namedActivities.length} activity(s)`);
+      setFormSuccessMessage(`Saved ${parts.join(' and ')} to calendar.`);
       setTimeout(() => setFormSuccessMessage(''), 3000);
     } catch (err) {
       console.error('Failed to save exercise entries:', err);
