@@ -730,7 +730,7 @@ export default function WorkoutLogger({
       }
       return rows;
     }
-    return [newEx()];
+    return [];
   });
   const [activities, setActivities] = useState([]);
   const [saved, setSaved]           = useState(false);
@@ -767,15 +767,17 @@ export default function WorkoutLogger({
   const removeActivity = (id)          => setActivities(prev => prev.filter(a => a.id !== id));
 
   const handleSave = () => {
+    const namedExercises = exercises.filter(e => e.name && String(e.name).trim());
+    const namedActivities = activities.filter(a => a.name && String(a.name).trim());
     if (isEmbedded && onSave) {
-      const withNames = exercises.filter(e => e.name && String(e.name).trim());
-      if (withNames.length === 0) {
-        showFlash("Add at least one exercise with a name.");
+      if (namedExercises.length === 0 && namedActivities.length === 0) {
+        showFlash("Add at least one exercise or activity.");
         return;
       }
-      onSave(withNames, {
+      onSave(namedExercises, {
         primaryEditId: editId,
         sessionEntryIds: Array.isArray(editSessionEntryIds) ? editSessionEntryIds : [],
+        activities: namedActivities,
       });
     } else {
       setSaved(true);
@@ -783,6 +785,7 @@ export default function WorkoutLogger({
     }
   };
 
+  const hasAnyNamed = exercises.some(e => e.name) || activities.some(a => a.name);
   const completedCount = exercises.filter(e => e.name && e.sets && e.reps).length;
 
   const content = (
@@ -830,32 +833,28 @@ export default function WorkoutLogger({
       {!isEmbedded && (
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-          <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-widest">Exercises</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-widest">Log</span>
           <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
         </div>
       )}
 
-      <div className="space-y-2.5">
-        {exercises.map((ex, i) => (
-          <ExerciseCard
-            key={ex.id}
-            exercise={ex}
-            index={i}
-            onChange={u => update(ex.id, u)}
-            onRemove={() => remove(ex.id)}
-            historyMatch={ex.name ? lastUsed[ex.name] : null}
-            onAddExercise={addExercise}
-            repsPlaceholder={libPh.exerciseRepsPlaceholder}
-            loadPlaceholder={libPh.exerciseLoadPlaceholder}
-          />
-        ))}
-      </div>
-
-      <button type="button" onClick={addExercise}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-sm font-semibold group">
-        <span className="group-hover:rotate-90 transition-transform duration-200"><PlusIcon /></span>
-        Add Exercise
-      </button>
+      {exercises.length > 0 && (
+        <div className="space-y-2.5">
+          {exercises.map((ex, i) => (
+            <ExerciseCard
+              key={ex.id}
+              exercise={ex}
+              index={i}
+              onChange={u => update(ex.id, u)}
+              onRemove={() => remove(ex.id)}
+              historyMatch={ex.name ? lastUsed[ex.name] : null}
+              onAddExercise={addExercise}
+              repsPlaceholder={libPh.exerciseRepsPlaceholder}
+              loadPlaceholder={libPh.exerciseLoadPlaceholder}
+            />
+          ))}
+        </div>
+      )}
 
       {activities.length > 0 && (
         <div className="space-y-2.5">
@@ -871,11 +870,18 @@ export default function WorkoutLogger({
         </div>
       )}
 
-      <button type="button" onClick={addActivity}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all text-sm font-semibold group">
-        <span className="group-hover:rotate-90 transition-transform duration-200"><PlusIcon /></span>
-        Add Activity
-      </button>
+      <div className="grid grid-cols-2 gap-3">
+        <button type="button" onClick={addExercise}
+          className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-sm font-semibold group">
+          <span className="group-hover:rotate-90 transition-transform duration-200"><PlusIcon /></span>
+          Add Exercise
+        </button>
+        <button type="button" onClick={addActivity}
+          className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-all text-sm font-semibold group">
+          <span className="group-hover:rotate-90 transition-transform duration-200"><PlusIcon /></span>
+          Add Activity
+        </button>
+      </div>
 
       {isEmbedded ? (
         <div className="flex gap-3 pt-2">
@@ -891,7 +897,7 @@ export default function WorkoutLogger({
           )}
         </div>
       ) : (
-        exercises.length >= 2 && (
+        hasAnyNamed && (
           <button type="button" onClick={handleSave}
             className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${saved ? "bg-green-600 text-white" : "bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 text-white"}`}>
             {saved ? "✓ Workout Saved!" : "Save Workout"}
