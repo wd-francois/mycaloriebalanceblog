@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Calorie Balance Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f4f6f4;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .card {
+    display: flex;
+    width: 100%;
+    max-width: 820px;
+    min-height: 560px;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  /* ── Left panel ── */
+  .left {
+    width: 42%;
+    background: #0c1a0f;
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .left::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: -80px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: #1d9e75;
+    opacity: 0.10;
+    pointer-events: none;
+  }
+  .left::after {
+    content: '';
+    position: absolute;
+    bottom: -50px; right: -50px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: #1d9e75;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+
+  .brand { position: relative; z-index: 1; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(29,158,117,0.18);
+    border: 1px solid rgba(93,202,165,0.3);
+    border-radius: 20px;
+    padding: 4px 13px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #5dcaa5;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+  }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #5dcaa5; }
+
+  .brand-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 30px;
+    line-height: 1.15;
+    color: #eef5f1;
+    margin-bottom: 0.5rem;
+  }
+  .brand-title em { font-style: italic; color: #5dcaa5; }
+
+  .brand-sub {
+    font-size: 13px;
+    color: rgba(238,245,241,0.42);
+    line-height: 1.65;
+  }
+
+  .features {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .feat {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+  }
+  .feat-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: rgba(29,158,117,0.13);
+    border: 1px solid rgba(93,202,165,0.18);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .feat-icon svg {
+    width: 14px; height: 14px;
+    stroke: #5dcaa5;
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .feat-text p { font-size: 13px; font-weight: 500; color: rgba(238,245,241,0.88); }
+  .feat-text small { font-size: 11px; color: rgba(238,245,241,0.35); }
+
+  /* ── Right panel ── */
+  .right {
+    flex: 1;
+    background: #fff;
+    padding: 2.5rem 2.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .tabs {
+    display: flex;
+    background: #f4f6f4;
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 1.75rem;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 0;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7a6e;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .tab.active {
+    background: #fff;
+    color: #0c1a0f;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .form { display: none; }
+  .form.visible { display: block; }
+
+  .field { margin-bottom: 1rem; }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7a6e;
+    margin-bottom: 5px;
+    letter-spacing: 0.02em;
+  }
+  input[type=text], input[type=email], input[type=password] {
+    width: 100%;
+    padding: 10px 13px;
+    font-size: 14px;
+    font-family: inherit;
+    border: 1px solid #dde5de;
+    border-radius: 9px;
+    background: #fff;
+    color: #0c1a0f;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus {
+    border-color: #1d9e75;
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.1);
+  }
+
+  .role-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .role-card {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #dde5de;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #fff;
+    user-select: none;
+  }
+  .role-card.selected {
+    border-color: #1d9e75;
+    background: #eef9f5;
+    box-shadow: 0 0 0 2px rgba(29,158,117,0.12);
+  }
+  .role-card p { font-size: 13px; font-weight: 500; color: #0c1a0f; }
+  .role-card small { font-size: 11px; color: #6b7a6e; }
+
+  .btn {
+    width: 100%;
+    padding: 11px;
+    background: #0f6e56;
+    color: #e1f5ee;
+    border: none;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 4px;
+  }
+  .btn:hover { background: #1d9e75; }
+  .btn:active { transform: scale(0.99); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 1.1rem 0;
+    font-size: 11px;
+    color: #aab5ab;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #eaeeea;
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: #6b7a6e;
+  }
+  .footer a {
+    color: #1d9e75;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .footer a:hover { text-decoration: underline; }
+
+  .forgot {
+    text-align: right;
+    margin-top: 6px;
+  }
+  .forgot a {
+    font-size: 12px;
+    color: #1d9e75;
+    text-decoration: none;
+  }
+
+  @media (max-width: 600px) {
+    .card { flex-direction: column; }
+    .left { width: 100%; min-height: auto; padding: 2rem 1.5rem; }
+    .features { display: none; }
+    .right { padding: 2rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Left: Branding -->
+  <div class="left">
+    <div class="brand">
+      <div class="badge"><div class="badge-dot"></div>Pro</div>
+      <h1 class="brand-title">My Calorie<br><em>Balance</em> Pro</h1>
+      <p class="brand-sub">Cloud sync, coach access,<br>and insights that matter.</p>
+    </div>
+
+    <div class="features">
+      <div class="feat">
+        <div class="feat-icon">
+          <svg viewBox="0 0 16 16">
+            <rect x="2" y="3" width="12" height="10" rx="1.5"/>
+            <path d="M5 7h6M5 10h4"/>
+          </svg>
+        </div>
+        <div class="feat-text">
+          <p>Cloud diary sync</p>
+          <small>Access your diary from any device</small>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg viewBox="0 0 16 16">
+            <circle cx="8" cy="5.5" r="2.5"/>
+            <path d="M3 13.5c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+          </svg>
+        </div>
+        <div class="feat-text">
+          <p>Coach access</p>
+          <small>Get feedback directly on your diary</small>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg viewBox="0 0 16 16">
+            <polyline points="2,12 6,7 9,10 14,4"/>
+          </svg>
+        </div>
+        <div class="feat-text">
+          <p>Advanced insights</p>
+          <small>Trends, streaks & weekly progress</small>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg viewBox="0 0 16 16">
+            <path d="M8 2v12M2 8h12"/>
+          </svg>
+        </div>
+        <div class="feat-text">
+          <p>Never lose your data</p>
+          <small>Safely backed up to the cloud</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Auth forms -->
+  <div class="right">
+    <div class="tabs">
+      <button class="tab active" id="tab-login" onclick="switchTab('login')">Sign in</button>
+      <button class="tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
+    </div>
+
+    <!-- Login form -->
+    <div class="form visible" id="form-login">
+      <div class="field">
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label for="login-pass">Password</label>
+        <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+        <div class="forgot"><a href="#">Forgot password?</a></div>
+      </div>
+      <button class="btn">Sign in to Pro</button>
+    </div>
+
+    <!-- Signup form -->
+    <div class="form" id="form-signup">
+      <div class="field">
+        <label for="su-name">Full name</label>
+        <input id="su-name" type="text" placeholder="Your name" autocomplete="name"/>
+      </div>
+      <div class="field">
+        <label for="su-email">Email</label>
+        <input id="su-email" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>I am a...</label>
+        <div class="role-row">
+          <div class="role-card selected" id="role-client" onclick="selectRole('client')">
+            <p>Client</p>
+            <small>Track my diet & health</small>
+          </div>
+          <div class="role-card" id="role-coach" onclick="selectRole('coach')">
+            <p>Coach / PT</p>
+            <small>Manage my clients</small>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="su-pass">Password</label>
+        <input id="su-pass" type="password" placeholder="Min. 8 characters" autocomplete="new-password"/>
+      </div>
+      <button class="btn">Create Pro account</button>
+    </div>
+
+    <div class="divider">or</div>
+    <div class="footer">
+      <a href="https://mycaloriebalance.com">← Back to free app</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function switchTab(tab) {
+    document.getElementById('form-login').classList.toggle('visible', tab === 'login');
+    document.getElementById('form-signup').classList.toggle('visible', tab === 'signup');
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  }
+
+  function selectRole(role) {
+    document.getElementById('role-client').classList.toggle('selected', role === 'client');
+    document.getElementById('role-coach').classList.toggle('selected', role === 'coach');
+  }
+</script>
+</body>
+</html>
