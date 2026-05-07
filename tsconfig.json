@@ -12,6 +12,7 @@
     "node_modules"
   ],
   "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
       "@components/*": [
         "./src/layouts/components/*"
