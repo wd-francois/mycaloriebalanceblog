@@ -163,7 +163,7 @@ export class InsightsDashboard {
 
   getExerciseInsights() {
     const all = Object.values(this.entries).flat();
-    const exerciseEntries = all.filter((entry) => entry && entry.type === 'exercise');
+    const exerciseEntries = all.filter((entry) => entry && (entry.type === 'exercise' || entry.type === 'activity'));
     if (exerciseEntries.length === 0) {
       return { main: '0 sessions', sub: 'No exercise entries yet' };
     }
@@ -352,7 +352,7 @@ export class InsightsDashboard {
     if (cat === 'exercise') {
       const byDay = {};
       this.getAllEntriesWithDate()
-        .filter((e) => e.type === 'exercise')
+        .filter((e) => e.type === 'exercise' || e.type === 'activity')
         .forEach((e) => {
           const dk = e.__dateKey;
           byDay[dk] = (byDay[dk] || 0) + (parseInt(e.durationMinutes, 10) || 0);
@@ -446,7 +446,7 @@ export class InsightsDashboard {
       const byName = {};
       Object.values(this.entries)
         .flat()
-        .filter((e) => e && e.type === 'exercise')
+        .filter((e) => e && (e.type === 'exercise' || e.type === 'activity'))
         .forEach((e) => {
           const name = (e.name && String(e.name).trim()) || 'Exercise';
           const mins = parseInt(e.durationMinutes, 10) || 0;
@@ -502,7 +502,7 @@ export class InsightsDashboard {
     }
 
     if (category === 'exercise') {
-      const ex = this.getAllEntriesWithDate().filter((e) => e.type === 'exercise');
+      const ex = this.getAllEntriesWithDate().filter((e) => e.type === 'exercise' || e.type === 'activity');
       const sessions = ex.length;
       const totalMin = ex.reduce((s, e) => s + (parseInt(e.durationMinutes, 10) || 0), 0);
       const avgMin = sessions ? Math.round(totalMin / sessions) : 0;
@@ -757,7 +757,7 @@ export class InsightsDashboard {
   }
 
   renderExerciseDetails(detailList, emptyState) {
-    const allEntries = this.getAllEntriesWithDate().filter((entry) => entry.type === 'exercise');
+    const allEntries = this.getAllEntriesWithDate().filter((entry) => entry.type === 'exercise' || entry.type === 'activity');
     if (!allEntries.length) {
       emptyState.classList.remove('hidden');
       return;
@@ -800,7 +800,18 @@ export class InsightsDashboard {
         const body = document.createElement('div');
         body.className = 'px-3.5 pb-3.5 space-y-3 border-t border-gray-200 dark:border-gray-600/50 pt-3 hidden';
 
-        if (Array.isArray(entry.sets) && entry.sets.length > 0) {
+        if (entry.type === 'activity') {
+          const parts = [];
+          if (entry.durationMinutes) parts.push(`⏱ ${entry.durationMinutes} min`);
+          if (entry.distance) parts.push(`📍 ${entry.distance} km`);
+          if (entry.steps) parts.push(`👟 ${Number(entry.steps).toLocaleString()} steps`);
+          if (parts.length > 0) {
+            const actBlock = document.createElement('div');
+            actBlock.className = 'mt-1 text-xs text-gray-600 dark:text-gray-400 flex flex-wrap gap-2';
+            actBlock.textContent = parts.join('  ·  ');
+            body.appendChild(actBlock);
+          }
+        } else if (Array.isArray(entry.sets) && entry.sets.length > 0) {
           const setsBlock = document.createElement('div');
           setsBlock.className = 'mt-1 text-xs text-gray-600 dark:text-gray-400 leading-5';
           entry.sets.forEach((set, index) => {
@@ -939,11 +950,17 @@ export class InsightsDashboard {
 
     if (category === 'exercise') {
       return allEntries
-        .filter((entry) => entry.type === 'exercise')
-        .map((entry) => ({
-          date: entry.__dateKey,
-          text: `${entry.name || 'Exercise'}${entry.durationMinutes ? ` - ${entry.durationMinutes} min` : ''}`
-        }));
+        .filter((entry) => entry.type === 'exercise' || entry.type === 'activity')
+        .map((entry) => {
+          const parts = [];
+          if (entry.durationMinutes) parts.push(`${entry.durationMinutes} min`);
+          if (entry.distance) parts.push(`${entry.distance} km`);
+          if (entry.steps) parts.push(`${Number(entry.steps).toLocaleString()} steps`);
+          return {
+            date: entry.__dateKey,
+            text: `${entry.name || (entry.type === 'activity' ? 'Activity' : 'Exercise')}${parts.length ? ' - ' + parts.join(' · ') : ''}`
+          };
+        });
     }
 
     if (category === 'sleep') {

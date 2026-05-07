@@ -273,7 +273,7 @@ const GroupedEntries = ({
                           </div>
                         )}
 
-                        {(entry.type === 'exercise' || entry.type === 'activity') && entry.sets && entry.sets.length > 0 && (
+                        {entry.type === 'exercise' && entry.sets && entry.sets.length > 0 && (
                           <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             <div className="mb-2">
                               <span className="font-medium">Sets · Load/Time · Reps</span>
@@ -290,6 +290,26 @@ const GroupedEntries = ({
                                 </div>
                               ))}
                             </div>
+                          </div>
+                        )}
+
+                        {entry.type === 'activity' && (entry.durationMinutes || entry.distance || entry.steps) && (
+                          <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
+                            {entry.durationMinutes && (
+                              <span className="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                                ⏱ {entry.durationMinutes} min
+                              </span>
+                            )}
+                            {entry.distance && (
+                              <span className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full">
+                                📍 {entry.distance} km
+                              </span>
+                            )}
+                            {entry.steps && (
+                              <span className="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 px-2 py-1 rounded-full">
+                                👟 {Number(entry.steps).toLocaleString()} steps
+                              </span>
+                            )}
                           </div>
                         )}
 
