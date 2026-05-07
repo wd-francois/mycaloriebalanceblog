@@ -4,6 +4,8 @@ import AutocompleteInput from './AutocompleteInput.jsx';
 import TimePicker from './TimePicker.jsx';
 import { useLibraryPlaceholders } from '../hooks/useLibraryPlaceholders.js';
 import { getCurrentTimeParts, parseDateLocalYYYYMMDD, formatDateForDisplay } from '../lib/dateUtils.js';
+import { useToast } from '../hooks/useToast.js';
+import { ToastContainer } from './ui/Toast.jsx';
 
 const initialFormData = {
   name: '',
@@ -42,6 +44,7 @@ const AddMealForm = () => {
   );
   const [time, setTime] = useState(() => getCurrentTimeParts());
   const libPh = useLibraryPlaceholders({ enabled: typeof window !== 'undefined' });
+  const { toasts, showToast } = useToast();
 
   const handleLibraryMealSelect = (item) => {
     if (!item) return;
@@ -278,11 +281,11 @@ const AddMealForm = () => {
         }
       }
 
-      alert(editingId ? 'Meal updated successfully!' : 'Meal added successfully!');
-      window.location.href = '/';
+      showToast(editingId ? 'Meal updated!' : 'Meal added!', 'success');
+      setTimeout(() => { window.location.href = '/'; }, 1200);
     } catch (error) {
       console.error('Error saving item:', error);
-      alert('Error saving item. Please try again.');
+      showToast('Error saving meal. Please try again.', 'error');
     } finally {
       setSaving(false);
     }
@@ -298,6 +301,7 @@ const AddMealForm = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
+      <ToastContainer toasts={toasts} />
       <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Heading inside card, X top right */}
         <div className="px-6 sm:px-8 lg:px-10 pt-6 pb-2 flex items-start justify-between gap-4">
@@ -330,7 +334,7 @@ const AddMealForm = () => {
           <>
           <section className="space-y-4" aria-label="Date">
             <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -342,7 +346,7 @@ const AddMealForm = () => {
 
           <section className="space-y-4" aria-label="Time">
             <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

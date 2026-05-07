@@ -6,27 +6,16 @@ import { SettingsProvider, useSettings } from '../contexts/SettingsContext.jsx';
 import { formatDate, formatTime } from '../lib/utils';
 import { exportToCSV } from '../lib/exportUtils';
 import { useHealthData } from '../hooks/useHealthData';
-
-// Simple toast component
-const Toast = ({ message, type }) => (
-  <div className="fixed top-4 inset-x-0 flex justify-center pointer-events-none">
-    <div
-      className={`px-4 py-2 rounded-md shadow-md text-white ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
-      role="alert"
-      aria-live="assertive"
-    >
-      {message}
-    </div>
-  </div>
-);
+import { useToast } from '../hooks/useToast.js';
+import { ToastContainer } from './ui/Toast.jsx';
+import { SkeletonList } from './ui/Skeleton.jsx';
+import { EmptyState } from './ui/EmptyState.jsx';
 
 const DailyEntriesContent = ({ date: dateParam }) => {
-  const { entries, loading, isDBInitialized, deleteEntry } = useHealthData();
+  const { entries, loading, deleteEntry } = useHealthData();
   const [entriesLoaded, setEntriesLoaded] = useState(false);
   const { settings } = useSettings();
-
-  // Toast state
-  const [toast, setToast] = useState(null);
+  const { toasts, showToast } = useToast();
 
   // Track URL to force re‑render when it changes
   const [currentUrl, setCurrentUrl] = useState(() => {
@@ -139,8 +128,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
     if (!entryId) return;
     if (!window.confirm('Are you sure you want to delete this entry?')) return;
     await deleteEntry(entryId, selectedDate);
-    setToast({ message: 'Entry deleted', type: 'success' });
-    setTimeout(() => setToast(null), 3000);
+    showToast('Entry deleted', 'success');
   };
 
   const handleEdit = entry => {
@@ -173,10 +161,9 @@ const DailyEntriesContent = ({ date: dateParam }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[var(--color-bg-base)]" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading entries…</p>
+      <div className="min-h-screen bg-white dark:bg-[var(--color-bg-base)]" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
+        <div className="max-w-4xl mx-auto px-4 pt-8">
+          <SkeletonList count={3} />
         </div>
       </div>
     );
@@ -184,8 +171,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[var(--color-bg-base)] flex flex-col" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
-      {/* Toast */}
-      {toast && <Toast message={toast.message} type={toast.type} />}
+      <ToastContainer toasts={toasts} />
 
       <div className="flex-1 flex items-center justify-center">
         <div className="max-w-4xl mx-auto px-4 w-full">
@@ -241,8 +227,8 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                         className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md border border-blue-100 transition-colors duration-200 md:gap-2 md:px-4 md:py-2 md:text-sm md:rounded-lg"
                         title="Export daily entries"
                       >
-                        <svg className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <span className="whitespace-nowrap">Export</span>
                       </button>
@@ -290,7 +276,7 @@ const DailyEntriesContent = ({ date: dateParam }) => {
               </>
             ) : (
               !loading && entriesLoaded && filteredDateEntries.length === 0 && (
-                <div className="text-center py-12 relative">
+                <div className="relative">
                   {/* Mobile close — no action row, so keep corner control */}
                   <a
                     href={closeHref}
@@ -298,35 +284,23 @@ const DailyEntriesContent = ({ date: dateParam }) => {
                     title="Close"
                     aria-label="Close"
                   >
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </a>
-                  {/* Onboarding banner */}
                   {isFirstTimeUser && (
-                    <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200">
-                      <h4 className="font-semibold text-lg mb-2">Welcome to Health Tracker!</h4>
-                      <p className="text-sm">It looks like you're new here. Start by adding your first entry to track your health journey.</p>
+                    <div className="mb-4 mx-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200">
+                      <h4 className="font-semibold text-base mb-1">Welcome to Health Tracker!</h4>
+                      <p className="text-sm">Start your health journey by logging your first meal, workout, or sleep entry.</p>
                     </div>
                   )}
-                  <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No entries for this date</h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Add your first entry to get started</p>
-                  <div className="mt-6">
-                    <button
-                      onClick={() => {
-                        window.location.replace(`/?date=${dateStr}&add=true`);
-                      }}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-white"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      Add a New Entry
-                    </button>
-                  </div>
+                  <EmptyState
+                    type="meals"
+                    title="No entries for this date"
+                    description={isFirstTimeUser ? "Tap below to add your first entry and start tracking." : "Nothing logged yet — add a meal, workout, or sleep entry for this day."}
+                    ctaLabel="Add a New Entry"
+                    onCtaClick={() => window.location.replace(`/?date=${dateStr}&add=true`)}
+                  />
                 </div>
               )
             )}

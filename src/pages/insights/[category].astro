@@ -48,19 +48,19 @@ const META: Record<
 };
 
 const meta = META[category];
+const pageDescription = `${meta.description} — ${siteConfig.title}`;
 ---
 
 <Layout
   title={`${meta.pageTitle} - ${siteConfig.title}`}
-  description={meta.description + ' — ' + siteConfig.title}
+  description={pageDescription}
   showBottomNav={true}
   wideContent={true}
   showTopNav={true}
   showFooter={false}
 >
   <main
-    class="insights-category-page w-full bg-gray-50 dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto"
-    style="touch-action: pan-y; -webkit-overflow-scrolling: touch;"
+    class="insights-category-page scrollable-app-main w-full bg-gray-50 dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto"
     data-insight-category={category}
   >
     <section class="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
@@ -196,17 +196,25 @@ const meta = META[category];
   import { InsightsDashboard } from '../../scripts/insightsDashboard.js';
 
   async function bootInsightsCategory() {
-    const root = document.querySelector('[data-insight-category]');
-    const category = root?.getAttribute('data-insight-category');
-    if (!category) return;
-    const dash = new InsightsDashboard({ category });
-    await dash.init();
+    try {
+      const root = document.querySelector('[data-insight-category]');
+      const category = root?.getAttribute('data-insight-category');
+      if (!category) return;
+      const dash = new InsightsDashboard({ category });
+      await dash.init();
+    } catch (error) {
+      console.error('[Insights] Category dashboard init failed:', error);
+    }
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      void bootInsightsCategory();
-    });
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => {
+        void bootInsightsCategory();
+      },
+      { once: true },
+    );
   } else {
     void bootInsightsCategory();
   }

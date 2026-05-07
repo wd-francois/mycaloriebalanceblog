@@ -15,14 +15,14 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
 ---
 
 <Layout
-  title="Daily Sleep Statistics - " + siteConfig.title
-  description="View your daily sleep statistics - " + siteConfig.title
+  title={`Daily Sleep Statistics - ${siteConfig.title}`}
+  description={`View your daily sleep statistics - ${siteConfig.title}`}
   wideContent={true}
   showBottomNav={true}
   showTopNav={true}
   showFooter={false}
 >
-  <main class="w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+  <main class="scrollable-app-main w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto">
     <!-- Content -->
     <div class="flex-1 py-6 sm:py-12 bg-white dark:bg-[var(--color-bg-base)]">
       <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">

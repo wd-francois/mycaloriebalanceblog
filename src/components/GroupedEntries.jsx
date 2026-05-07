@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext.jsx';
+import { EmptyState } from './ui/EmptyState.jsx';
 import { defaultGenerateAIPrompt, defaultGetAIServiceUrl } from '../lib/utils';
 
 const GroupedEntries = ({
@@ -164,13 +165,11 @@ const GroupedEntries = ({
 
   if (entries.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
-        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No entries logged yet</h3>
-        <p className="mt-1 text-sm text-gray-500">Add your first entry</p>
-      </div>
+      <EmptyState
+        type="generic"
+        title="Nothing logged yet"
+        description="Tap the date above to add your first meal, exercise, sleep, or measurement."
+      />
     );
   }
 
@@ -194,10 +193,13 @@ const GroupedEntries = ({
         const timeRange = getGroupTimeRange(group, formatTime);
 
         return (
-          <div key={catKey} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div key={catKey} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
             {/* Category Header */}
             <div
-              className={`${style.bg} dark:bg-opacity-20 px-3 sm:px-4 py-2 sm:py-3 cursor-pointer hover:opacity-90 transition-colors touch-manipulation`}
+              role="button"
+              title={isCollapsed ? `Expand ${label}` : `Collapse ${label}`}
+              aria-label={isCollapsed ? `Expand ${label}` : `Collapse ${label}`}
+              className={`${style.bg} dark:bg-white/[0.04] px-3 sm:px-4 py-2 sm:py-3 cursor-pointer hover:opacity-90 transition-colors touch-manipulation`}
               onClick={() => toggleCategory(catKey)}
             >
               <div className="flex items-center justify-between">
@@ -353,7 +355,7 @@ const GroupedEntries = ({
                         <button
                           onClick={() => onInfoClick(entry)}
                           className="p-2 sm:p-2 text-gray-400 hover:text-blue-600 transition-colors touch-manipulation"
-                          title="Add notes"
+                          title="View details & notes"
                         >
                           <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

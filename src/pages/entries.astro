@@ -1,7 +1,7 @@
 ---
 import Layout from '@layouts/Layout.astro';
+import { siteConfig } from '@config/site';
 import DailyEntries from '../components/DailyEntries.jsx';
-
 
 // Get date from URL parameter
 const dateParam = Astro.url.searchParams.get('date');
@@ -9,8 +9,8 @@ const date = dateParam || new Date().toISOString().split('T')[0];
 ---
 
 <Layout
-  title="Daily Entries - " + siteConfig.title
-  description="View your daily entries - " + siteConfig.title
+  title={`Daily Entries - ${siteConfig.title}`}
+  description={`Browse all logged meals, workouts, sleep, and measurements for any day - ${siteConfig.title}`}
   wideContent={true}
   showBottomNav={true}
   showTopNav={true}

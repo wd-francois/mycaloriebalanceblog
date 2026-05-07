@@ -6,37 +6,34 @@
     "src/**/*.js",
     "src/**/*.tsx",
     "src/**/*.jsx",
-    "src/pages/*.astro",
-    "src/layouts/**/*.astro",
-    "src/components/**/*.astro"
+    "src/**/*.astro"
   ],
   "exclude": [
     "dist",
     "node_modules"
   ],
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@components/*": [
-        "src/layouts/components/*"
+        "./src/layouts/components/*"
       ],
       "@react/*": [
-        "src/components/*"
+        "./src/components/*"
       ],
       "@layouts/*": [
-        "src/layouts/*"
+        "./src/layouts/*"
       ],
       "@config/*": [
-        "src/config/*"
+        "./src/config/*"
       ],
       "@utils/*": [
-        "src/utils/*"
+        "./src/utils/*"
       ],
       "@styles/*": [
-        "src/styles/*"
+        "./src/styles/*"
       ],
       "@assets/*": [
-        "src/assets/*"
+        "./src/assets/*"
       ]
     },
     "jsx": "react-jsx",

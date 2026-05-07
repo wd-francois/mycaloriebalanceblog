@@ -25,6 +25,7 @@ export const exportToJSON = (entries) => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+        localStorage.setItem('lastExportDate', new Date().toISOString());
     } catch (error) {
         console.error('Error exporting to JSON:', error);
         alert('Failed to export to JSON. Please try again.');
@@ -76,6 +77,7 @@ export const exportToCSV = (entries, selectedDate) => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+        localStorage.setItem('lastExportDate', new Date().toISOString());
     } catch (error) {
         console.error('Error exporting to CSV:', error);
         alert('Failed to export to CSV. Please try again.');
@@ -143,6 +145,7 @@ export const exportToPDF = async (entries) => {
 
         // Save the PDF
         doc.save(`health-entries-${new Date().toISOString().split('T')[0]}.pdf`);
+        localStorage.setItem('lastExportDate', new Date().toISOString());
     } catch (error) {
         console.error('Error exporting to PDF:', error);
         alert('Failed to export to PDF. Please try again. Please ensure jsPDF is installed.');

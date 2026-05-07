@@ -4,15 +4,15 @@ import { siteConfig } from '@config/site';
 ---
 
 <Layout
-  title={"Help - " + siteConfig.title}
-  description={"Learn how to use " + siteConfig.title + " - Help and user guide"}
+  title={`Help - ${siteConfig.title}`}
+  description={`Learn how to use ${siteConfig.title} - Help and user guide`}
   wideContent={true}
   showBottomNav={true}
   showTopNav={true}
   showFooter={false}
   showHeader={false}
 >
-  <main class="w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+  <main class="scrollable-app-main w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto">
     <div class="flex-1 py-6 sm:py-12">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">

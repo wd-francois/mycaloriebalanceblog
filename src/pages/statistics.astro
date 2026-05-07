@@ -6,14 +6,14 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
 ---
 
 <Layout
-  title="Statistics - My Calorie Balance"
-  description="View your health statistics, graphs, and analytics - " + siteConfig.title
+  title={`Statistics - ${siteConfig.title}`}
+  description={`View your health statistics, graphs, and analytics - ${siteConfig.title}`}
   showBottomNav={true}
   wideContent={true}
   showTopNav={false}
   showFooter={false}
 >
-  <main class="w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+  <main class="scrollable-app-main w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto">
     <!-- Top Navigation Header -->
     <div class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
       <div class="max-w-6xl mx-auto px-4 py-3">
@@ -553,19 +553,26 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
     }
 
     // Initialize dashboard when page loads
-    document.addEventListener('DOMContentLoaded', () => {
-      const dashboard = new StatisticsDashboard();
-      
-      // Export buttons
-      const exportCSVEl = document.getElementById('exportCSV');
-      if (exportCSVEl) exportCSVEl.addEventListener('click', () => dashboard.exportCSV());
-      
-      const exportJSONEl = document.getElementById('exportJSON');
-      if (exportJSONEl) exportJSONEl.addEventListener('click', () => dashboard.exportJSON());
-      
-      const printStatsEl = document.getElementById('printStats');
-      if (printStatsEl) printStatsEl.addEventListener('click', () => dashboard.printStats());
-    });
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => {
+        try {
+          const dashboard = new StatisticsDashboard();
+
+          const exportCSVEl = document.getElementById('exportCSV');
+          if (exportCSVEl) exportCSVEl.addEventListener('click', () => dashboard.exportCSV());
+
+          const exportJSONEl = document.getElementById('exportJSON');
+          if (exportJSONEl) exportJSONEl.addEventListener('click', () => dashboard.exportJSON());
+
+          const printStatsEl = document.getElementById('printStats');
+          if (printStatsEl) printStatsEl.addEventListener('click', () => dashboard.printStats());
+        } catch (error) {
+          console.error('[Statistics] Dashboard wiring failed:', error);
+        }
+      },
+      { once: true },
+    );
   </script>
   
   <!-- PWA Components -->

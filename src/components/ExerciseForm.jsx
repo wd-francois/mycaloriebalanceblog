@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import healthDB from "../lib/database.js";
 import { useLibraryPlaceholders } from "../hooks/useLibraryPlaceholders.js";
+import { useToast } from "../hooks/useToast.js";
+import { ToastContainer } from "./ui/Toast.jsx";
 
 // ─── Mock history (simulates saved past workouts) ───────────────────────────
 const WORKOUT_HISTORY = [
@@ -80,7 +82,6 @@ const ChevronDown = ({ open, cls = "" }) => (
 );
 const TrashIcon = () => <Icon d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />;
 const ClockIcon = () => <Icon d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0" />;
-const ZapIcon   = () => <Icon d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />;
 const CopyIcon  = () => <Icon d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />;
 const PlusIcon  = () => <Icon className="w-4 h-4" d="M12 4v16m8-8H4" />;
 const CheckIcon = () => <Icon className="w-3.5 h-3.5" d="M5 13l4 4L19 7" />;
@@ -230,7 +231,12 @@ function ExerciseCard({
 
   const appendExtraSet = () => {
     const extra = Array.isArray(exercise.extraSets) ? exercise.extraSets : [];
-    const nextExtra = [...extra, { sets: '', reps: exercise.reps || '', load: exercise.load || '' }];
+    const rowAbove =
+      extra.length > 0 ? extra[extra.length - 1] : { reps: exercise.reps, load: exercise.load };
+    const nextExtra = [
+      ...extra,
+      { sets: '', reps: rowAbove.reps || '', load: rowAbove.load || '' },
+    ];
     const totalSets = 1 + nextExtra.length;
     onChange({
       ...exercise,
@@ -591,7 +597,7 @@ export default function WorkoutLogger({
     return [newEx()];
   });
   const [saved, setSaved]         = useState(false);
-  const [flash, setFlash]         = useState(null);
+  const { toasts, showToast }     = useToast();
 
   const isEmbedded = !!embedded;
 
@@ -609,7 +615,7 @@ export default function WorkoutLogger({
     showFlash(`"${w.label}" loaded — ${loaded.length} exercises ready`);
   };
 
-  const showFlash = (msg) => { setFlash(msg); setTimeout(() => setFlash(null), 3000); };
+  const showFlash = (msg) => showToast(msg, 'info');
 
   const addExercise = () =>
     setExercises(prev => [...prev.map(e => ({ ...e, expanded: false })), newEx()]);
@@ -643,7 +649,7 @@ export default function WorkoutLogger({
           {/* Date card - same style as Add Measurements */}
           <section className="space-y-4" aria-label="Date">
             <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -660,7 +666,7 @@ export default function WorkoutLogger({
           {/* Time */}
           <section className="space-y-4" aria-label="Time">
             <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -735,11 +741,7 @@ export default function WorkoutLogger({
   if (isEmbedded) {
     return (
       <>
-        {flash && (
-          <div className="mb-4 text-xs bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-3 py-2 rounded-lg flex items-center gap-2">
-            <ZapIcon /> {flash}
-          </div>
-        )}
+        <ToastContainer toasts={toasts} />
         {content}
       </>
     );
@@ -761,11 +763,7 @@ export default function WorkoutLogger({
           </button>
         </div>
       </div>
-      {flash && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-800 dark:bg-gray-700 border border-gray-600 text-white text-xs px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2">
-          <ZapIcon /> {flash}
-        </div>
-      )}
+      <ToastContainer toasts={toasts} />
       {content}
     </div>
   );

@@ -1,11 +1,11 @@
 ---
 import Layout from '@layouts/Layout.astro';
-
+import { siteConfig } from '@config/site';
 ---
 
 <Layout
-  title="About - Food Diary App"
-  description="Learn about our food diary app designed to make tracking your meals simple, fast, and meaningful."
+  title={`About - ${siteConfig.title}`}
+  description="Curated calculators, tools, and resources for nutrition, fitness, and body composition tracking."
   showBottomNav={true}
   wideContent={true}
 >
@@ -670,6 +670,6 @@ import Layout from '@layouts/Layout.astro';
     
     // Focus search input on page load
     searchInput.focus();
-  });
+  }, { once: true });
 </script>
 

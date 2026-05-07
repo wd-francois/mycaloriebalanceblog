@@ -4,7 +4,7 @@ import { siteConfig } from '@config/site';
 ---
 
 <Layout
-  title="Calorie Calculator - My Calorie Balance"
+  title={`Calorie Calculator - ${siteConfig.title}`}
   description="Calculate your daily calorie needs using the Mifflin-St Jeor Equation. Get your BMR and TDEE based on your weight, height, age, and activity level."
   showBottomNav={true}
   wideContent={true}
@@ -412,17 +412,19 @@ import { siteConfig } from '@config/site';
     }
 
     // Load saved data on page load
-    window.addEventListener('DOMContentLoaded', function() {
-      setupGoalCardSelection();
-      const savedData = loadCalculatorData();
-      if (savedData) {
-        // Populate form fields
-        populateForm(savedData);
-        // Display results
-        displayResults(savedData);
-      }
-      highlightSelectedGoalCard();
-    });
+    window.addEventListener(
+      'DOMContentLoaded',
+      function () {
+        setupGoalCardSelection();
+        const savedData = loadCalculatorData();
+        if (savedData) {
+          populateForm(savedData);
+          displayResults(savedData);
+        }
+        highlightSelectedGoalCard();
+      },
+      { once: true },
+    );
 
     const form = document.getElementById('calorieCalculator');
     if (form) {

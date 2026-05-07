@@ -8,14 +8,22 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
 <script is:inline>
   // Prevent auto-scroll on page load
   if (typeof window !== 'undefined') {
-    window.addEventListener('load', function() {
-      window.scrollTo(0, 0);
-    });
+    window.addEventListener(
+      'load',
+      function () {
+        window.scrollTo(0, 0);
+      },
+      { once: true },
+    );
     // Also prevent scroll during page load
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        window.scrollTo(0, 0);
-      });
+      document.addEventListener(
+        'DOMContentLoaded',
+        function () {
+          window.scrollTo(0, 0);
+        },
+        { once: true },
+      );
     } else {
       window.scrollTo(0, 0);
     }
@@ -23,14 +31,14 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
 </script>
 
 <Layout
-  title="Tools - Food Diary App"
+  title={`Tools - ${siteConfig.title}`}
   description="Essential calculators and tools for tracking your nutrition and health."
   showBottomNav={true}
   wideContent={true}
   showTopNav={true}
   showFooter={false}
 >
-  <main class="w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+  <main class="scrollable-app-main w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto">
     <!-- Content -->
     <div class="flex-1 py-6 sm:py-10 lg:py-12 dark:bg-[var(--color-bg-base)]">
       <!-- Calorie & Nutrition Tools -->
@@ -549,6 +557,6 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
         window.scrollTo(0, 0);
       }
     });
-  });
+  }, { once: true });
 </script>
 

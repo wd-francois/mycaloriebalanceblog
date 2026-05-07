@@ -1,11 +1,11 @@
 ---
 import Layout from '@layouts/Layout.astro';
-
+import { siteConfig } from '@config/site';
 ---
 
 <Layout
-  title="Food Logger Test - " + siteConfig.title
-  description="Test page for food logger - " + siteConfig.title
+  title={`Food Logger Test - ${siteConfig.title}`}
+  description={`Test page for food logger - ${siteConfig.title}`}
   wideContent={true}
   showBottomNav={true}
   showFooter={false}

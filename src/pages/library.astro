@@ -7,15 +7,15 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
 ---
 
 <Layout
-  title="Food Library - " + siteConfig.title
-  description="Manage your personal Food Library - " + siteConfig.title
+  title={`Food Library - ${siteConfig.title}`}
+  description={`Manage your personal Food Library - ${siteConfig.title}`}
   wideContent={true}
   showBottomNav={true}
   showFooter={false}
   showHeader={false}
   showTopNav={true}
 >
-  <main class="library-page w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto text-gray-900 dark:text-gray-100" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+  <main class="library-page scrollable-app-main w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto text-gray-900 dark:text-gray-100">
     <!-- Content -->
     <div class="flex-1 py-6 sm:py-12 dark:bg-[var(--color-bg-base)]">
       <!-- Header Section -->

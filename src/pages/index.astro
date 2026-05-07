@@ -6,30 +6,37 @@ import DateTimeSelector from '../components/DateTimeSelector.jsx';
 
 <Layout
   title={siteConfig.title}
-  description="Track your daily meals and nutrition with My Calorie Balance - " + siteConfig.title
+  description={`Track your daily meals and nutrition with My Calorie Balance - ${siteConfig.title}`}
   showBottomNav={true}
   showTopNav={true}
   wideContent={true}
 >
   <div class="w-full flex flex-col items-stretch bg-white dark:bg-[var(--color-bg-base)] min-h-[calc(100vh-160px)] pb-4">
     <div class="w-full max-w-sm mx-auto px-4 flex flex-col items-center gap-4 pt-2">
+
+      <!-- Streak counter — populated by inline script below -->
+      <div id="streakBadge" class="hidden items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl">
+        <span class="text-xl" aria-hidden="true">🔥</span>
+        <span id="streakText" class="text-sm font-semibold text-orange-700 dark:text-orange-300"></span>
+      </div>
+
       <!-- Help Page Link Button -->
-      <a 
-        href="/help-page/" 
+      <a
+        href="/help-page/"
         class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm sm:text-base"
         aria-label="Help & Guide"
       >
-        <svg 
-          class="w-5 h-5" 
-          fill="none" 
-          stroke="currentColor" 
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
           viewBox="0 0 24 24"
         >
-          <path 
-            stroke-linecap="round" 
-            stroke-linejoin="round" 
-            stroke-width="2" 
-            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
           />
         </svg>
         <span>Help & Guide</span>
@@ -37,4 +44,52 @@ import DateTimeSelector from '../components/DateTimeSelector.jsx';
       <DateTimeSelector client:load />
     </div>
   </div>
+
+  <script is:inline>
+    (function () {
+      try {
+        var raw = localStorage.getItem('healthEntries');
+        if (!raw) return;
+        var entries = JSON.parse(raw);
+        var dateKeys = Object.keys(entries).filter(function (k) {
+          var arr = entries[k];
+          return Array.isArray(arr) && arr.length > 0;
+        });
+        if (dateKeys.length === 0) return;
+
+        // Normalise all keys to midnight timestamps
+        var times = dateKeys.map(function (k) {
+          var d = new Date(k);
+          return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        });
+        var unique = Array.from(new Set(times)).sort(function (a, b) { return b - a; });
+
+        var today = new Date();
+        var todayMs = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        var yesterdayMs = todayMs - 86400000;
+
+        // Streak must be anchored to today or yesterday
+        if (unique[0] !== todayMs && unique[0] !== yesterdayMs) return;
+
+        var streak = 1;
+        for (var i = 1; i < unique.length; i++) {
+          if (unique[i] === unique[i - 1] - 86400000) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+
+        if (streak < 2) return; // Only show once it's meaningful
+
+        var badge = document.getElementById('streakBadge');
+        var text  = document.getElementById('streakText');
+        if (badge && text) {
+          text.textContent = streak + ' day streak — keep it up!';
+          badge.classList.remove('hidden');
+          badge.classList.add('flex');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </Layout>

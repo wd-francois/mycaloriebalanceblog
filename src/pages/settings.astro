@@ -8,15 +8,15 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
 ---
 
 <Layout
-  title="Settings - " + siteConfig.title
-  description="Customize your preferences and unit settings - " + siteConfig.title
+  title={`Settings - ${siteConfig.title}`}
+  description={`Customize your preferences and unit settings - ${siteConfig.title}`}
   wideContent={true}
   showHeader={false}
   showBottomNav={true}
   showTopNav={true}
   showFooter={false}
 >
-  <main class="w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto" style="touch-action: pan-y; -webkit-overflow-scrolling: touch;">
+  <main class="scrollable-app-main w-full bg-white dark:bg-[var(--color-bg-base)] flex flex-col min-h-screen overflow-y-auto">
     <!-- Content -->
     <div class="flex-1 py-6 sm:py-12 bg-white dark:bg-[var(--color-bg-base)]">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -258,10 +258,14 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
     }
 
     // Load and display goals when page loads
-    window.addEventListener('DOMContentLoaded', function() {
-      displayCalorieGoals();
-      setupGoalCardClickHandlers();
-    });
+    window.addEventListener(
+      'DOMContentLoaded',
+      function () {
+        displayCalorieGoals();
+        setupGoalCardClickHandlers();
+      },
+      { once: true },
+    );
 
     // Reload goals when window gains focus (in case calculator was updated in another tab)
     window.addEventListener('focus', function() {

@@ -1,10 +1,10 @@
 ---
 import Layout from '@layouts/Layout.astro';
-
+import { siteConfig } from '@config/site';
 ---
 
 <Layout
-  title="Help & Guide - Food Diary App"
+  title={`Help & Guide - ${siteConfig.title}`}
   description="Learn about our food diary app designed to make tracking your meals simple, fast, and meaningful."
   showBottomNav={true}
   showTopNav={true}
