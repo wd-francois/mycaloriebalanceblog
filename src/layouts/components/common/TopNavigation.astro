@@ -70,21 +70,23 @@ const currentUrl = Astro.url.pathname;
 
 <!-- Add padding to prevent content from being hidden behind the fixed top nav -->
 <style>
-  /* Add padding to the page when top nav is present */
-  :global(body:has(.top-nav-present)) {
-    padding-top: 80px;
-  }
-  
-  /* Alternative approach for browsers that don't support :has() */
+  /* Offset fixed top nav — values match logo height + nav vertical padding at each breakpoint:
+     mobile  72px logo + 2×10px py-2.5 = 92px  → 96px
+     sm      68px logo + 2×12px py-3   = 92px  → 96px
+     md      80px logo + 2×12px        = 104px → 108px
+     lg      96px logo + 2×12px        = 120px → 124px
+     xl     112px logo + 2×12px        = 136px → 140px  */
   :global(.top-nav-present) {
-    padding-top: 80px;
+    padding-top: 96px;
   }
-  
-  /* Ensure proper spacing for mobile devices */
-  @media (max-width: 768px) {
-    :global(body:has(.top-nav-present) main) {
-      margin-top: 80px;
-    }
+  @media (min-width: 768px) {
+    :global(.top-nav-present) { padding-top: 108px; }
+  }
+  @media (min-width: 1024px) {
+    :global(.top-nav-present) { padding-top: 124px; }
+  }
+  @media (min-width: 1280px) {
+    :global(.top-nav-present) { padding-top: 140px; }
   }
   
   /* Remove white background from dark mode logo */
