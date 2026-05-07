@@ -17,7 +17,14 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
   <div class="w-full bg-white dark:bg-[var(--color-bg-base)]">
     <!-- Content -->
     <div class="w-full px-4 sm:px-6 py-6 sm:py-8 md:py-10">
-      <KilojouleConverterComponent client:load />
+      <div class="relative max-w-3xl mx-auto">
+        <a href="/tools/" class="absolute top-4 right-4 z-10 p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Back to Tools" aria-label="Back to Tools">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </a>
+        <KilojouleConverterComponent client:load />
+      </div>
     </div>
   </div>
   
