@@ -15,7 +15,11 @@ pnpm-debug.log*
 
 # environment variables
 .env
+.env.local
 .env.production
+
+# Convex generated files
+convex/_generated/
 
 # macOS-specific files
 .DS_Store
