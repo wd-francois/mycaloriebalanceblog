@@ -18,8 +18,8 @@ pnpm-debug.log*
 .env.local
 .env.production
 
-# Convex generated files
-convex/_generated/
+# Convex generated files — committed so Netlify build can resolve imports
+# convex/_generated/
 
 # macOS-specific files
 .DS_Store
