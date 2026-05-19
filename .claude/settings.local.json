@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(git add *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git restore *)",
+      "Bash(npm install *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/@auth/core/package.json'\\).version\\)\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":3210\")",
+      "Bash(npx convex *)",
+      "Bash(npx astro *)",
+      "Bash(node -e ' *)"
     ]
   }
 }
