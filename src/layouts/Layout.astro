@@ -92,18 +92,8 @@ const {
       // Remove Help button if it appears from stale/hot-reloaded markup.
       nav.querySelectorAll('a[href="/help/"]').forEach((el) => el.remove());
 
-      // Keep a persistent Pro button in the right action row.
-      const rightRow = nav.querySelector('div.flex.justify-end.items-center');
-      if (!rightRow) return;
-      if (rightRow.querySelector('a[href="/pro/"]')) return;
-
-      const pro = document.createElement('a');
-      pro.href = '/pro/';
-      pro.setAttribute('aria-label', 'Upgrade to Pro');
-      pro.setAttribute('title', 'Unlock premium features');
-      pro.className = 'inline-flex items-center gap-1 flex-shrink-0 px-2.5 py-1 text-[11px] font-bold transition-all duration-200 rounded-lg group bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:from-blue-700 hover:to-violet-700 hover:shadow-md';
-      pro.innerHTML = '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"></path></svg><span>Upgrade</span>';
-      rightRow.prepend(pro);
+      // ProNavStatus React island handles the Pro button — don't inject a duplicate.
+      // The island renders an element with data-pro-nav="true" once hydrated.
     }
 
     document.addEventListener('DOMContentLoaded', enforceTopNavButtons, { once: true });

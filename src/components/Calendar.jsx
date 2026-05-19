@@ -34,7 +34,7 @@ function getMonthMatrix(year, month) {
   return matrix;
 }
 
-const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
+const Calendar = ({ onSelectDate, selectedDate, entries = {}, onMonthChange }) => {
   const initial = selectedDate instanceof Date ? selectedDate : new Date();
   const [viewYear, setViewYear] = useState(initial.getFullYear());
   const [viewMonth, setViewMonth] = useState(initial.getMonth());
@@ -71,23 +71,21 @@ const Calendar = ({ onSelectDate, selectedDate, entries = {} }) => {
 
 
   function goPrevMonth() {
-    setViewMonth((m) => {
-      if (m === 0) {
-        setViewYear((y) => y - 1);
-        return 11;
-      }
-      return m - 1;
-    });
+    let newYear = viewYear;
+    let newMonth = viewMonth - 1;
+    if (newMonth < 0) { newYear--; newMonth = 11; }
+    setViewYear(newYear);
+    setViewMonth(newMonth);
+    onMonthChange?.(newYear, newMonth);
   }
 
   function goNextMonth() {
-    setViewMonth((m) => {
-      if (m === 11) {
-        setViewYear((y) => y + 1);
-        return 0;
-      }
-      return m + 1;
-    });
+    let newYear = viewYear;
+    let newMonth = viewMonth + 1;
+    if (newMonth > 11) { newYear++; newMonth = 0; }
+    setViewYear(newYear);
+    setViewMonth(newMonth);
+    onMonthChange?.(newYear, newMonth);
   }
 
   const monthLabel = new Date(viewYear, viewMonth, 1).toLocaleString(undefined, {

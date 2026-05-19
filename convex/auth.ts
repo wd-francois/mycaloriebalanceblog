@@ -8,10 +8,23 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       profile(params) {
         return {
           email: params.email as string,
-          name: params.name as string | undefined,
+          ...(params.name ? { name: params.name as string } : {}),
           emailVerificationTime: Date.now(),
         };
       },
     }),
   ],
+  jwt: {
+    customClaims: async (ctx, { userId }) => {
+      const user = await ctx.db.get(userId);
+      const settings = await ctx.db
+        .query("userSettings")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .first();
+      return {
+        email: user?.email ?? null,
+        role: settings?.role ?? "client",
+      };
+    },
+  },
 });

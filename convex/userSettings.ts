@@ -21,6 +21,7 @@ export const set = mutation({
     weightGoal: v.optional(v.number()),
     weightUnit: v.optional(v.string()),
     theme: v.optional(v.string()),
+    role: v.optional(v.union(v.literal("client"), v.literal("coach"))),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);

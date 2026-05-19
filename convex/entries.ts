@@ -24,6 +24,19 @@ export const list = query({
   },
 });
 
+export const listAll = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    return await ctx.db
+      .query("entries")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+  },
+});
+
 export const listByDateRange = query({
   args: { startDate: v.string(), endDate: v.string() },
   handler: async (ctx, args) => {
@@ -56,21 +69,44 @@ export const add = mutation({
     ),
     name: v.optional(v.string()),
     notes: v.optional(v.string()),
+    // Meal
     calories: v.optional(v.number()),
     protein: v.optional(v.number()),
     carbs: v.optional(v.number()),
     fat: v.optional(v.number()),
+    fibre: v.optional(v.number()),
+    other: v.optional(v.string()),
+    amount: v.optional(v.string()),
     mealNumber: v.optional(v.number()),
+    // Exercise
     exercisesData: v.optional(v.string()),
     durationMinutes: v.optional(v.string()),
     distance: v.optional(v.string()),
     steps: v.optional(v.string()),
+    // Sleep
     sleepStart: v.optional(v.string()),
     sleepEnd: v.optional(v.string()),
     sleepDuration: v.optional(v.number()),
     sleepQuality: v.optional(v.string()),
+    bedtime: v.optional(v.object({ hour: v.number(), minute: v.number(), period: v.string() })),
+    waketime: v.optional(v.object({ hour: v.number(), minute: v.number(), period: v.string() })),
+    // Measurements
     weight: v.optional(v.number()),
     weightUnit: v.optional(v.string()),
+    neck: v.optional(v.number()),
+    shoulders: v.optional(v.number()),
+    chest: v.optional(v.number()),
+    waist: v.optional(v.number()),
+    hips: v.optional(v.number()),
+    thigh: v.optional(v.number()),
+    arm: v.optional(v.number()),
+    calf: v.optional(v.number()),
+    chestSkinfold: v.optional(v.number()),
+    abdominalSkinfold: v.optional(v.number()),
+    thighSkinfold: v.optional(v.number()),
+    tricepSkinfold: v.optional(v.number()),
+    subscapularSkinfold: v.optional(v.number()),
+    suprailiacSkinfold: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -84,16 +120,37 @@ export const update = mutation({
     id: v.id("entries"),
     name: v.optional(v.string()),
     notes: v.optional(v.string()),
+    // Meal
     calories: v.optional(v.number()),
     protein: v.optional(v.number()),
     carbs: v.optional(v.number()),
     fat: v.optional(v.number()),
+    // Exercise
     durationMinutes: v.optional(v.string()),
     distance: v.optional(v.string()),
     steps: v.optional(v.string()),
+    exercisesData: v.optional(v.string()),
+    // Sleep
     sleepDuration: v.optional(v.number()),
     sleepQuality: v.optional(v.string()),
+    bedtime: v.optional(v.object({ hour: v.number(), minute: v.number(), period: v.string() })),
+    waketime: v.optional(v.object({ hour: v.number(), minute: v.number(), period: v.string() })),
+    // Measurements
     weight: v.optional(v.number()),
+    neck: v.optional(v.number()),
+    shoulders: v.optional(v.number()),
+    chest: v.optional(v.number()),
+    waist: v.optional(v.number()),
+    hips: v.optional(v.number()),
+    thigh: v.optional(v.number()),
+    arm: v.optional(v.number()),
+    calf: v.optional(v.number()),
+    chestSkinfold: v.optional(v.number()),
+    abdominalSkinfold: v.optional(v.number()),
+    thighSkinfold: v.optional(v.number()),
+    tricepSkinfold: v.optional(v.number()),
+    subscapularSkinfold: v.optional(v.number()),
+    suprailiacSkinfold: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);

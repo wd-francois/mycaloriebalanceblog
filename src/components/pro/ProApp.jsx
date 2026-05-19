@@ -1,54 +1,106 @@
-import { useState } from 'react';
-import { ConvexProvider, ConvexReactClient, useQuery } from 'convex/react';
+import { useState, useEffect } from 'react';
+import { ConvexReactClient, useQuery } from 'convex/react';
 import { ConvexAuthProvider, useConvexAuth } from '@convex-dev/auth/react';
 import { api } from '../../../convex/_generated/api';
-
-import SignInPage from './SignInPage';
-import ProHome from './ProHome';
-import ProHistory from './ProHistory';
-import ProInsights from './ProInsights';
-import ProSettings from './ProSettings';
-import { ProTopBar, ProBottomNav } from './ProNavigation';
+import { ConvexSettingsProvider } from '../../contexts/ConvexSettingsContext';
+import SignInPage    from './SignInPage';
+import ProNavigation from './ProNavigation';
+import ProHome       from './ProHome';
+import ProInsights   from './ProInsights';
+import ProTools      from './ProTools';
+import ProPhotos     from './ProPhotos';
+import ProSettings   from './ProSettings';
+import ProClients    from './ProClients';
+import ProClientDetail from './ProClientDetail';
+import ProMessages   from './ProMessages';
 
 const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 
+// ---------------------------------------------------------------------------
+// Role helper — reads/writes a localStorage cache so the nav is stable on
+// remount while the Convex query is still in-flight.
+// ---------------------------------------------------------------------------
+const ROLE_KEY = 'mcb_pro_role';
+
+function resolveRole(serverRole) {
+  if (serverRole) {
+    try { localStorage.setItem(ROLE_KEY, serverRole); } catch {}
+    return serverRole;
+  }
+  try { return localStorage.getItem(ROLE_KEY); } catch { return null; }
+}
+
+// ---------------------------------------------------------------------------
+
 function ProShell() {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const [page, setPage] = useState('home');
+  const user       = useQuery(api.users.viewer);
+  const serverRole = useQuery(api.coaches.getRole);
 
+  const role = resolveRole(serverRole);
+
+  const [tab,            setTab]            = useState('home');
+  const [selectedClient, setSelectedClient] = useState(null);
+
+  function navigate(newTab) {
+    setSelectedClient(null);
+    setTab(newTab);
+  }
+
+  // Listen for navigation events dispatched from the top-nav ProNavStatus island.
+  // Use setters directly — they are stable references, so no stale-closure risk.
+  useEffect(() => {
+    const handler = (e) => {
+      setSelectedClient(null);
+      setTab(e.detail);
+    };
+    window.addEventListener('pro:navigate', handler);
+    return () => window.removeEventListener('pro:navigate', handler);
+  }, [setSelectedClient, setTab]);
+
+  // ── Loading splash ──────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center animate-pulse">
-            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
-            </svg>
-          </div>
-          <p className="text-sm text-gray-400">Loading…</p>
-        </div>
+      <div className="flex items-center justify-center py-24">
+        <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
       </div>
     );
   }
 
+  // ── Unauthenticated ─────────────────────────────────────────────────────
   if (!isAuthenticated) return <SignInPage />;
 
-  return <ProMain page={page} onNavigate={setPage} />;
-}
+  // ── Tab renderer ────────────────────────────────────────────────────────
+  function renderTab() {
+    if (tab === 'clients' && selectedClient) {
+      return (
+        <ProClientDetail
+          client={selectedClient}
+          onBack={() => setSelectedClient(null)}
+        />
+      );
+    }
+    switch (tab) {
+      case 'home':     return <ProHome     onNavigate={navigate} />;
+      case 'insights': return <ProInsights />;
+      case 'tools':    return <ProTools />;
+      case 'photos':   return <ProPhotos />;
+      case 'clients':  return <ProClients  onSelectClient={setSelectedClient} />;
+      case 'messages': return <ProMessages />;
+      case 'settings': return <ProSettings user={user} />;
+      default:         return <ProHome     onNavigate={navigate} />;
+    }
+  }
 
-function ProMain({ page, onNavigate }) {
-  const settings = useQuery(api.userSettings.get);
-
+  // ── Shell ────────────────────────────────────────────────────────────────
   return (
-    <div className="relative">
-      <ProTopBar />
-      <main>
-        {page === 'home' && <ProHome settings={settings} />}
-        {page === 'entries' && <ProHistory />}
-        {page === 'insights' && <ProInsights settings={settings} />}
-        {page === 'settings' && <ProSettings />}
-      </main>
-      <ProBottomNav activePage={page} onNavigate={onNavigate} />
+    <div className="pb-20 px-4">
+      {renderTab()}
+      <ProNavigation
+        active={tab}
+        role={role}
+        onNavigate={(t) => navigate(t)}
+      />
     </div>
   );
 }
@@ -56,7 +108,9 @@ function ProMain({ page, onNavigate }) {
 export default function ProApp() {
   return (
     <ConvexAuthProvider client={convex}>
-      <ProShell />
+      <ConvexSettingsProvider>
+        <ProShell />
+      </ConvexSettingsProvider>
     </ConvexAuthProvider>
   );
 }

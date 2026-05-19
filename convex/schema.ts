@@ -25,6 +25,9 @@ export default defineSchema({
     protein: v.optional(v.number()),
     carbs: v.optional(v.number()),
     fat: v.optional(v.number()),
+    fibre: v.optional(v.number()),
+    other: v.optional(v.string()),
+    amount: v.optional(v.string()),
     mealNumber: v.optional(v.number()),
     // Exercise (stored as JSON string to allow flexible nested structure)
     exercisesData: v.optional(v.string()),
@@ -37,9 +40,25 @@ export default defineSchema({
     sleepEnd: v.optional(v.string()),
     sleepDuration: v.optional(v.number()),
     sleepQuality: v.optional(v.string()),
+    bedtime: v.optional(v.object({ hour: v.number(), minute: v.number(), period: v.string() })),
+    waketime: v.optional(v.object({ hour: v.number(), minute: v.number(), period: v.string() })),
     // Measurements
     weight: v.optional(v.number()),
     weightUnit: v.optional(v.string()),
+    neck: v.optional(v.number()),
+    shoulders: v.optional(v.number()),
+    chest: v.optional(v.number()),
+    waist: v.optional(v.number()),
+    hips: v.optional(v.number()),
+    thigh: v.optional(v.number()),
+    arm: v.optional(v.number()),
+    calf: v.optional(v.number()),
+    chestSkinfold: v.optional(v.number()),
+    abdominalSkinfold: v.optional(v.number()),
+    thighSkinfold: v.optional(v.number()),
+    tricepSkinfold: v.optional(v.number()),
+    subscapularSkinfold: v.optional(v.number()),
+    suprailiacSkinfold: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_user_date", ["userId", "date"])
@@ -52,5 +71,43 @@ export default defineSchema({
     weightGoal: v.optional(v.number()),
     weightUnit: v.optional(v.string()),
     theme: v.optional(v.string()),
+    role: v.optional(v.union(v.literal("client"), v.literal("coach"))),
   }).index("by_user", ["userId"]),
+
+  coachClients: defineTable({
+    coachId: v.id("users"),
+    clientId: v.id("users"),
+  })
+    .index("by_coach", ["coachId"])
+    .index("by_client", ["clientId"]),
+
+  comments: defineTable({
+    authorId: v.id("users"),
+    targetUserId: v.id("users"),
+    entryId: v.optional(v.id("entries")),
+    photoId: v.optional(v.id("photos")),
+    date: v.string(),
+    text: v.string(),
+  })
+    .index("by_target_user", ["targetUserId"])
+    .index("by_entry", ["entryId"])
+    .index("by_photo", ["photoId"]),
+
+  photos: defineTable({
+    userId: v.id("users"),
+    storageId: v.id("_storage"),
+    date: v.string(), // "YYYY-MM-DD"
+    caption: v.optional(v.string()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_date", ["userId", "date"]),
+
+  messages: defineTable({
+    conversationId: v.string(), // [userId1, userId2].sort().join('|')
+    senderId: v.id("users"),
+    text: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
+    fileName: v.optional(v.string()),
+    fileType: v.optional(v.string()),
+  }).index("by_conversation", ["conversationId"]),
 });
