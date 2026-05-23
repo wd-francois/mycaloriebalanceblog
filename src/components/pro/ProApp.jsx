@@ -81,7 +81,7 @@ function ProShell() {
       );
     }
     switch (tab) {
-      case 'home':     return <ProHome     onNavigate={navigate} />;
+      case 'home':     return <ProHome     onNavigate={navigate} role={role} />;
       case 'insights': return <ProInsights />;
       case 'tools':    return <ProTools />;
       case 'photos':   return <ProPhotos />;

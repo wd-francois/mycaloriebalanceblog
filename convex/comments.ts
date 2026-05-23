@@ -58,7 +58,29 @@ export const add = mutation({
       .first();
     if (!rel) throw new Error("Not authorized");
 
-    return await ctx.db.insert("comments", { authorId: userId, ...args });
+    const commentId = await ctx.db.insert("comments", { authorId: userId, ...args });
+
+    // Notify the client — coalesced so only one unread comment notification at a time
+    const existing = await ctx.db
+      .query("notifications")
+      .withIndex("by_recipient", (q) => q.eq("recipientId", args.targetUserId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("senderId"), userId),
+          q.eq(q.field("type"), "comment"),
+          q.eq(q.field("readAt"), undefined)
+        )
+      )
+      .first();
+    if (!existing) {
+      await ctx.db.insert("notifications", {
+        recipientId: args.targetUserId,
+        senderId: userId,
+        type: "comment",
+      });
+    }
+
+    return commentId;
   },
 });
 

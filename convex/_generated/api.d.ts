@@ -14,6 +14,7 @@ import type * as comments from "../comments.js";
 import type * as entries from "../entries.js";
 import type * as http from "../http.js";
 import type * as messages from "../messages.js";
+import type * as notifications from "../notifications.js";
 import type * as photos from "../photos.js";
 import type * as userSettings from "../userSettings.js";
 import type * as users from "../users.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   entries: typeof entries;
   http: typeof http;
   messages: typeof messages;
+  notifications: typeof notifications;
   photos: typeof photos;
   userSettings: typeof userSettings;
   users: typeof users;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 
+
 function relativeDate(dateStr) {
   if (!dateStr) return null;
   const d    = new Date(dateStr + 'T00:00:00');
@@ -15,9 +16,10 @@ function relativeDate(dateStr) {
 }
 
 export default function ProClients({ onSelectClient }) {
-  const clients      = useQuery(api.coaches.getClients);
-  const linkClient   = useMutation(api.coaches.linkClient);
-  const unlinkClient = useMutation(api.coaches.unlinkClient);
+  const clients        = useQuery(api.coaches.getClients);
+  const unreadCounts   = useQuery(api.notifications.getUnreadCounts) ?? { total: 0, byClient: {} };
+  const linkClient     = useMutation(api.coaches.linkClient);
+  const unlinkClient   = useMutation(api.coaches.unlinkClient);
 
   const [showAdd,    setShowAdd]    = useState(false);
   const [email,      setEmail]      = useState('');
@@ -158,6 +160,7 @@ export default function ProClients({ onSelectClient }) {
               const initial     = (client.name || client.email || '?')[0].toUpperCase();
               const displayName = client.name || client.email || 'Unknown client';
               const lastSeen    = relativeDate(client.lastActiveDate);
+              const clientNotifs = unreadCounts.byClient[client.id] ?? { entries: 0, messages: 0 };
 
               return (
                 <div
@@ -188,6 +191,16 @@ export default function ProClients({ onSelectClient }) {
                               : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                         }`}>
                           {lastSeen}
+                        </span>
+                      )}
+                      {clientNotifs.entries > 0 && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-orange-500 text-white">
+                          New entry
+                        </span>
+                      )}
+                      {clientNotifs.messages > 0 && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500 text-white">
+                          New msg
                         </span>
                       )}
                     </div>

@@ -63,7 +63,7 @@ export const send = mutation({
     if (!args.text && !args.storageId) throw new Error("Message must have text or a file");
 
     const cid = conversationId(userId, args.receiverId);
-    return await ctx.db.insert("messages", {
+    const msgId = await ctx.db.insert("messages", {
       conversationId: cid,
       senderId: userId,
       text: args.text,
@@ -71,6 +71,28 @@ export const send = mutation({
       fileName: args.fileName,
       fileType: args.fileType,
     });
+
+    // Notify receiver — coalesced so only one unread message notification at a time
+    const existing = await ctx.db
+      .query("notifications")
+      .withIndex("by_recipient", (q) => q.eq("recipientId", args.receiverId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("senderId"), userId),
+          q.eq(q.field("type"), "message"),
+          q.eq(q.field("readAt"), undefined)
+        )
+      )
+      .first();
+    if (!existing) {
+      await ctx.db.insert("notifications", {
+        recipientId: args.receiverId,
+        senderId: userId,
+        type: "message",
+      });
+    }
+
+    return msgId;
   },
 });
 

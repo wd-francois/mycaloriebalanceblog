@@ -111,7 +111,39 @@ export const add = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
-    return await ctx.db.insert("entries", { ...args, userId });
+
+    const entryId = await ctx.db.insert("entries", { ...args, userId });
+
+    // Notify each coach — one unread notification per coach-client pair (coalesced)
+    const relationships = await ctx.db
+      .query("coachClients")
+      .withIndex("by_client", (q) => q.eq("clientId", userId))
+      .collect();
+
+    await Promise.all(
+      relationships.map(async (rel) => {
+        const existing = await ctx.db
+          .query("notifications")
+          .withIndex("by_recipient", (q) => q.eq("recipientId", rel.coachId))
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("senderId"), userId),
+              q.eq(q.field("type"), "entry"),
+              q.eq(q.field("readAt"), undefined)
+            )
+          )
+          .first();
+        if (!existing) {
+          await ctx.db.insert("notifications", {
+            recipientId: rel.coachId,
+            senderId: userId,
+            type: "entry",
+          });
+        }
+      })
+    );
+
+    return entryId;
   },
 });
 

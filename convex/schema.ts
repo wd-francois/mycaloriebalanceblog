@@ -110,4 +110,11 @@ export default defineSchema({
     fileName: v.optional(v.string()),
     fileType: v.optional(v.string()),
   }).index("by_conversation", ["conversationId"]),
+
+  notifications: defineTable({
+    recipientId: v.id("users"),
+    senderId: v.id("users"),
+    type: v.union(v.literal("entry"), v.literal("message"), v.literal("comment")),
+    readAt: v.optional(v.number()),
+  }).index("by_recipient", ["recipientId"]),
 });

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 
+
 // ── Shared thread (used by clients + coaches inside ProClientDetail) ──────────
 
 export function CoachThread({ otherUserId, otherName, onBack }) {
@@ -10,6 +11,12 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
   const sendMsg     = useMutation(api.messages.send);
   const genUpload   = useMutation(api.messages.generateUploadUrl);
   const removeMsg   = useMutation(api.messages.remove);
+  const markRead    = useMutation(api.notifications.markReadForClient);
+
+  // Mark this conversation's notifications as read when thread opens
+  useEffect(() => {
+    if (otherUserId) markRead({ clientId: otherUserId });
+  }, [otherUserId]);
 
   const [text,      setText]      = useState('');
   const [sending,   setSending]   = useState(false);

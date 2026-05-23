@@ -1,21 +1,35 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from 'convex/react';
+import { useState, useMemo, useEffect } from 'react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import Calendar from '../Calendar';
 import ProDayModal from './ProDayModal';
 
 // Isolated so a query failure can't crash the home screen
 function CoachFeedbackCard() {
-  const self     = useQuery(api.users.viewer);
-  const comments = useQuery(
+  const self           = useQuery(api.users.viewer);
+  const comments       = useQuery(
     api.comments.listForClient,
     self?._id ? { targetUserId: self._id } : 'skip'
   ) ?? [];
+  const notifCounts    = useQuery(api.notifications.getUnreadCounts) ?? { byType: { comments: 0 } };
+  const markReadByType = useMutation(api.notifications.markReadByType);
+
+  const hasNew = notifCounts.byType.comments > 0;
+
+  useEffect(() => {
+    if (hasNew) markReadByType({ type: 'comment' });
+  }, [hasNew]);
+
   if (comments.length === 0) return null;
   const recent = [...comments].sort((a, b) => b._creationTime - a._creationTime).slice(0, 5);
   return (
     <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4">
-      <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">Coach Feedback</h3>
+      <div className="flex items-center gap-2 mb-2 sm:mb-3">
+        <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Coach Feedback</h3>
+        {hasNew && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500 text-white">New</span>
+        )}
+      </div>
       <div className="flex flex-col gap-2">
         {recent.map(c => (
           <div key={c._id} className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30">
@@ -49,7 +63,7 @@ const CARD_TITLE = 'text-xs sm:text-sm font-semibold text-gray-700 dark:text-gra
 const METRIC_VAL = 'text-xl sm:text-2xl font-bold';
 const METRIC_LBL = 'text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1';
 
-export default function ProHome({ onNavigate }) {
+export default function ProHome({ onNavigate, role }) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [viewedMonth, setViewedMonth]   = useState(() => ({ year: new Date().getFullYear(), month: new Date().getMonth() }));
   const [showDayModal, setShowDayModal] = useState(false);
@@ -93,6 +107,27 @@ export default function ProHome({ onNavigate }) {
   const todaySleepDuration = sleepEntry?.sleepDuration
     ? `${sleepEntry.sleepDuration.toFixed(1)}h`
     : null;
+
+  if (role === 'coach') {
+    return (
+      <div className="w-full">
+        <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
+          <div className={CARD}>
+            <h3 className={CARD_TITLE}>Coach Dashboard</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              View and manage your clients from the Clients tab.
+            </p>
+            <button
+              onClick={() => onNavigate('clients')}
+              className="w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+            >
+              Go to Clients
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

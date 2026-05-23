@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { CoachThread } from './ProMessages';
@@ -334,6 +334,11 @@ export default function ProClientDetail({ client, onBack }) {
   const viewer      = useQuery(api.users.viewer);
   const addComment  = useMutation(api.comments.add);
   const delComment  = useMutation(api.comments.remove);
+  const markRead    = useMutation(api.notifications.markReadForClient);
+
+  useEffect(() => {
+    markRead({ clientId: client.id });
+  }, [client.id]);
 
   const range = RANGES[rangeIdx];
   const rangeArgs = range.days ? getRange(range.days) : {};
