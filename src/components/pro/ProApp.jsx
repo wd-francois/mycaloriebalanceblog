@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ConvexReactClient, useQuery } from 'convex/react';
 import { ConvexAuthProvider, useConvexAuth } from '@convex-dev/auth/react';
 import { api } from '../../../convex/_generated/api';
@@ -46,6 +46,15 @@ function ProShell() {
     setSelectedClient(null);
     setTab(newTab);
   }
+
+  // Reset to home when role changes (e.g. client→coach) so the nav stays consistent.
+  const prevRoleRef = useRef(null);
+  useEffect(() => {
+    if (role && prevRoleRef.current !== null && prevRoleRef.current !== role) {
+      navigate('home');
+    }
+    if (role) prevRoleRef.current = role;
+  }, [role]);
 
   // Listen for navigation events dispatched from the top-nav ProNavStatus island.
   // Use setters directly — they are stable references, so no stale-closure risk.
