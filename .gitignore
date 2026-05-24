@@ -21,6 +21,10 @@ pnpm-debug.log*
 # Convex generated files — committed so Netlify build can resolve imports
 # convex/_generated/
 
+# Convex JWT key files — contain private keys, never commit
+convex_jwks.txt
+convex_jwt_private_key.txt
+
 # macOS-specific files
 .DS_Store
 
