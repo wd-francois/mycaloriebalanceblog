@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
-import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
 
 export default function SignInPage() {
-  const { signIn }     = useAuthActions();
-  const setSettings    = useMutation(api.userSettings.set);
+  const { signIn } = useAuthActions();
 
   const [tab,         setTab]         = useState('signin'); // 'signin' | 'signup'
   const [email,       setEmail]       = useState('');
@@ -21,9 +18,12 @@ export default function SignInPage() {
     setLoading(true);
     try {
       if (tab === 'signup') {
+        // Store chosen role in localStorage BEFORE signIn — React will unmount
+        // this component the moment signIn resolves (isAuthenticated flips),
+        // so any mutation called after await never fires. ProShell reads and
+        // applies the pending role once it mounts.
+        try { localStorage.setItem('mcb_pending_role', signupRole); } catch {}
         await signIn('password', { email, password, name, flow: 'signUp' });
-        // Set role immediately after account creation (fire-and-forget)
-        setSettings({ role: signupRole });
       } else {
         await signIn('password', { email, password, flow: 'signIn' });
       }

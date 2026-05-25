@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ConvexReactClient, useQuery } from 'convex/react';
+import { ConvexReactClient, useQuery, useMutation } from 'convex/react';
 import { ConvexAuthProvider, useConvexAuth } from '@convex-dev/auth/react';
 import { api } from '../../../convex/_generated/api';
 import { ConvexSettingsProvider } from '../../contexts/ConvexSettingsContext';
@@ -34,8 +34,9 @@ function resolveRole(serverRole) {
 
 function ProShell() {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const user       = useQuery(api.users.viewer);
-  const serverRole = useQuery(api.coaches.getRole);
+  const user        = useQuery(api.users.viewer);
+  const serverRole  = useQuery(api.coaches.getRole);
+  const setSettings = useMutation(api.userSettings.set);
 
   const role = resolveRole(serverRole);
 
@@ -46,6 +47,20 @@ function ProShell() {
     setSelectedClient(null);
     setTab(newTab);
   }
+
+  // Apply any role chosen on the sign-up form. SignInPage stores the chosen
+  // role in localStorage before calling signIn because React unmounts it the
+  // instant isAuthenticated flips — any mutation called after signIn never fires.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    try {
+      const pending = localStorage.getItem('mcb_pending_role');
+      if (pending === 'coach' || pending === 'client') {
+        localStorage.removeItem('mcb_pending_role');
+        setSettings({ role: pending });
+      }
+    } catch {}
+  }, [isAuthenticated]);
 
   // Reset to home when role changes (e.g. client→coach) so the nav stays consistent.
   const prevRoleRef = useRef(null);
