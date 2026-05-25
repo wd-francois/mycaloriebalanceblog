@@ -77,6 +77,8 @@ export default defineSchema({
   coachClients: defineTable({
     coachId: v.id("users"),
     clientId: v.id("users"),
+    // undefined = legacy accepted record; "pending" = awaiting client approval
+    status: v.optional(v.union(v.literal("pending"), v.literal("accepted"))),
   })
     .index("by_coach", ["coachId"])
     .index("by_client", ["clientId"]),

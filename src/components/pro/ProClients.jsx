@@ -17,9 +17,11 @@ function relativeDate(dateStr) {
 
 export default function ProClients({ onSelectClient }) {
   const clients        = useQuery(api.coaches.getClients);
+  const sentInvites    = useQuery(api.coaches.getSentInvites) ?? [];
   const unreadCounts   = useQuery(api.notifications.getUnreadCounts) ?? { total: 0, byClient: {} };
   const linkClient     = useMutation(api.coaches.linkClient);
   const unlinkClient   = useMutation(api.coaches.unlinkClient);
+  const [cancelling,   setCancelling]  = useState(null);
 
   const [showAdd,    setShowAdd]    = useState(false);
   const [email,      setEmail]      = useState('');
@@ -139,6 +141,44 @@ export default function ProClients({ onSelectClient }) {
               <p className="text-xs text-red-500 dark:text-red-400">{linkError}</p>
             )}
           </form>
+        )}
+
+        {/* Pending invites */}
+        {sentInvites.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide px-1">
+              Awaiting response
+            </p>
+            {sentInvites.map(invite => {
+              const displayName = invite.name || invite.email || 'Unknown';
+              const initial = displayName[0].toUpperCase();
+              return (
+                <div key={invite.id} className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 flex items-center gap-3 px-4 py-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-base flex-shrink-0">
+                    {initial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate">{displayName}</p>
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                      Pending
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setCancelling(invite.id);
+                      try { await unlinkClient({ clientId: invite.clientId }); }
+                      finally { setCancelling(null); }
+                    }}
+                    disabled={cancelling === invite.id}
+                    className="text-xs text-red-400 hover:text-red-600 font-semibold disabled:opacity-40 transition-colors flex-shrink-0"
+                  >
+                    {cancelling === invite.id ? '…' : 'Cancel'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         )}
 
         {/* Client list */}

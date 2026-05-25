@@ -10,14 +10,24 @@ async function assertRelationship(ctx: any, userId: string, otherId: string) {
   const asCoach = await ctx.db
     .query("coachClients")
     .withIndex("by_coach", (q: any) => q.eq("coachId", userId))
-    .filter((q: any) => q.eq(q.field("clientId"), otherId))
+    .filter((q: any) =>
+      q.and(
+        q.eq(q.field("clientId"), otherId),
+        q.neq(q.field("status"), "pending"),
+      )
+    )
     .first();
   if (asCoach) return;
 
   const asClient = await ctx.db
     .query("coachClients")
     .withIndex("by_coach", (q: any) => q.eq("coachId", otherId))
-    .filter((q: any) => q.eq(q.field("clientId"), userId))
+    .filter((q: any) =>
+      q.and(
+        q.eq(q.field("clientId"), userId),
+        q.neq(q.field("status"), "pending"),
+      )
+    )
     .first();
   if (!asClient) throw new Error("Not authorized");
 }

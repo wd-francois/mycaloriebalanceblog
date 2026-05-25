@@ -34,6 +34,7 @@ export const getClients = query({
     const relationships = await ctx.db
       .query("coachClients")
       .withIndex("by_coach", (q) => q.eq("coachId", userId))
+      .filter((q) => q.neq(q.field("status"), "pending"))
       .collect();
 
     return await Promise.all(
@@ -98,15 +99,22 @@ export const linkClient = mutation({
 
     const clientId = account.userId;
 
-    // Already linked?
+    // Already linked or invite already sent?
     const existing = await ctx.db
       .query("coachClients")
       .withIndex("by_coach", (q) => q.eq("coachId", coachId))
       .filter((q) => q.eq(q.field("clientId"), clientId))
       .first();
-    if (existing) throw new Error("Client already linked");
+    if (existing) {
+      throw new Error(
+        existing.status === "pending"
+          ? "Invite already sent — waiting for client to accept"
+          : "Client already linked",
+      );
+    }
 
-    await ctx.db.insert("coachClients", { coachId, clientId });
+    // Create a pending invite — client must accept before coach gains access
+    await ctx.db.insert("coachClients", { coachId, clientId, status: "pending" });
     return { clientId };
   },
 });
@@ -128,6 +136,99 @@ export const unlinkClient = mutation({
   },
 });
 
+// ── Invite approval (client-side) ─────────────────────────────────────────────
+
+export const getPendingInvites = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const pending = await ctx.db
+      .query("coachClients")
+      .withIndex("by_client", (q) => q.eq("clientId", userId))
+      .filter((q) => q.eq(q.field("status"), "pending"))
+      .collect();
+
+    return await Promise.all(
+      pending.map(async (rel) => {
+        const user = await ctx.db.get(rel.coachId);
+        const account = await ctx.db
+          .query("authAccounts")
+          .withIndex("userIdAndProvider", (q) =>
+            q.eq("userId", rel.coachId).eq("provider", "password"),
+          )
+          .first();
+        return {
+          id: rel._id,
+          coachId: rel.coachId,
+          email: user?.email ?? account?.providerAccountId ?? null,
+          name: user?.name ?? null,
+        };
+      }),
+    );
+  },
+});
+
+export const acceptInvite = mutation({
+  args: { inviteId: v.id("coachClients") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const rel = await ctx.db.get(args.inviteId);
+    if (!rel || rel.clientId !== userId) throw new Error("Not authorized");
+    if (rel.status !== "pending") throw new Error("Invite is not pending");
+
+    await ctx.db.patch(args.inviteId, { status: "accepted" });
+  },
+});
+
+export const getSentInvites = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const pending = await ctx.db
+      .query("coachClients")
+      .withIndex("by_coach", (q) => q.eq("coachId", userId))
+      .filter((q) => q.eq(q.field("status"), "pending"))
+      .collect();
+
+    return await Promise.all(
+      pending.map(async (rel) => {
+        const user = await ctx.db.get(rel.clientId);
+        const account = await ctx.db
+          .query("authAccounts")
+          .withIndex("userIdAndProvider", (q) =>
+            q.eq("userId", rel.clientId).eq("provider", "password"),
+          )
+          .first();
+        return {
+          id: rel._id,
+          clientId: rel.clientId,
+          email: user?.email ?? account?.providerAccountId ?? null,
+          name: user?.name ?? null,
+        };
+      }),
+    );
+  },
+});
+
+export const declineInvite = mutation({
+  args: { inviteId: v.id("coachClients") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const rel = await ctx.db.get(args.inviteId);
+    if (!rel || rel.clientId !== userId) throw new Error("Not authorized");
+
+    await ctx.db.delete(args.inviteId);
+  },
+});
+
 // ── Coach list (for clients) ──────────────────────────────────────────────────
 
 export const getMyCoaches = query({
@@ -139,6 +240,7 @@ export const getMyCoaches = query({
     const relationships = await ctx.db
       .query("coachClients")
       .withIndex("by_client", (q) => q.eq("clientId", userId))
+      .filter((q) => q.neq(q.field("status"), "pending"))
       .collect();
 
     return await Promise.all(
@@ -167,7 +269,12 @@ async function assertCoachOf(ctx: any, coachId: string, clientId: string) {
   const rel = await ctx.db
     .query("coachClients")
     .withIndex("by_coach", (q: any) => q.eq("coachId", coachId))
-    .filter((q: any) => q.eq(q.field("clientId"), clientId))
+    .filter((q: any) =>
+      q.and(
+        q.eq(q.field("clientId"), clientId),
+        q.neq(q.field("status"), "pending"),
+      )
+    )
     .first();
   if (!rel) throw new Error("Not authorized");
   return rel;
@@ -183,12 +290,7 @@ export const getClientEntries = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
-    const rel = await ctx.db
-      .query("coachClients")
-      .withIndex("by_coach", (q) => q.eq("coachId", userId))
-      .filter((q) => q.eq(q.field("clientId"), args.clientId))
-      .first();
-    if (!rel) return [];
+    try { await assertCoachOf(ctx, userId, args.clientId); } catch { return []; }
 
     const all = await ctx.db
       .query("entries")
@@ -210,12 +312,7 @@ export const getClientPhotos = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
-    const rel = await ctx.db
-      .query("coachClients")
-      .withIndex("by_coach", (q) => q.eq("coachId", userId))
-      .filter((q) => q.eq(q.field("clientId"), args.clientId))
-      .first();
-    if (!rel) return [];
+    try { await assertCoachOf(ctx, userId, args.clientId); } catch { return []; }
 
     const rows = await ctx.db
       .query("photos")
