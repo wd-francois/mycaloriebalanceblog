@@ -76,12 +76,16 @@ export default defineSchema({
 
   coachClients: defineTable({
     coachId: v.id("users"),
-    clientId: v.id("users"),
+    // undefined for pre-signup invites (stored by email only until client signs up)
+    clientId: v.optional(v.id("users")),
+    // email used when the client doesn't have an account yet
+    inviteEmail: v.optional(v.string()),
     // undefined = legacy accepted record; "pending" = awaiting client approval
     status: v.optional(v.union(v.literal("pending"), v.literal("accepted"))),
   })
     .index("by_coach", ["coachId"])
-    .index("by_client", ["clientId"]),
+    .index("by_client", ["clientId"])
+    .index("by_invite_email", ["inviteEmail"]),
 
   comments: defineTable({
     authorId: v.id("users"),

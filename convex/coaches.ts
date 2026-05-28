@@ -35,30 +35,35 @@ export const getClients = query({
     const relationships = await ctx.db
       .query("coachClients")
       .withIndex("by_coach", (q) => q.eq("coachId", userId))
-      .filter((q) => q.neq(q.field("status"), "pending"))
+      .filter((q) =>
+        q.and(
+          q.neq(q.field("status"), "pending"),
+          q.neq(q.field("clientId"), undefined),
+        )
+      )
       .collect();
 
     return await Promise.all(
       relationships.map(async (rel) => {
-        const user = await ctx.db.get(rel.clientId);
+        const clientId = rel.clientId!;
+        const user = await ctx.db.get(clientId);
         const passwordAccount = await ctx.db
           .query("authAccounts")
           .withIndex("userIdAndProvider", (q) =>
-            q.eq("userId", rel.clientId).eq("provider", "password"),
+            q.eq("userId", clientId).eq("provider", "password"),
           )
           .first();
         const email =
           user?.email ?? passwordAccount?.providerAccountId ?? null;
 
-        // Last entry date for "last active" indicator
         const lastEntry = await ctx.db
           .query("entries")
-          .withIndex("by_user", (q) => q.eq("userId", rel.clientId))
+          .withIndex("by_user", (q) => q.eq("userId", clientId))
           .order("desc")
           .first();
 
         return {
-          id: rel.clientId,
+          id: clientId,
           email,
           name: user?.name ?? null,
           lastActiveDate: lastEntry?.date ?? null,
@@ -82,54 +87,72 @@ export const linkClient = mutation({
       .first();
     if (coachSettings?.role !== "coach") throw new Error("Not a coach");
 
-    // Prevent coach from adding themselves
     const coachUser = await ctx.db.get(coachId);
     const coachEmail = coachUser?.email ?? null;
     if (coachEmail && coachEmail.toLowerCase() === args.email.toLowerCase()) {
       throw new Error("You cannot add yourself as a client");
     }
 
-    // Find target user by email (password provider stores email as providerAccountId)
+    const normalizedEmail = args.email.toLowerCase();
+
+    // Check if the client already has an account
     const account = await ctx.db
       .query("authAccounts")
       .withIndex("providerAndAccountId", (q) =>
-        q.eq("provider", "password").eq("providerAccountId", args.email.toLowerCase()),
+        q.eq("provider", "password").eq("providerAccountId", normalizedEmail),
       )
       .first();
-    if (!account) throw new Error("No account found with that email");
 
-    const clientId = account.userId;
-
-    // Already linked or invite already sent?
-    const existing = await ctx.db
-      .query("coachClients")
-      .withIndex("by_coach", (q) => q.eq("coachId", coachId))
-      .filter((q) => q.eq(q.field("clientId"), clientId))
-      .first();
-    if (existing) {
-      throw new Error(
-        existing.status === "pending"
-          ? "Invite already sent — waiting for client to accept"
-          : "Client already linked",
-      );
-    }
-
-    // Create a pending invite — client must accept before coach gains access
-    await ctx.db.insert("coachClients", { coachId, clientId, status: "pending" });
-
-    // Send email notification to client (best-effort — don't fail if email errors)
-    const clientUser = await ctx.db.get(clientId);
-    const clientEmail = clientUser?.email ?? args.email;
-    try {
-      await ctx.scheduler.runAfter(0, internal.emails.sendCoachInvite, {
-        toEmail: clientEmail,
-        toName: clientUser?.name ?? undefined,
-        coachName: coachUser?.name ?? undefined,
-        coachEmail: coachEmail ?? undefined,
+    if (account) {
+      // Client has an account — invite by userId
+      const clientId = account.userId;
+      const existing = await ctx.db
+        .query("coachClients")
+        .withIndex("by_coach", (q) => q.eq("coachId", coachId))
+        .filter((q) => q.eq(q.field("clientId"), clientId))
+        .first();
+      if (existing) {
+        throw new Error(
+          existing.status === "pending"
+            ? "Invite already sent — waiting for client to accept"
+            : "Client already linked",
+        );
+      }
+      const clientUser = await ctx.db.get(clientId);
+      await ctx.db.insert("coachClients", { coachId, clientId, status: "pending" });
+      try {
+        await ctx.scheduler.runAfter(0, internal.emails.sendCoachInvite, {
+          toEmail: normalizedEmail,
+          toName: clientUser?.name ?? undefined,
+          coachName: coachUser?.name ?? undefined,
+          coachEmail: coachEmail ?? undefined,
+        });
+      } catch {}
+      return { clientId };
+    } else {
+      // Client doesn't have an account yet — store invite by email
+      const existingEmail = await ctx.db
+        .query("coachClients")
+        .withIndex("by_invite_email", (q) => q.eq("inviteEmail", normalizedEmail))
+        .filter((q) => q.eq(q.field("coachId"), coachId))
+        .first();
+      if (existingEmail) {
+        throw new Error("Invite already sent to this email — waiting for them to sign up");
+      }
+      await ctx.db.insert("coachClients", {
+        coachId,
+        inviteEmail: normalizedEmail,
+        status: "pending",
       });
-    } catch {}
-
-    return { clientId };
+      try {
+        await ctx.scheduler.runAfter(0, internal.emails.sendCoachInvite, {
+          toEmail: normalizedEmail,
+          coachName: coachUser?.name ?? undefined,
+          coachEmail: coachEmail ?? undefined,
+        });
+      } catch {}
+      return { inviteEmail: normalizedEmail };
+    }
   },
 });
 
@@ -147,6 +170,19 @@ export const unlinkClient = mutation({
     if (!rel) throw new Error("Relationship not found");
 
     await ctx.db.delete(rel._id);
+  },
+});
+
+export const cancelInvite = mutation({
+  args: { inviteId: v.id("coachClients") },
+  handler: async (ctx, args) => {
+    const coachId = await getAuthUserId(ctx);
+    if (!coachId) throw new Error("Not authenticated");
+
+    const rel = await ctx.db.get(args.inviteId);
+    if (!rel || rel.coachId !== coachId) throw new Error("Not authorized");
+
+    await ctx.db.delete(args.inviteId);
   },
 });
 
@@ -212,11 +248,22 @@ export const getSentInvites = query({
 
     return await Promise.all(
       pending.map(async (rel) => {
+        // Email-only invite (client hasn't signed up yet)
+        if (!rel.clientId) {
+          return {
+            id: rel._id,
+            clientId: undefined,
+            email: rel.inviteEmail ?? null,
+            name: null,
+            signedUp: false,
+          };
+        }
+        // User-linked invite
         const user = await ctx.db.get(rel.clientId);
         const account = await ctx.db
           .query("authAccounts")
           .withIndex("userIdAndProvider", (q) =>
-            q.eq("userId", rel.clientId).eq("provider", "password"),
+            q.eq("userId", rel.clientId!).eq("provider", "password"),
           )
           .first();
         return {
@@ -224,8 +271,39 @@ export const getSentInvites = query({
           clientId: rel.clientId,
           email: user?.email ?? account?.providerAccountId ?? null,
           name: user?.name ?? null,
+          signedUp: true,
         };
       }),
+    );
+  },
+});
+
+// Called when a user signs in/up — links any email-based pending invites to their account
+export const claimPendingInvites = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return;
+
+    const user = await ctx.db.get(userId);
+    const account = await ctx.db
+      .query("authAccounts")
+      .withIndex("userIdAndProvider", (q) =>
+        q.eq("userId", userId).eq("provider", "password"),
+      )
+      .first();
+    const email = (user?.email ?? account?.providerAccountId ?? "").toLowerCase();
+    if (!email) return;
+
+    const emailInvites = await ctx.db
+      .query("coachClients")
+      .withIndex("by_invite_email", (q) => q.eq("inviteEmail", email))
+      .collect();
+
+    await Promise.all(
+      emailInvites.map((rel) =>
+        ctx.db.patch(rel._id, { clientId: userId, inviteEmail: undefined }),
+      ),
     );
   },
 });
@@ -254,7 +332,12 @@ export const getMyCoaches = query({
     const relationships = await ctx.db
       .query("coachClients")
       .withIndex("by_client", (q) => q.eq("clientId", userId))
-      .filter((q) => q.neq(q.field("status"), "pending"))
+      .filter((q) =>
+        q.and(
+          q.neq(q.field("status"), "pending"),
+          q.neq(q.field("clientId"), undefined),
+        )
+      )
       .collect();
 
     return await Promise.all(

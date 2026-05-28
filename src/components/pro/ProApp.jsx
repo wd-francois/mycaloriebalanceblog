@@ -36,7 +36,8 @@ function ProShell() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user        = useQuery(api.users.viewer);
   const serverRole  = useQuery(api.coaches.getRole);
-  const setSettings = useMutation(api.userSettings.set);
+  const setSettings        = useMutation(api.userSettings.set);
+  const claimInvites       = useMutation(api.coaches.claimPendingInvites);
 
   const role = resolveRole(serverRole);
 
@@ -53,6 +54,7 @@ function ProShell() {
   // instant isAuthenticated flips — any mutation called after signIn never fires.
   useEffect(() => {
     if (!isAuthenticated) return;
+    // Apply role chosen at sign-up (stored before signIn to survive component unmount)
     try {
       const pending = localStorage.getItem('mcb_pending_role');
       if (pending === 'coach' || pending === 'client') {
@@ -60,6 +62,8 @@ function ProShell() {
         setSettings({ role: pending });
       }
     } catch {}
+    // Link any email-based coach invites to this account
+    claimInvites();
   }, [isAuthenticated]);
 
   // Reset to home when role changes (e.g. client→coach) so the nav stays consistent.

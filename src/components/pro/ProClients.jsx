@@ -21,6 +21,7 @@ export default function ProClients({ onSelectClient }) {
   const unreadCounts   = useQuery(api.notifications.getUnreadCounts) ?? { total: 0, byClient: {} };
   const linkClient     = useMutation(api.coaches.linkClient);
   const unlinkClient   = useMutation(api.coaches.unlinkClient);
+  const cancelInvite   = useMutation(api.coaches.cancelInvite);
   const [cancelling,   setCancelling]  = useState(null);
 
   const [showAdd,    setShowAdd]    = useState(false);
@@ -159,15 +160,22 @@ export default function ProClients({ onSelectClient }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate">{displayName}</p>
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
-                      Pending
-                    </span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                        Pending
+                      </span>
+                      {!invite.signedUp && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                          Not signed up yet
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <button
                     type="button"
                     onClick={async () => {
                       setCancelling(invite.id);
-                      try { await unlinkClient({ clientId: invite.clientId }); }
+                      try { await cancelInvite({ inviteId: invite.id }); }
                       finally { setCancelling(null); }
                     }}
                     disabled={cancelling === invite.id}
