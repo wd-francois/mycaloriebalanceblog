@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { internal } from "./_generated/api";
 
 // ── Role ─────────────────────────────────────────────────────────────────────
 
@@ -115,6 +116,19 @@ export const linkClient = mutation({
 
     // Create a pending invite — client must accept before coach gains access
     await ctx.db.insert("coachClients", { coachId, clientId, status: "pending" });
+
+    // Send email notification to client (best-effort — don't fail if email errors)
+    const clientUser = await ctx.db.get(clientId);
+    const clientEmail = clientUser?.email ?? args.email;
+    try {
+      await ctx.scheduler.runAfter(0, internal.emails.sendCoachInvite, {
+        toEmail: clientEmail,
+        toName: clientUser?.name ?? undefined,
+        coachName: coachUser?.name ?? undefined,
+        coachEmail: coachEmail ?? undefined,
+      });
+    } catch {}
+
     return { clientId };
   },
 });
