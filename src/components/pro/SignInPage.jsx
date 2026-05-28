@@ -28,12 +28,17 @@ export default function SignInPage() {
         await signIn('password', { email, password, flow: 'signIn' });
       }
     } catch (err) {
+      const msg = err?.message ?? '';
       setError(
-        err?.message?.includes('Invalid')
+        msg.includes('Invalid') || msg.includes('incorrect')
           ? 'Invalid email or password.'
-          : err?.message?.includes('already')
-          ? 'An account with this email already exists.'
-          : err?.message || 'Something went wrong. Please try again.'
+          : msg.includes('already')
+          ? 'An account with this email already exists. Please sign in instead.'
+          : tab === 'signup' && msg.includes('Server Error')
+          ? 'Could not create account — this email may already be registered. Try signing in instead.'
+          : msg.includes('Server Error')
+          ? 'Something went wrong. Please try again.'
+          : msg || 'Something went wrong. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -163,7 +168,21 @@ export default function SignInPage() {
                 <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
-                {error}
+                <span>
+                  {error}
+                  {tab === 'signup' && error.includes('sign in') && (
+                    <>
+                      {' '}
+                      <button
+                        type="button"
+                        onClick={() => { setTab('signin'); setError(''); }}
+                        className="underline font-semibold hover:text-red-900 dark:hover:text-red-300"
+                      >
+                        Go to Sign In
+                      </button>
+                    </>
+                  )}
+                </span>
               </div>
             )}
 
