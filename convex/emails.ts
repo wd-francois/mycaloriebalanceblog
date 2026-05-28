@@ -14,9 +14,7 @@ export const sendCoachInvite = action({
 
     const displayCoach = args.coachName || args.coachEmail || "A coach";
     const displayClient = args.toName || args.toEmail;
-    const appUrl = process.env.CONVEX_SITE_URL
-      ? process.env.CONVEX_SITE_URL.replace(/\/api$/, "").replace("https://admired-ladybug-290", "https://mycaloriebalance.com")
-      : "https://mycaloriebalanceblog.netlify.app/pro";
+    const appUrl = "https://mycaloriebalance.com/pro";
 
     const html = `
 <!DOCTYPE html>
