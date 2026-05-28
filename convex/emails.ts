@@ -81,7 +81,7 @@ export const sendCoachInvite = action({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "My Calorie Balance Pro <onboarding@resend.dev>",
+        from: "My Calorie Balance Pro <noreply@mycaloriebalance.com>",
         to: [args.toEmail],
         subject: `${displayCoach} wants to be your coach on My Calorie Balance`,
         html,
