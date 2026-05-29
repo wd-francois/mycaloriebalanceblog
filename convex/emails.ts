@@ -39,24 +39,28 @@ export const sendCoachInvite = action({
           <td style="padding:32px">
             <p style="margin:0 0 8px;font-size:15px;color:#374151">Hi ${displayClient},</p>
             <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6">
-              <strong style="color:#111827">${displayCoach}</strong> has sent you a coach request on <strong>My Calorie Balance Pro</strong>.
+              <strong style="color:#111827">${displayCoach}</strong> wants to be your coach on <strong>My Calorie Balance Pro</strong> — a free app to track your nutrition, sleep, and fitness.
             </p>
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin-bottom:24px">
-              <p style="margin:0;font-size:13px;color:#1e40af;line-height:1.6">
-                As your coach, they will be able to view your nutrition entries and progress data — but only after you <strong>accept</strong> the request.
-              </p>
+              <p style="margin:0 0 8px;font-size:13px;color:#1e40af;font-weight:600">How to accept:</p>
+              <ol style="margin:0;padding-left:18px;font-size:13px;color:#1e40af;line-height:1.8">
+                <li>Click the button below to open the app</li>
+                <li>Create a free account using <strong>${args.toEmail}</strong></li>
+                <li>The coach request will appear on your Home screen</li>
+                <li>Tap <strong>Accept</strong> to connect with your coach</li>
+              </ol>
             </div>
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px">
               <tr>
                 <td align="center">
                   <a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:12px">
-                    Open the app to Accept or Decline
+                    Create your account &amp; accept
                   </a>
                 </td>
               </tr>
             </table>
             <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6">
-              Sign in to My Calorie Balance Pro, then check your <strong>Home</strong> tab to see the pending request.
+              Already have an account? Sign in with <strong>${args.toEmail}</strong> and check your Home tab.
             </p>
           </td>
         </tr>
