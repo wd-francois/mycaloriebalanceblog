@@ -4,13 +4,12 @@ import { useAuthActions } from '@convex-dev/auth/react';
 export default function SignInPage() {
   const { signIn } = useAuthActions();
 
-  const [tab,         setTab]         = useState('signin'); // 'signin' | 'signup'
-  const [email,       setEmail]       = useState('');
-  const [password,    setPassword]    = useState('');
-  const [name,        setName]        = useState('');
-  const [signupRole,  setSignupRole]  = useState('client'); // 'client' | 'coach'
-  const [error,       setError]       = useState('');
-  const [loading,     setLoading]     = useState(false);
+  const [tab,      setTab]      = useState('signin'); // 'signin' | 'signup'
+  const [email,    setEmail]    = useState('');
+  const [password, setPassword] = useState('');
+  const [name,     setName]     = useState('');
+  const [error,    setError]    = useState('');
+  const [loading,  setLoading]  = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,11 +17,6 @@ export default function SignInPage() {
     setLoading(true);
     try {
       if (tab === 'signup') {
-        // Store chosen role in localStorage BEFORE signIn — React will unmount
-        // this component the moment signIn resolves (isAuthenticated flips),
-        // so any mutation called after await never fires. ProShell reads and
-        // applies the pending role once it mounts.
-        try { localStorage.setItem('mcb_pending_role', signupRole); } catch {}
         await signIn('password', { email, password, name, flow: 'signUp' });
       } else {
         await signIn('password', { email, password, flow: 'signIn' });
@@ -132,36 +126,6 @@ export default function SignInPage() {
                 className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
-
-            {tab === 'signup' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  I am signing up as a
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: 'client', label: 'Client', desc: 'Track my nutrition & fitness' },
-                    { value: 'coach',  label: 'Coach',  desc: 'Manage & monitor clients' },
-                  ].map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setSignupRole(opt.value)}
-                      className={`flex flex-col items-start p-3 rounded-xl border-2 text-left transition-all ${
-                        signupRole === opt.value
-                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                      }`}
-                    >
-                      <span className={`text-sm font-semibold ${signupRole === opt.value ? 'text-blue-700 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}>
-                        {opt.label}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{opt.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {error && (
               <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl px-4 py-3 text-sm">
