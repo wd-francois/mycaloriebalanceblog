@@ -309,9 +309,51 @@ function MealForm({ dateStr, onSave, onCancel }) {
   );
 }
 
+// ── Coach Program Picker ───────────────────────────────────────────────────────
+function CoachProgramPicker({ onSelect, onClose }) {
+  const programs = useQuery(api.programs.getMyPrograms) ?? [];
+  return (
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white">Load Coach Program</h3>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-3 flex flex-col gap-2 max-h-80 overflow-y-auto">
+          {programs.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-6">
+              No programs assigned yet.<br />Ask your coach to assign one.
+            </p>
+          ) : programs.map(p => {
+            let exercises = [];
+            try { exercises = JSON.parse(p.exercises); } catch {}
+            return (
+              <button key={p._id} type="button" onClick={() => onSelect(p)}
+                className="w-full text-left p-3 rounded-xl bg-gray-50 dark:bg-[var(--color-bg-subtle)] hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all">
+                <p className="text-sm font-bold text-gray-900 dark:text-white">{p.name}</p>
+                {p.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{p.description}</p>}
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  {exercises.length} exercise{exercises.length !== 1 ? 's' : ''} · from {p.coachName}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Exercise Form ──────────────────────────────────────────────────────────────
 function ExerciseFormWrapper({ dateStr, onSave, onCancel }) {
   const [time] = useState(() => getCurrentTimeParts());
+  const [showPicker, setShowPicker]         = useState(false);
+  const [initialExercises, setInitial]      = useState(undefined);
+  const [formKey, setFormKey]               = useState(0);
 
   const handleExerciseSave = (exercises, saveMeta) => {
     const date = dateStr;
@@ -351,17 +393,53 @@ function ExerciseFormWrapper({ dateStr, onSave, onCancel }) {
     onSave(entries);
   };
 
+  const loadProgram = (program) => {
+    let exercises = [];
+    try { exercises = JSON.parse(program.exercises); } catch {}
+    // Map coach program format {name,sets,reps,weight} → ExerciseForm format {name,reps,load}
+    const mapped = exercises.map(e => ({
+      name: e.name || '',
+      reps: e.reps  || '',
+      load: e.weight || '',
+      sets: e.sets  || '',
+      notes: e.notes || '',
+    }));
+    setInitial(mapped);
+    setFormKey(k => k + 1); // remount ExerciseForm with new initial exercises
+    setShowPicker(false);
+  };
+
   const [y, m, d] = dateStr.split('-').map(Number);
   const dateObj = new Date(y, m - 1, d);
 
   return (
-    <ExerciseForm
-      embedded
-      selectedDate={dateObj}
-      time={time}
-      onSave={handleExerciseSave}
-      onCancel={onCancel}
-    />
+    <>
+      {showPicker && <CoachProgramPicker onSelect={loadProgram} onClose={() => setShowPicker(false)} />}
+
+      {/* Load program button */}
+      <div className="flex justify-end mb-2">
+        <button
+          type="button"
+          onClick={() => setShowPicker(true)}
+          className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Load coach program
+        </button>
+      </div>
+
+      <ExerciseForm
+        key={formKey}
+        embedded
+        selectedDate={dateObj}
+        time={time}
+        initialExercises={initialExercises}
+        onSave={handleExerciseSave}
+        onCancel={onCancel}
+      />
+    </>
   );
 }
 
