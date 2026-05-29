@@ -117,6 +117,22 @@ export default defineSchema({
     fileType: v.optional(v.string()),
   }).index("by_conversation", ["conversationId"]),
 
+  programs: defineTable({
+    coachId: v.id("users"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    // JSON array of { name, sets, reps, weight, notes }
+    exercises: v.string(),
+  }).index("by_coach", ["coachId"]),
+
+  programAssignments: defineTable({
+    programId: v.id("programs"),
+    clientId: v.id("users"),
+    coachId: v.id("users"),
+  })
+    .index("by_client", ["clientId"])
+    .index("by_program", ["programId"]),
+
   notifications: defineTable({
     recipientId: v.id("users"),
     senderId: v.id("users"),

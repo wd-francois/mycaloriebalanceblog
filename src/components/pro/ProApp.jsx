@@ -13,6 +13,7 @@ import ProSettings   from './ProSettings';
 import ProClients    from './ProClients';
 import ProClientDetail from './ProClientDetail';
 import ProMessages   from './ProMessages';
+import ProPrograms   from './ProPrograms';
 
 const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 
@@ -105,6 +106,7 @@ function ProShell() {
       case 'tools':    return <ProTools />;
       case 'photos':   return <ProPhotos />;
       case 'clients':  return <ProClients  onSelectClient={setSelectedClient} />;
+      case 'programs': return <ProPrograms />;
       case 'messages': return <ProMessages />;
       case 'settings': return <ProSettings user={user} />;
       default:         return <ProHome     onNavigate={navigate} />;

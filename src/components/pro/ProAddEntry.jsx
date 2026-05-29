@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 
 function todayStr() {
@@ -111,18 +111,66 @@ function MealForm({ onSave, onCancel }) {
   );
 }
 
+// ── Coach Program Picker modal ─────────────────────────────────────────────────
+function ProgramPicker({ onSelect, onClose }) {
+  const programs = useQuery(api.programs.getMyPrograms) ?? [];
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white">Load Coach Program</h3>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-3 flex flex-col gap-2 max-h-80 overflow-y-auto">
+          {programs.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-6">
+              No programs assigned yet.<br />Ask your coach to assign one.
+            </p>
+          ) : programs.map(p => {
+            let exercises = [];
+            try { exercises = JSON.parse(p.exercises); } catch {}
+            return (
+              <button key={p._id} type="button" onClick={() => onSelect(p)}
+                className="w-full text-left p-3 rounded-xl bg-gray-50 dark:bg-[var(--color-bg-subtle)] hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-all">
+                <p className="text-sm font-bold text-gray-900 dark:text-white">{p.name}</p>
+                {p.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{p.description}</p>}
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  {exercises.length} exercise{exercises.length !== 1 ? 's' : ''} · from {p.coachName}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Exercise Form ─────────────────────────────────────────────────────────────
 function ExerciseForm({ onSave, onCancel }) {
-  const [date, setDate]         = useState(todayStr());
-  const [name, setName]         = useState('');
-  const [duration, setDuration] = useState('');
-  const [notes, setNotes]       = useState('');
+  const [date, setDate]           = useState(todayStr());
+  const [name, setName]           = useState('');
+  const [duration, setDuration]   = useState('');
+  const [notes, setNotes]         = useState('');
   const [exercises, setExercises] = useState([{ name: '', sets: '', reps: '', weight: '' }]);
+  const [showPicker, setShowPicker] = useState(false);
 
   const addRow = () => setExercises(prev => [...prev, { name: '', sets: '', reps: '', weight: '' }]);
   const updateRow = (i, field, val) =>
     setExercises(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: val } : r));
   const removeRow = (i) => setExercises(prev => prev.filter((_, idx) => idx !== i));
+
+  const loadProgram = (program) => {
+    let loaded = [];
+    try { loaded = JSON.parse(program.exercises); } catch {}
+    if (loaded.length > 0) setExercises(loaded.map(e => ({ name: e.name || '', sets: e.sets || '', reps: e.reps || '', weight: e.weight || '' })));
+    if (!name.trim()) setName(program.name);
+    setShowPicker(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -138,77 +186,86 @@ function ExerciseForm({ onSave, onCancel }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className={ROW2}>
+    <>
+      {showPicker && <ProgramPicker onSelect={loadProgram} onClose={() => setShowPicker(false)} />}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className={ROW2}>
+          <div>
+            <label className={LABEL}>Workout name</label>
+            <input className={INPUT} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Upper body" />
+          </div>
+          <div>
+            <label className={LABEL}>Duration (min)</label>
+            <input type="number" min="0" className={INPUT} value={duration} onChange={e => setDuration(e.target.value)} placeholder="45" />
+          </div>
+        </div>
+
+        {/* Exercise rows */}
         <div>
-          <label className={LABEL}>Workout name</label>
-          <input className={INPUT} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Upper body" />
+          <label className={LABEL}>Exercises</label>
+          <div className="flex flex-col gap-2">
+            {exercises.map((row, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <input
+                  className={INPUT + ' flex-1'}
+                  value={row.name}
+                  onChange={e => updateRow(i, 'name', e.target.value)}
+                  placeholder="Exercise"
+                />
+                <input
+                  type="number" min="0"
+                  className="w-16 px-2 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={row.sets}
+                  onChange={e => updateRow(i, 'sets', e.target.value)}
+                  placeholder="Sets"
+                />
+                <input
+                  type="number" min="0"
+                  className="w-16 px-2 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={row.reps}
+                  onChange={e => updateRow(i, 'reps', e.target.value)}
+                  placeholder="Reps"
+                />
+                {exercises.length > 1 && (
+                  <button type="button" onClick={() => removeRow(i)} className="p-1 text-gray-300 dark:text-gray-600 hover:text-red-400 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-3 mt-2">
+            <button type="button" onClick={addRow}
+              className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+              + Add exercise
+            </button>
+            <button type="button" onClick={() => setShowPicker(true)}
+              className="flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Load coach program
+            </button>
+          </div>
         </div>
+
+        <div className={ROW2}>
+          <div>
+            <label className={LABEL}>Date</label>
+            <input type="date" className={INPUT} value={date} onChange={e => setDate(e.target.value)} />
+          </div>
+        </div>
+
         <div>
-          <label className={LABEL}>Duration (min)</label>
-          <input type="number" min="0" className={INPUT} value={duration} onChange={e => setDuration(e.target.value)} placeholder="45" />
+          <label className={LABEL}>Notes</label>
+          <textarea rows={2} className={INPUT + ' resize-none'} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes…" />
         </div>
-      </div>
 
-      {/* Exercise rows */}
-      <div>
-        <label className={LABEL}>Exercises</label>
-        <div className="flex flex-col gap-2">
-          {exercises.map((row, i) => (
-            <div key={i} className="flex gap-2 items-center">
-              <input
-                className={INPUT + ' flex-1'}
-                value={row.name}
-                onChange={e => updateRow(i, 'name', e.target.value)}
-                placeholder="Exercise"
-              />
-              <input
-                type="number" min="0"
-                className="w-16 px-2 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={row.sets}
-                onChange={e => updateRow(i, 'sets', e.target.value)}
-                placeholder="Sets"
-              />
-              <input
-                type="number" min="0"
-                className="w-16 px-2 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={row.reps}
-                onChange={e => updateRow(i, 'reps', e.target.value)}
-                placeholder="Reps"
-              />
-              {exercises.length > 1 && (
-                <button type="button" onClick={() => removeRow(i)} className="p-1 text-gray-300 dark:text-gray-600 hover:text-red-400 transition-colors">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={addRow}
-          className="mt-2 text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline"
-        >
-          + Add exercise
-        </button>
-      </div>
-
-      <div className={ROW2}>
-        <div>
-          <label className={LABEL}>Date</label>
-          <input type="date" className={INPUT} value={date} onChange={e => setDate(e.target.value)} />
-        </div>
-      </div>
-
-      <div>
-        <label className={LABEL}>Notes</label>
-        <textarea rows={2} className={INPUT + ' resize-none'} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes…" />
-      </div>
-
-      <FormActions onCancel={onCancel} />
-    </form>
+        <FormActions onCancel={onCancel} />
+      </form>
+    </>
   );
 }
 
