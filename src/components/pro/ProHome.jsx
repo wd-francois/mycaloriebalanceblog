@@ -6,11 +6,11 @@ import Calendar from '../Calendar';
 import ProDayModal from './ProDayModal';
 
 // Isolated so a query failure can't crash the home screen
-function PendingInviteCard() {
-  const invites     = useQuery(api.coaches.getPendingInvites) ?? [];
+function PendingInviteModal() {
+  const invites       = useQuery(api.coaches.getPendingInvites) ?? [];
   const acceptInvite  = useMutation(api.coaches.acceptInvite);
   const declineInvite = useMutation(api.coaches.declineInvite);
-  const [busy, setBusy] = useState(null); // inviteId being acted on
+  const [busy, setBusy] = useState(null);
 
   if (invites.length === 0) return null;
 
@@ -25,45 +25,60 @@ function PendingInviteCard() {
   };
 
   return (
-    <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border-2 border-blue-200 dark:border-blue-800 p-3 sm:p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
-        <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
-          Coach Request{invites.length > 1 ? 's' : ''}
-        </h3>
-      </div>
-      <div className="flex flex-col gap-3">
-        {invites.map(invite => {
-          const displayName = invite.name || invite.email || 'Unknown coach';
-          const initial = displayName[0].toUpperCase();
-          return (
-            <div key={invite.id} className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                {initial}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <h2 className="text-white font-bold text-base">
+              Coach Request{invites.length > 1 ? 's' : ''}
+            </h2>
+          </div>
+          <p className="text-blue-100 text-xs mt-1">
+            Review before your coach can see your data
+          </p>
+        </div>
+
+        {/* Invites */}
+        <div className="p-5 flex flex-col gap-4">
+          {invites.map(invite => {
+            const displayName = invite.name || invite.email || 'Unknown coach';
+            const initial = displayName[0].toUpperCase();
+            return (
+              <div key={invite.id}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    {initial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{displayName}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">wants to be your coach</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 leading-relaxed">
+                  If you accept, they will be able to view your nutrition entries, measurements, and progress.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handle(invite.id, 'decline')}
+                    disabled={!!busy}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors"
+                  >
+                    Decline
+                  </button>
+                  <button
+                    onClick={() => handle(invite.id, 'accept')}
+                    disabled={!!busy}
+                    className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors"
+                  >
+                    {busy === invite.id ? '…' : 'Accept'}
+                  </button>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{displayName}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">wants to be your coach</p>
-              </div>
-              <div className="flex gap-1.5 flex-shrink-0">
-                <button
-                  onClick={() => handle(invite.id, 'decline')}
-                  disabled={busy === invite.id}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors"
-                >
-                  Decline
-                </button>
-                <button
-                  onClick={() => handle(invite.id, 'accept')}
-                  disabled={busy === invite.id}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors"
-                >
-                  {busy === invite.id ? '…' : 'Accept'}
-                </button>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -198,7 +213,7 @@ export default function ProHome({ onNavigate, role }) {
     <div className="w-full">
       <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
 
-        <PendingInviteCard />
+        <PendingInviteModal />
 
         {/* Calorie Goal Card */}
         <div className={CARD}>

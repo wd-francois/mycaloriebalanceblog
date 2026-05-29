@@ -194,16 +194,41 @@ export const getPendingInvites = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
-    const pending = await ctx.db
+    // User-linked pending invites
+    const userLinked = await ctx.db
       .query("coachClients")
       .withIndex("by_client", (q) => q.eq("clientId", userId))
       .filter((q) => q.eq(q.field("status"), "pending"))
       .collect();
 
+    // Also check email-based invites (fallback if claimPendingInvites hasn't run yet)
+    const userRecord = await ctx.db.get(userId);
+    const authAccount = await ctx.db
+      .query("authAccounts")
+      .withIndex("userIdAndProvider", (q) =>
+        q.eq("userId", userId).eq("provider", "password"),
+      )
+      .first();
+    const userEmail = (userRecord?.email ?? authAccount?.providerAccountId ?? "").toLowerCase();
+    const emailBased = userEmail
+      ? await ctx.db
+          .query("coachClients")
+          .withIndex("by_invite_email", (q) => q.eq("inviteEmail", userEmail))
+          .collect()
+      : [];
+
+    // Merge, deduplicate by _id
+    const seen = new Set<string>();
+    const all = [...userLinked, ...emailBased].filter((rel) => {
+      if (seen.has(rel._id)) return false;
+      seen.add(rel._id);
+      return true;
+    });
+
     return await Promise.all(
-      pending.map(async (rel) => {
-        const user = await ctx.db.get(rel.coachId);
-        const account = await ctx.db
+      all.map(async (rel) => {
+        const coachUser = await ctx.db.get(rel.coachId);
+        const coachAccount = await ctx.db
           .query("authAccounts")
           .withIndex("userIdAndProvider", (q) =>
             q.eq("userId", rel.coachId).eq("provider", "password"),
@@ -212,8 +237,8 @@ export const getPendingInvites = query({
         return {
           id: rel._id,
           coachId: rel.coachId,
-          email: user?.email ?? account?.providerAccountId ?? null,
-          name: user?.name ?? null,
+          email: coachUser?.email ?? coachAccount?.providerAccountId ?? null,
+          name: coachUser?.name ?? null,
         };
       }),
     );
@@ -227,8 +252,25 @@ export const acceptInvite = mutation({
     if (!userId) throw new Error("Not authenticated");
 
     const rel = await ctx.db.get(args.inviteId);
-    if (!rel || rel.clientId !== userId) throw new Error("Not authorized");
+    if (!rel) throw new Error("Invite not found");
     if (rel.status !== "pending") throw new Error("Invite is not pending");
+
+    // Allow accepting if linked by userId OR if the email matches
+    if (rel.clientId && rel.clientId !== userId) throw new Error("Not authorized");
+    if (!rel.clientId) {
+      // Email-based invite — verify email matches and link the userId
+      const userRecord = await ctx.db.get(userId);
+      const authAccount = await ctx.db
+        .query("authAccounts")
+        .withIndex("userIdAndProvider", (q) =>
+          q.eq("userId", userId).eq("provider", "password"),
+        )
+        .first();
+      const userEmail = (userRecord?.email ?? authAccount?.providerAccountId ?? "").toLowerCase();
+      if (rel.inviteEmail !== userEmail) throw new Error("Not authorized");
+      await ctx.db.patch(args.inviteId, { clientId: userId, inviteEmail: undefined, status: "accepted" });
+      return;
+    }
 
     await ctx.db.patch(args.inviteId, { status: "accepted" });
   },
@@ -315,7 +357,20 @@ export const declineInvite = mutation({
     if (!userId) throw new Error("Not authenticated");
 
     const rel = await ctx.db.get(args.inviteId);
-    if (!rel || rel.clientId !== userId) throw new Error("Not authorized");
+    if (!rel) throw new Error("Invite not found");
+
+    if (rel.clientId && rel.clientId !== userId) throw new Error("Not authorized");
+    if (!rel.clientId) {
+      const userRecord = await ctx.db.get(userId);
+      const authAccount = await ctx.db
+        .query("authAccounts")
+        .withIndex("userIdAndProvider", (q) =>
+          q.eq("userId", userId).eq("provider", "password"),
+        )
+        .first();
+      const userEmail = (userRecord?.email ?? authAccount?.providerAccountId ?? "").toLowerCase();
+      if (rel.inviteEmail !== userEmail) throw new Error("Not authorized");
+    }
 
     await ctx.db.delete(args.inviteId);
   },
