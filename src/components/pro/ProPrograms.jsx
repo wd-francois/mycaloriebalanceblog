@@ -30,12 +30,12 @@ function ExerciseRow({ row, index, onChange, onRemove, showRemove }) {
       <div className="grid grid-cols-3 gap-2">
         <div>
           <p className="text-[10px] font-semibold text-gray-400 uppercase mb-1">Sets</p>
-          <input type="number" min="0" className={INPUT} value={row.sets}
+          <input className={INPUT} value={row.sets}
             onChange={e => onChange(index, 'sets', e.target.value)} placeholder="3" />
         </div>
         <div>
           <p className="text-[10px] font-semibold text-gray-400 uppercase mb-1">Reps</p>
-          <input type="number" min="0" className={INPUT} value={row.reps}
+          <input className={INPUT} value={row.reps}
             onChange={e => onChange(index, 'reps', e.target.value)} placeholder="10" />
         </div>
         <div>

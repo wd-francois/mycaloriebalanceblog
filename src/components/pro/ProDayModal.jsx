@@ -4,7 +4,6 @@ import { api } from '../../../convex/_generated/api';
 import { calculateSleepDuration } from '../../lib/dateUtils';
 import { formatTime } from '../../lib/utils';
 import AutocompleteInput from '../AutocompleteInput';
-import ExerciseForm from '../ExerciseForm';
 import TimePicker from '../TimePicker';
 import { getCurrentTimeParts } from '../../lib/dateUtils';
 import { useConvexSettings } from '../../contexts/ConvexSettingsContext';
@@ -88,13 +87,18 @@ function EntryCard({ entry, weightUnit: wUnit, onDelete }) {
   } else if (entry.type === 'exercise') {
     let sets = [];
     if (entry.exercisesData) { try { sets = JSON.parse(entry.exercisesData); } catch {} }
-    body = (sets.length > 0 || entry.durationMinutes) ? (
+    const setsDisplay = sets.length > 0 ? (() => {
+      const first = sets[0];
+      const parts = [
+        sets.length > 1 ? `${sets.length}×` : (first.load || first.reps ? '1×' : null),
+        first.reps && `${first.reps} reps`,
+        first.load && `@ ${first.load}`,
+      ].filter(Boolean);
+      return parts.length > 0 ? parts.join(' ') : null;
+    })() : null;
+    body = (setsDisplay || entry.durationMinutes) ? (
       <div className="mt-1 flex flex-col gap-0.5">
-        {sets.map((s, i) => (
-          <p key={i} className="text-xs text-gray-500 dark:text-gray-400">
-            Set {i + 1}: {[s.load && `${s.load}`, s.reps && `${s.reps} reps`].filter(Boolean).join(' · ')}
-          </p>
-        ))}
+        {setsDisplay && <p className="text-xs text-gray-500 dark:text-gray-400">{setsDisplay}</p>}
         {entry.durationMinutes && <p className="text-xs text-gray-500 dark:text-gray-400">⏱ {entry.durationMinutes} min</p>}
       </div>
     ) : null;
@@ -309,6 +313,55 @@ function MealForm({ dateStr, onSave, onCancel }) {
   );
 }
 
+// ── Exercise builder (shared row card) ────────────────────────────────────────
+const emptyExercise = () => ({ name: '', sets: '', reps: '', weight: '', notes: '' });
+
+function ExerciseRow({ row, index, onChange, onRemove, showRemove }) {
+  return (
+    <div className="bg-gray-50 dark:bg-[var(--color-bg-subtle)] rounded-xl p-3 flex flex-col gap-2">
+      <div className="flex gap-2 items-center">
+        <input
+          className={INPUT + ' flex-1'}
+          value={row.name}
+          onChange={e => onChange(index, 'name', e.target.value)}
+          placeholder="Exercise name"
+        />
+        {showRemove && (
+          <button type="button" onClick={() => onRemove(index)}
+            className="p-1.5 text-gray-300 dark:text-gray-600 hover:text-red-400 transition-colors flex-shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div>
+          <p className="text-[10px] font-semibold text-gray-400 uppercase mb-1">Sets</p>
+          <input className={INPUT} value={row.sets}
+            onChange={e => onChange(index, 'sets', e.target.value)} placeholder="3" />
+        </div>
+        <div>
+          <p className="text-[10px] font-semibold text-gray-400 uppercase mb-1">Reps</p>
+          <input className={INPUT} value={row.reps}
+            onChange={e => onChange(index, 'reps', e.target.value)} placeholder="10" />
+        </div>
+        <div>
+          <p className="text-[10px] font-semibold text-gray-400 uppercase mb-1">Weight</p>
+          <input className={INPUT} value={row.weight}
+            onChange={e => onChange(index, 'weight', e.target.value)} placeholder="kg / lbs" />
+        </div>
+      </div>
+      <input
+        className={INPUT}
+        value={row.notes}
+        onChange={e => onChange(index, 'notes', e.target.value)}
+        placeholder="Notes (optional)"
+      />
+    </div>
+  );
+}
+
 // ── Coach Program Picker ───────────────────────────────────────────────────────
 function CoachProgramPicker({ onSelect, onClose }) {
   const programs = useQuery(api.programs.getMyPrograms) ?? [];
@@ -350,79 +403,50 @@ function CoachProgramPicker({ onSelect, onClose }) {
 
 // ── Exercise Form ──────────────────────────────────────────────────────────────
 function ExerciseFormWrapper({ dateStr, onSave, onCancel }) {
-  const [time] = useState(() => getCurrentTimeParts());
-  const [showPicker, setShowPicker]         = useState(false);
-  const [initialExercises, setInitial]      = useState(undefined);
-  const [formKey, setFormKey]               = useState(0);
+  const [time]                      = useState(() => getCurrentTimeParts());
+  const [exercises, setExercises]   = useState([emptyExercise()]);
+  const [showPicker, setShowPicker] = useState(false);
 
-  const handleExerciseSave = (exercises, saveMeta) => {
-    const date = dateStr;
-    const named = (exercises || []).filter(e => e.name && String(e.name).trim());
-    const activities = Array.isArray(saveMeta?.activities)
-      ? saveMeta.activities.filter(a => a.name && String(a.name).trim())
-      : [];
-
-    const entries = [];
-
-    for (const e of named) {
-      const sets = [{ reps: e.reps || '', load: e.load || '' }];
-      if (Array.isArray(e.extraSets)) {
-        for (const s of e.extraSets) {
-          if (s && (s.reps || s.load)) sets.push({ reps: s.reps || '', load: s.load || '' });
-        }
-      }
-      entries.push({
-        type: 'exercise', date, time,
-        name: String(e.name).trim(),
-        exercisesData: JSON.stringify(sets),
-        notes: (e.notes && String(e.notes).trim()) || undefined,
-      });
-    }
-
-    for (const a of activities) {
-      entries.push({
-        type: 'activity', date, time,
-        name: String(a.name).trim(),
-        durationMinutes: a.duration ? String(a.duration) : undefined,
-        distance:        a.distance ? String(a.distance) : undefined,
-        steps:           a.steps    ? String(a.steps)    : undefined,
-        notes:           (a.notes && String(a.notes).trim()) || undefined,
-      });
-    }
-
-    onSave(entries);
-  };
+  const updateRow = (i, field, val) =>
+    setExercises(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: val } : r));
+  const removeRow = (i) => setExercises(prev => prev.filter((_, idx) => idx !== i));
+  const addRow    = () => setExercises(prev => [...prev, emptyExercise()]);
 
   const loadProgram = (program) => {
-    let exercises = [];
-    try { exercises = JSON.parse(program.exercises); } catch {}
-    // Map coach program format {name,sets,reps,weight} → ExerciseForm format {name,reps,load}
-    const mapped = exercises.map(e => ({
-      name: e.name || '',
-      reps: e.reps  || '',
-      load: e.weight || '',
-      sets: e.sets  || '',
-      notes: e.notes || '',
-    }));
-    setInitial(mapped);
-    setFormKey(k => k + 1); // remount ExerciseForm with new initial exercises
+    let parsed = [];
+    try { parsed = JSON.parse(program.exercises); } catch {}
+    setExercises(parsed.length > 0
+      ? parsed.map(e => ({ name: e.name || '', sets: e.sets || '', reps: e.reps || '', weight: e.weight || '', notes: e.notes || '' }))
+      : [emptyExercise()]
+    );
     setShowPicker(false);
   };
 
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const dateObj = new Date(y, m - 1, d);
+  const handleSave = () => {
+    const named = exercises.filter(e => e.name.trim());
+    if (named.length === 0) return;
+    const entries = named.map(e => {
+      const numSets = Math.max(1, parseInt(e.sets) || 1);
+      const setEntry = { reps: e.reps || '', load: e.weight || '' };
+      return {
+        type: 'exercise',
+        date: dateStr,
+        time,
+        name: e.name.trim(),
+        exercisesData: JSON.stringify(Array.from({ length: numSets }, () => setEntry)),
+        notes: e.notes?.trim() || undefined,
+      };
+    });
+    onSave(entries);
+  };
 
   return (
     <>
       {showPicker && <CoachProgramPicker onSelect={loadProgram} onClose={() => setShowPicker(false)} />}
 
-      {/* Load program button */}
-      <div className="flex justify-end mb-2">
-        <button
-          type="button"
-          onClick={() => setShowPicker(true)}
-          className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-        >
+      <div className="flex justify-end mb-3">
+        <button type="button" onClick={() => setShowPicker(true)}
+          className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
@@ -430,15 +454,38 @@ function ExerciseFormWrapper({ dateStr, onSave, onCancel }) {
         </button>
       </div>
 
-      <ExerciseForm
-        key={formKey}
-        embedded
-        selectedDate={dateObj}
-        time={time}
-        initialExercises={initialExercises}
-        onSave={handleExerciseSave}
-        onCancel={onCancel}
-      />
+      <div className="flex flex-col gap-3">
+        {exercises.map((row, i) => (
+          <ExerciseRow
+            key={i}
+            row={row}
+            index={i}
+            onChange={updateRow}
+            onRemove={removeRow}
+            showRemove={exercises.length > 1}
+          />
+        ))}
+      </div>
+
+      <button type="button" onClick={addRow}
+        className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline mt-2">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add exercise
+      </button>
+
+      <div className="flex gap-3 pt-2 mt-1">
+        <button type="button" onClick={onCancel}
+          className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          Cancel
+        </button>
+        <button type="button" onClick={handleSave}
+          disabled={!exercises.some(e => e.name.trim())}
+          className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 shadow-sm transition-all">
+          Add Exercise Entry
+        </button>
+      </div>
     </>
   );
 }
