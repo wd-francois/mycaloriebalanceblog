@@ -192,23 +192,10 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Program name & description */}
-      <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-3">
-        <div>
-          <label className={LABEL}>Program name</label>
-          <input className={INPUT} value={name} onChange={e => setName(e.target.value)}
-            placeholder="e.g. Upper Body A" autoFocus />
-        </div>
-        <div>
-          <label className={LABEL}>Description (optional)</label>
-          <input className={INPUT} value={description} onChange={e => setDesc(e.target.value)}
-            placeholder="e.g. Push-focused, 4×/week" />
-        </div>
-      </div>
+    <div className="flex flex-col lg:flex-row gap-5 items-start">
 
-      {/* Exercises */}
-      <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-3">
+      {/* Left column — exercises (takes more space) */}
+      <div className="w-full lg:flex-1 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-3">
         <p className={LABEL}>Exercises</p>
         {exercises.map((ex, i) => (
           <ExerciseCard
@@ -228,47 +215,64 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
         </button>
       </div>
 
-      {/* Assign to clients */}
-      {clients.length > 0 && (
-        <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-2">
-          <p className={LABEL}>Assign to clients</p>
-          {clients.map(client => {
-            const checked = selectedClients.has(client.id);
-            return (
-              <label key={client.id} className="flex items-center gap-3 py-1.5 cursor-pointer">
-                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
-                  checked
-                    ? 'bg-blue-600 border-blue-600'
-                    : 'border-gray-300 dark:border-gray-600'
-                }`} onClick={() => toggleClient(client.id)}>
-                  {checked && (
-                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{client.name}</p>
-                  {client.email && client.name !== client.email && (
-                    <p className="text-xs text-gray-400">{client.email}</p>
-                  )}
-                </div>
-              </label>
-            );
-          })}
-        </div>
-      )}
+      {/* Right column — details + actions (fixed width on desktop) */}
+      <div className="w-full lg:w-80 flex flex-col gap-4">
 
-      {/* Actions */}
-      <div className="flex gap-3">
-        <button type="button" onClick={onCancel}
-          className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-          Cancel
-        </button>
-        <button type="button" onClick={handleSave} disabled={!name.trim() || saving}
-          className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors">
-          {saving ? 'Saving…' : 'Save program'}
-        </button>
+        {/* Program name & description */}
+        <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-3">
+          <div>
+            <label className={LABEL}>Program name</label>
+            <input className={INPUT} value={name} onChange={e => setName(e.target.value)}
+              placeholder="e.g. Upper Body A" autoFocus />
+          </div>
+          <div>
+            <label className={LABEL}>Description (optional)</label>
+            <input className={INPUT} value={description} onChange={e => setDesc(e.target.value)}
+              placeholder="e.g. Push-focused, 4×/week" />
+          </div>
+        </div>
+
+        {/* Assign to clients */}
+        {clients.length > 0 && (
+          <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-2">
+            <p className={LABEL}>Assign to clients</p>
+            {clients.map(client => {
+              const checked = selectedClients.has(client.id);
+              return (
+                <label key={client.id} className="flex items-center gap-3 py-1.5 cursor-pointer">
+                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                    checked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 dark:border-gray-600'
+                  }`} onClick={() => toggleClient(client.id)}>
+                    {checked && (
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{client.name}</p>
+                    {client.email && client.name !== client.email && (
+                      <p className="text-xs text-gray-400">{client.email}</p>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-3">
+          <button type="button" onClick={onCancel}
+            className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            Cancel
+          </button>
+          <button type="button" onClick={handleSave} disabled={!name.trim() || saving}
+            className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors">
+            {saving ? 'Saving…' : 'Save program'}
+          </button>
+        </div>
+
       </div>
     </div>
   );
@@ -327,7 +331,7 @@ export default function ProPrograms() {
   if (view === 'new' || view === 'edit') {
     return (
       <div className="w-full">
-        <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
+        <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <button onClick={() => { setView('list'); setEditTarget(null); }}
               className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -353,7 +357,7 @@ export default function ProPrograms() {
   // ── List view ────────────────────────────────────────────────────────────────
   return (
     <div className="w-full">
-      <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -388,7 +392,7 @@ export default function ProPrograms() {
         )}
 
         {/* Program cards */}
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {programs.map(program => {
             let exercises = [];
             try { exercises = JSON.parse(program.exercises); } catch {}
