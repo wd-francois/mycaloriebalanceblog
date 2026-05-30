@@ -278,6 +278,80 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
   );
 }
 
+// ── Assign modal ──────────────────────────────────────────────────────────────
+function AssignModal({ program, clients, onSave, onClose }) {
+  const [selected, setSelected] = useState(
+    () => new Set((program.assignedTo ?? []).map(c => c.id))
+  );
+  const [saving, setSaving] = useState(false);
+
+  const toggle = (id) => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
+
+  const handleSave = async () => {
+    setSaving(true);
+    try { await onSave(program, [...selected]); } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="flex items-start justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Assign Program</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-[220px]">{program.name}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="px-4 py-3 flex flex-col gap-1 max-h-72 overflow-y-auto">
+          {clients.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-6">No clients yet.</p>
+          ) : clients.map(client => {
+            const checked = selected.has(client.id);
+            return (
+              <label key={client.id} onClick={() => toggle(client.id)}
+                className="flex items-center gap-3 py-2.5 px-2 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${checked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 dark:border-gray-600'}`}>
+                  {checked && (
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{client.name}</p>
+                  {client.email && client.name !== client.email && (
+                    <p className="text-xs text-gray-400 truncate">{client.email}</p>
+                  )}
+                </div>
+              </label>
+            );
+          })}
+        </div>
+
+        <div className="flex gap-3 px-4 pb-4 pt-2 border-t border-gray-100 dark:border-gray-800">
+          <button type="button" onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            Cancel
+          </button>
+          <button type="button" onClick={handleSave} disabled={saving}
+            className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors">
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function ProPrograms() {
   const programs     = useQuery(api.programs.list) ?? [];
@@ -288,9 +362,10 @@ export default function ProPrograms() {
   const assignProg   = useMutation(api.programs.assign);
   const unassignProg = useMutation(api.programs.unassign);
 
-  const [view, setView]           = useState('list'); // 'list' | 'new' | 'edit'
+  const [view, setView]             = useState('list'); // 'list' | 'new' | 'edit'
   const [editTarget, setEditTarget] = useState(null);
-  const [deleting, setDeleting]   = useState(null);
+  const [deleting, setDeleting]     = useState(null);
+  const [assignTarget, setAssignTarget] = useState(null);
 
   const clients = rawClients.map(c => ({
     id: c.id,
@@ -327,6 +402,20 @@ export default function ProPrograms() {
     finally { setDeleting(null); }
   };
 
+  const handleAssign = async (program, newClientIds) => {
+    const prevIds = new Set((program.assignedTo ?? []).map(c => c.id));
+    const nextIds = new Set(newClientIds);
+    await Promise.all([
+      ...[...nextIds].filter(id => !prevIds.has(id)).map(clientId =>
+        assignProg({ programId: program._id, clientId })
+      ),
+      ...[...prevIds].filter(id => !nextIds.has(id)).map(clientId =>
+        unassignProg({ programId: program._id, clientId })
+      ),
+    ]);
+    setAssignTarget(null);
+  };
+
   // ── Editor view ─────────────────────────────────────────────────────────────
   if (view === 'new' || view === 'edit') {
     return (
@@ -357,6 +446,14 @@ export default function ProPrograms() {
   // ── List view ────────────────────────────────────────────────────────────────
   return (
     <div className="w-full">
+      {assignTarget && (
+        <AssignModal
+          program={assignTarget}
+          clients={clients}
+          onSave={handleAssign}
+          onClose={() => setAssignTarget(null)}
+        />
+      )}
       <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
 
         {/* Header */}
@@ -444,7 +541,7 @@ export default function ProPrograms() {
                 )}
 
                 {/* Assigned clients */}
-                {program.assignedTo?.length > 0 && (
+                {program.assignedTo?.length > 0 ? (
                   <div className="flex flex-wrap gap-1.5">
                     {program.assignedTo.map(c => (
                       <span key={c.id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
@@ -452,10 +549,17 @@ export default function ProPrograms() {
                       </span>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500 italic">Not assigned to anyone</p>
                 )}
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-gray-800">
+                  <button
+                    onClick={() => setAssignTarget(program)}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+                    Assign
+                  </button>
                   <button
                     onClick={() => { setEditTarget(program); setView('edit'); }}
                     className="flex-1 py-2 rounded-xl text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
