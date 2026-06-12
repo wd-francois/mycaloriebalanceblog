@@ -14,6 +14,7 @@ import ProClients    from './ProClients';
 import ProClientDetail from './ProClientDetail';
 import ProMessages   from './ProMessages';
 import ProPrograms   from './ProPrograms';
+import ProHelp       from './ProHelp';
 
 const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 
@@ -49,16 +50,11 @@ function ProShell() {
     setTab(newTab);
   }
 
-  // Apply any role chosen on the sign-up form. SignInPage stores the chosen
-  // role in localStorage before calling signIn because React unmounts it the
-  // instant isAuthenticated flips — any mutation called after signIn never fires.
   useEffect(() => {
     if (!isAuthenticated) return;
-    // Link any email-based coach invites to this account on login
     claimInvites();
   }, [isAuthenticated]);
 
-  // Reset to home when role changes (e.g. client→coach) so the nav stays consistent.
   const prevRoleRef = useRef(null);
   useEffect(() => {
     if (role && prevRoleRef.current !== null && prevRoleRef.current !== role) {
@@ -67,8 +63,6 @@ function ProShell() {
     if (role) prevRoleRef.current = role;
   }, [role]);
 
-  // Listen for navigation events dispatched from the top-nav ProNavStatus island.
-  // Use setters directly — they are stable references, so no stale-closure risk.
   useEffect(() => {
     const handler = (e) => {
       setSelectedClient(null);
@@ -108,6 +102,7 @@ function ProShell() {
       case 'clients':  return <ProClients  onSelectClient={setSelectedClient} />;
       case 'programs': return <ProPrograms />;
       case 'messages': return <ProMessages />;
+      case 'help':     return <ProHelp onBack={() => navigate('settings')} />;
       case 'settings': return <ProSettings user={user} />;
       default:         return <ProHome     onNavigate={navigate} />;
     }
@@ -120,7 +115,7 @@ function ProShell() {
       <ProNavigation
         active={tab}
         role={role}
-        onNavigate={(t) => navigate(t)}
+        onNavigate={navigate}
       />
     </div>
   );

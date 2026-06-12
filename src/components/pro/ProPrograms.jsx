@@ -1,22 +1,29 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
+import ExercisePickerModal from './ExercisePickerModal';
 
 const INPUT = 'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
 const LABEL = 'block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1';
 
 const emptyExercise = () => ({
   id: Date.now() + Math.random(),
-  name: '', load: '', reps: '', extraSets: [], notes: '', videoUrl: '', expanded: true,
+  name: '', load: '', reps: '', extraSets: [], notes: '', videoUrls: [], expanded: true,
 });
 
-// Normalise exercises saved in the old flat format {name,sets,reps,weight,notes}
+// Normalise exercises saved in older formats
 function normaliseEx(e) {
-  if (e.extraSets !== undefined || e.load !== undefined) return e;
+  if (e.extraSets !== undefined || e.load !== undefined) {
+    // Already new-ish format — migrate videoUrl string → videoUrls array if needed
+    if (!e.videoUrls) return { ...e, videoUrls: e.videoUrl ? [e.videoUrl] : [] };
+    return e;
+  }
+  // Old flat format {name,sets,reps,weight,notes}
   const count = Math.max(1, parseInt(e.sets) || 1);
   const load  = e.weight || '';
   const reps  = e.reps   || '';
   return { ...emptyExercise(), name: e.name || '', load, reps, notes: e.notes || '',
+    videoUrls: e.videoUrl ? [e.videoUrl] : [],
     extraSets: Array.from({ length: count - 1 }, () => ({ load, reps })) };
 }
 
@@ -24,6 +31,7 @@ const SET_INPUT = 'w-full bg-white dark:bg-[var(--color-bg-subtle)] border borde
 
 // ── Exercise card (collapsible, per-set rows) ─────────────────────────────────
 function ExerciseCard({ ex, index, onChange, onRemove }) {
+  const [showPicker, setShowPicker] = useState(false);
   const totalSets = 1 + (ex.extraSets?.length ?? 0);
   const done = !!(ex.name && (ex.reps || ex.load));
 
@@ -74,12 +82,41 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
 
       {ex.expanded && (
         <div className="px-3.5 pb-3.5 border-t border-gray-200 dark:border-gray-600/50 pt-3 flex flex-col gap-4">
+          {showPicker && (
+            <ExercisePickerModal
+              onSelect={({ name, gifUrl }) => {
+                const videoUrls = gifUrl
+                  ? [gifUrl, ...(ex.videoUrls ?? []).filter(u => !u.endsWith('.gif'))]
+                  : (ex.videoUrls ?? []);
+                onChange({ ...ex, name, videoUrls });
+                setShowPicker(false);
+              }}
+              onClose={() => setShowPicker(false)}
+            />
+          )}
           {/* Name */}
           <div>
             <label className={LABEL}>Exercise</label>
-            <input className={INPUT} value={ex.name} placeholder="e.g. Bench Press"
-              onChange={e => onChange({ ...ex, name: e.target.value })} />
+            <div className="flex gap-2">
+              <input className={INPUT} value={ex.name} placeholder="e.g. Bench Press"
+                onChange={e => onChange({ ...ex, name: e.target.value })} />
+              <button type="button" onClick={() => setShowPicker(true)} title="Browse exercise database"
+                className="flex-shrink-0 px-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <ellipse cx="12" cy="5" rx="9" ry="3" />
+                  <path d="M21 12c0 1.657-4.03 3-9 3s-9-1.343-9-3" />
+                  <path d="M3 5v14c0 1.657 4.03 3 9 3s9-1.343 9-3V5" />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          {/* GIF preview — first GIF in the list */}
+          {(ex.videoUrls ?? []).find(u => u.endsWith('.gif')) && (
+            <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+              <img src={(ex.videoUrls ?? []).find(u => u.endsWith('.gif'))} alt={ex.name} className="w-full max-h-52 object-contain" />
+            </div>
+          )}
 
           {/* Sets table */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-white/[0.04] p-3 flex flex-col gap-2">
@@ -136,11 +173,33 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
               onChange={e => onChange({ ...ex, notes: e.target.value })} />
           </div>
 
-          {/* Video Link */}
+          {/* Media links */}
           <div>
-            <label className={LABEL}>Video Link</label>
-            <input type="url" className={INPUT} value={ex.videoUrl || ''}
-              onChange={e => onChange({ ...ex, videoUrl: e.target.value })} placeholder="https://..." />
+            <label className={LABEL}>Media Links</label>
+            <div className="flex flex-col gap-2">
+              {(ex.videoUrls ?? []).map((url, i) => (
+                <div key={i} className="flex gap-2">
+                  <input type="url" className={INPUT} value={url}
+                    onChange={e => onChange({ ...ex, videoUrls: ex.videoUrls.map((u, j) => j === i ? e.target.value : u) })}
+                    placeholder="https://..." />
+                  <button type="button"
+                    onClick={() => onChange({ ...ex, videoUrls: ex.videoUrls.filter((_, j) => j !== i) })}
+                    className="flex-shrink-0 px-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-red-400 hover:text-red-600 hover:border-red-300 dark:hover:border-red-700 bg-white dark:bg-[var(--color-bg-subtle)] transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              <button type="button"
+                onClick={() => onChange({ ...ex, videoUrls: [...(ex.videoUrls ?? []), ''] })}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Add link
+              </button>
+            </div>
           </div>
         </div>
       )}

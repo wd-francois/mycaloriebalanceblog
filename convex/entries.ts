@@ -107,6 +107,7 @@ export const add = mutation({
     tricepSkinfold: v.optional(v.number()),
     subscapularSkinfold: v.optional(v.number()),
     suprailiacSkinfold: v.optional(v.number()),
+    photoId: v.optional(v.id("photos")),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);

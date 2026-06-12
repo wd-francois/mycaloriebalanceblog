@@ -59,6 +59,7 @@ export default defineSchema({
     tricepSkinfold: v.optional(v.number()),
     subscapularSkinfold: v.optional(v.number()),
     suprailiacSkinfold: v.optional(v.number()),
+    photoId: v.optional(v.id("photos")),
   })
     .index("by_user", ["userId"])
     .index("by_user_date", ["userId", "date"])
