@@ -330,11 +330,24 @@ export default function ProClientDetail({ client, onBack }) {
   const [activeTab,    setActiveTab]    = useState('overview');
   const [rangeIdx,     setRangeIdx]     = useState(1); // default 30d
   const [showMessages, setShowMessages] = useState(false);
+  const [removing,     setRemoving]     = useState(false);
 
   const viewer      = useQuery(api.users.viewer);
   const addComment  = useMutation(api.comments.add);
   const delComment  = useMutation(api.comments.remove);
   const markRead    = useMutation(api.notifications.markReadForClient);
+  const unlinkClient = useMutation(api.coaches.unlinkClient);
+
+  const handleRemoveClient = async () => {
+    if (!confirm(`Are you sure you want to remove ${client.name || client.email} as a client? You'll lose access to their data.`)) return;
+    setRemoving(true);
+    try {
+      await unlinkClient({ clientId: client.id });
+      onBack();
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   useEffect(() => {
     markRead({ clientId: client.id });
@@ -506,6 +519,18 @@ export default function ProClientDetail({ client, onBack }) {
               ))}
             </div>
           )
+        )}
+
+        {/* Remove client */}
+        {!showMessages && (
+          <button
+            type="button"
+            onClick={handleRemoveClient}
+            disabled={removing}
+            className="mt-2 text-center text-xs font-semibold text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors disabled:opacity-40"
+          >
+            {removing ? 'Removing…' : 'Remove client'}
+          </button>
         )}
 
       </div>

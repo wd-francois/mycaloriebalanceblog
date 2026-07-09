@@ -5,6 +5,13 @@ import { useAuthActions, useAuthToken } from '@convex-dev/auth/react';
 import { api } from '../../../convex/_generated/api';
 
 function proNavigate(tab) {
+  // ProApp only listens for this event while it's mounted (i.e. on /pro/).
+  // From any other page (e.g. the Original app), do a real navigation
+  // instead — ProApp reads ?tab= on load and opens straight to it.
+  if (window.location.pathname.replace(/\/?$/, '/') !== '/pro/') {
+    window.location.href = `/pro/?tab=${tab}`;
+    return;
+  }
   window.dispatchEvent(new CustomEvent('pro:navigate', { detail: tab }));
 }
 
@@ -68,22 +75,31 @@ function ProNavInner() {
     return (
       <div ref={ref} data-pro-nav="true" className="relative flex items-center gap-2 flex-shrink-0">
 
-        {/* Messages shortcut — clients only */}
-        {role === 'client' && (
-          <button
-            type="button"
-            onClick={() => proNavigate('messages')}
-            title="Messages"
-            className="relative w-8 h-8 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-              <path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-            </svg>
-            {notifCounts.byType.messages > 0 && (
-              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-900" />
-            )}
-          </button>
-        )}
+        {/* Messages shortcut — same entry point for coaches and clients */}
+        {(() => {
+          const unreadMsgs = notifCounts.byType.messages;
+          return (
+            <button
+              type="button"
+              onClick={() => proNavigate('messages')}
+              title="Messages"
+              aria-label={unreadMsgs > 0 ? `Messages, ${unreadMsgs} unread` : 'Messages'}
+              className="relative w-8 h-8 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+              </svg>
+              {unreadMsgs > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-gray-900"
+                >
+                  {unreadMsgs > 9 ? '9+' : unreadMsgs}
+                </span>
+              )}
+            </button>
+          );
+        })()}
 
         {/* ★ Pro badge — hidden on very small screens */}
         <span className="hidden xs:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 text-white pointer-events-none select-none">
@@ -128,7 +144,15 @@ function ProNavInner() {
                 )}
               </div>
 
-              <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
+              <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2 flex flex-col gap-2">
+                {role === 'coach' && (
+                  <a
+                    href="/pro/"
+                    className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                  >
+                    Coach Dashboard
+                  </a>
+                )}
                 <button
                   type="button"
                   onClick={() => { signOut(); setOpen(false); }}

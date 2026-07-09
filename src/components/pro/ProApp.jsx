@@ -13,6 +13,7 @@ import ProSettings   from './ProSettings';
 import ProClients    from './ProClients';
 import ProClientDetail from './ProClientDetail';
 import ProMessages   from './ProMessages';
+import ProMessageToast from './ProMessageToast';
 import ProPrograms   from './ProPrograms';
 import ProHelp       from './ProHelp';
 
@@ -32,6 +33,17 @@ function resolveRole(serverRole) {
   try { return localStorage.getItem(ROLE_KEY); } catch { return null; }
 }
 
+const VALID_TABS = ['home', 'insights', 'tools', 'photos', 'clients', 'programs', 'messages', 'help', 'settings'];
+
+// Lets other pages deep-link straight into a tab (e.g. the top-nav Messages
+// shortcut, which does a real page navigation when it isn't already on /pro/).
+function initialTabFromURL() {
+  try {
+    const requested = new URLSearchParams(window.location.search).get('tab');
+    return VALID_TABS.includes(requested) ? requested : 'home';
+  } catch { return 'home'; }
+}
+
 // ---------------------------------------------------------------------------
 
 function ProShell() {
@@ -42,8 +54,15 @@ function ProShell() {
 
   const role = resolveRole(serverRole);
 
-  const [tab,            setTab]            = useState('home');
+  const [tab,            setTab]            = useState(initialTabFromURL);
   const [selectedClient, setSelectedClient] = useState(null);
+
+  // Drop ?tab= from the URL once consumed so it doesn't stick around across
+  // in-app navigation or get bookmarked/shared.
+  useEffect(() => {
+    if (!window.location.search.includes('tab=')) return;
+    window.history.replaceState(null, '', window.location.pathname);
+  }, []);
 
   function navigate(newTab) {
     setSelectedClient(null);
@@ -103,7 +122,7 @@ function ProShell() {
       case 'programs': return <ProPrograms />;
       case 'messages': return <ProMessages />;
       case 'help':     return <ProHelp onBack={() => navigate('settings')} />;
-      case 'settings': return <ProSettings user={user} />;
+      case 'settings': return <ProSettings user={user} role={role} />;
       default:         return <ProHome     onNavigate={navigate} />;
     }
   }
@@ -112,6 +131,7 @@ function ProShell() {
   return (
     <div className="pb-20 px-4">
       {renderTab()}
+      <ProMessageToast activeTab={tab} onView={() => navigate('messages')} />
       <ProNavigation
         active={tab}
         role={role}

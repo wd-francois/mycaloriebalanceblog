@@ -20,7 +20,6 @@ export default function ProClients({ onSelectClient }) {
   const sentInvites    = useQuery(api.coaches.getSentInvites) ?? [];
   const unreadCounts   = useQuery(api.notifications.getUnreadCounts) ?? { total: 0, byClient: {} };
   const linkClient     = useMutation(api.coaches.linkClient);
-  const unlinkClient   = useMutation(api.coaches.unlinkClient);
   const cancelInvite   = useMutation(api.coaches.cancelInvite);
   const [cancelling,   setCancelling]  = useState(null);
 
@@ -29,7 +28,6 @@ export default function ProClients({ onSelectClient }) {
   const [linking,    setLinking]    = useState(false);
   const [linkError,  setLinkError]  = useState('');
   const [linkOk,     setLinkOk]     = useState(false);
-  const [removing,   setRemoving]   = useState(null); // clientId being removed
 
   const handleLink = async (e) => {
     e.preventDefault();
@@ -46,15 +44,6 @@ export default function ProClients({ onSelectClient }) {
       setLinkError(err.message ?? 'Failed to add client');
     } finally {
       setLinking(false);
-    }
-  };
-
-  const handleUnlink = async (clientId) => {
-    setRemoving(clientId);
-    try {
-      await unlinkClient({ clientId });
-    } finally {
-      setRemoving(null);
     }
   };
 
@@ -254,27 +243,11 @@ export default function ProClients({ onSelectClient }) {
                     </div>
                   </button>
 
-                  {/* Chevron + remove */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleUnlink(client.id)}
-                      disabled={removing === client.id}
-                      className="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all disabled:opacity-30"
-                      title="Remove client"
-                    >
-                      {removing === client.id
-                        ? <div className="w-3.5 h-3.5 rounded-full border-2 border-red-400 border-t-transparent animate-spin" />
-                        : <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M22 10H2M16 14l-4-4-4 4M12 6v4" />
-                          </svg>
-                      }
-                    </button>
-                    <svg className="w-4 h-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
-                      onClick={() => onSelectClient(client)} style={{ cursor: 'pointer' }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
+                  {/* Chevron */}
+                  <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+                    onClick={() => onSelectClient(client)} style={{ cursor: 'pointer' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
               );
             })}

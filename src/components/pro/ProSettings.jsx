@@ -73,10 +73,14 @@ function ToggleSwitch({ checked, onChange }) {
   );
 }
 
-export default function ProSettings({ user }) {
+export default function ProSettings({ user, role: cachedRole }) {
   // ── Convex goals ─────────────────────────────────────────────────────────
-  const convexSettings = useQuery(api.userSettings.get);
-  const currentRole    = useQuery(api.coaches.getRole);
+  const convexSettings   = useQuery(api.userSettings.get);
+  const queriedRole      = useQuery(api.coaches.getRole);
+  // Fall back to the already-resolved role (cached in ProApp) while this
+  // query is loading, e.g. right after a back/forward navigation — avoids
+  // flashing "Client" for a coach before the fresh query resolves.
+  const currentRole      = queriedRole ?? cachedRole;
   const saveGoals      = useMutation(api.userSettings.set);
   const updateName     = useMutation(api.users.updateName);
   const { signOut }    = useAuthActions();

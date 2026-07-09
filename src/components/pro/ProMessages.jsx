@@ -2,6 +2,18 @@ import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 
+function relativeTime(ms) {
+  if (!ms) return '';
+  const diff = Date.now() - ms;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)   return 'Just now';
+  if (mins < 60)  return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7)   return `${days}d ago`;
+  return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
 
 // ── Shared thread (used by clients + coaches inside ProClientDetail) ──────────
 
@@ -86,8 +98,15 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
         </div>
       )}
 
-      {/* Message list */}
-      <div className="flex flex-col gap-2 max-h-[55vh] overflow-y-auto py-1">
+      {/* Message list — role="log" + aria-live so new messages are announced
+          to screen reader users without them needing to re-focus the region */}
+      <div
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label={otherName ? `Conversation with ${otherName}` : 'Conversation'}
+        className="flex flex-col gap-2 max-h-[55vh] overflow-y-auto py-1"
+      >
         {messages.length === 0 && (
           <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-10">No messages yet</p>
         )}
@@ -121,6 +140,7 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
                 {isMine && (
                   <button
                     onClick={() => removeMsg({ id: msg._id })}
+                    aria-label="Delete message"
                     className={`block ml-auto text-[10px] mt-0.5 opacity-40 hover:opacity-80 transition-opacity ${isMine ? 'text-white' : 'text-gray-500'}`}
                   >
                     ×
@@ -137,7 +157,9 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
       <form onSubmit={handleSend} className="border-t border-gray-100 dark:border-gray-800 pt-3 flex flex-col gap-2">
         {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
         <div className="flex gap-2 items-center">
+          <label htmlFor="pro-message-input" className="sr-only">Message</label>
           <input
+            id="pro-message-input"
             type="text"
             value={text}
             onChange={e => setText(e.target.value)}
@@ -149,6 +171,7 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
             title="Attach file"
+            aria-label="Attach file"
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 flex-shrink-0"
           >
             {uploading ? (
@@ -162,6 +185,7 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
           <button
             type="submit"
             disabled={!text.trim() || sending}
+            aria-label="Send message"
             className="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 transition-colors flex-shrink-0"
           >
             {sending ? (
@@ -185,55 +209,85 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
   );
 }
 
-// ── Client messages home ──────────────────────────────────────────────────────
+// ── Messages home (works for both coaches and clients) ────────────────────────
+// Backed by messages.listConversations, which is role-agnostic — it just
+// resolves "the other side of every coach/client relationship I have," so
+// this one inbox serves a coach's client list and a client's coach list.
 
-function CoachListItem({ coach, onClick }) {
-  const initial = (coach.name || coach.email || '?')[0].toUpperCase();
+function ConversationItem({ conversation, onClick }) {
+  const { name, email, lastMessagePreview, lastMessageAt, lastMessageMine, unreadCount } = conversation;
+  const displayName = name || email || 'Unknown';
+  const initial = displayName[0].toUpperCase();
+  const hasUnread = unreadCount > 0;
+
+  const previewText = lastMessagePreview
+    ? `${lastMessageMine ? 'You: ' : ''}${lastMessagePreview}`
+    : 'No messages yet';
+
+  const accessibleLabel = `${displayName}${hasUnread ? `, ${unreadCount} unread message${unreadCount !== 1 ? 's' : ''}` : ''}. ${previewText}`;
+
   return (
     <button
       onClick={onClick}
+      aria-label={accessibleLabel}
       className="w-full flex items-center gap-3 p-3 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all text-left"
     >
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base flex-shrink-0">
-        {initial}
+      <div className="relative flex-shrink-0">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base">
+          {initial}
+        </div>
+        {hasUnread && (
+          <span
+            aria-hidden="true"
+            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-[var(--color-bg-muted)]"
+          >
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{coach.name || coach.email}</p>
-        {coach.name && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{coach.email}</p>}
+        <p className={`text-sm truncate ${hasUnread ? 'font-bold text-gray-900 dark:text-white' : 'font-semibold text-gray-900 dark:text-white'}`}>
+          {displayName}
+        </p>
+        <p className={`text-xs truncate mt-0.5 ${hasUnread ? 'text-gray-700 dark:text-gray-300 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+          {previewText}
+        </p>
       </div>
-      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-      </svg>
+      {lastMessageAt && (
+        <span aria-hidden="true" className="text-[10px] text-gray-400 dark:text-gray-500 flex-shrink-0 self-start mt-1">
+          {relativeTime(lastMessageAt)}
+        </span>
+      )}
     </button>
   );
 }
 
 // Isolated so a query failure can't crash the whole messages screen
-function CoachList({ onSelect }) {
-  const coaches = useQuery(api.coaches.getMyCoaches) ?? [];
-  if (coaches.length === 0) {
-    return <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-12">No coaches linked yet</p>;
+function ConversationList({ onSelect }) {
+  const conversations = useQuery(api.messages.listConversations) ?? [];
+  if (conversations.length === 0) {
+    return <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-12">No conversations yet</p>;
   }
   return (
     <div className="flex flex-col gap-2">
-      {coaches.map(coach => (
-        <CoachListItem key={coach.id} coach={coach} onClick={() => onSelect(coach)} />
+      {conversations.map(conversation => (
+        <ConversationItem key={conversation.id} conversation={conversation} onClick={() => onSelect(conversation)} />
       ))}
     </div>
   );
 }
 
 export default function ProMessages() {
-  const [selectedCoach, setSelectedCoach] = useState(null);
+  const [selectedContact, setSelectedContact] = useState(null);
 
-  if (selectedCoach) {
+  if (selectedContact) {
     return (
       <div className="w-full">
         <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6">
           <CoachThread
-            otherUserId={selectedCoach.id}
-            otherName={selectedCoach.name || selectedCoach.email}
-            onBack={() => setSelectedCoach(null)}
+            otherUserId={selectedContact.id}
+            otherName={selectedContact.name || selectedContact.email}
+            onBack={() => setSelectedContact(null)}
           />
         </div>
       </div>
@@ -244,7 +298,7 @@ export default function ProMessages() {
     <div className="w-full">
       <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Messages</h2>
-        <CoachList onSelect={setSelectedCoach} />
+        <ConversationList onSelect={setSelectedContact} />
       </div>
     </div>
   );
