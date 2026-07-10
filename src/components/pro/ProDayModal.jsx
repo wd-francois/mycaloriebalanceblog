@@ -1361,6 +1361,7 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   const [mode, setMode]             = useState('add');
   const [activeType, setActiveType] = useState(null);
   const [photoFile, setPhotoFile]   = useState(null);
+  const [savingPhoto, setSavingPhoto] = useState(false);
   const addEntry          = useMutation(api.entries.add);
   const deleteEntry       = useMutation(api.entries.remove);
   const generateUploadUrl = useMutation(api.photos.generateUploadUrl);
@@ -1386,26 +1387,38 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
     setPhotoFile(null);
   };
 
+  const uploadPhoto = async () => {
+    if (!photoFile) return undefined;
+    const uploadUrl = await generateUploadUrl();
+    const res = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': photoFile.type },
+      body: photoFile,
+    });
+    if (!res.ok) return undefined;
+    const { storageId } = await res.json();
+    return await savePhoto({ storageId, date: dateStr });
+  };
+
   const handleSave = async (dataOrArray) => {
-    let photoId;
-    if (photoFile) {
-      const uploadUrl = await generateUploadUrl();
-      const res = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': photoFile.type },
-        body: photoFile,
-      });
-      if (res.ok) {
-        const { storageId } = await res.json();
-        photoId = await savePhoto({ storageId, date: dateStr });
-      }
-    }
+    const photoId = await uploadPhoto();
     const items = Array.isArray(dataOrArray) ? dataOrArray : [dataOrArray];
     for (const item of items) {
       await addEntry({ ...item, photoId });
     }
     setPhotoFile(null);
     setActiveType(null);
+  };
+
+  const handleSavePhotoOnly = async () => {
+    if (!photoFile) return;
+    setSavingPhoto(true);
+    try {
+      await uploadPhoto();
+      setPhotoFile(null);
+    } finally {
+      setSavingPhoto(false);
+    }
   };
 
   const handleDelete = (id) => deleteEntry({ id });
@@ -1518,10 +1531,10 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
       style={{ paddingTop: '80px', paddingBottom: '80px' }}
     >
       <div
-        className={`flex-1 overflow-y-auto min-h-0 ${!isFormActive ? 'flex items-center justify-center py-6' : 'py-6'}`}
+        className="flex-1 overflow-y-auto min-h-0 py-6"
         style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
       >
-        <div className="max-w-xl mx-auto px-4 w-full">
+        <div className={`max-w-xl mx-auto px-4 w-full ${!isFormActive ? 'min-h-full flex flex-col justify-center' : ''}`}>
 
           {/* ── Type selection ───────────────────────────────────────────── */}
           {!isFormActive && (
@@ -1563,8 +1576,16 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
                 ))}
               </div>
 
-              <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+              <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-3">
                 <PhotoAttach file={photoFile} setFile={setPhotoFile} />
+                <button
+                  type="button"
+                  onClick={handleSavePhotoOnly}
+                  disabled={!photoFile || savingPhoto}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  {savingPhoto ? <><Spinner className="w-4 h-4" /><span>Saving…</span></> : 'Save Photo'}
+                </button>
               </div>
 
               <button
