@@ -52,8 +52,15 @@ const GroupedEntries = ({
   };
 
 
-  // Group entries by category: Meals, Exercise, Measurements, Sleep
+  // Group entries by category: Meals, Exercise, Measurements, Sleep, Photos
+  // Photo-only entries (have a photo but little/no meal data) should appear in a dedicated Photos card
+  // Treat any entry that has a photo as a Photos entry so photos don't appear inside Meals
+  const isPhotoOnly = (entry) => {
+    return !!(entry && entry.photo && entry.photo.dataUrl);
+  };
+
   const getCategory = (entry) => {
+    if (isPhotoOnly(entry)) return 'photos';
     if (entry.type === 'meal') return 'meal';
     if (entry.type === 'exercise' || entry.type === 'activity' || !entry.type) return 'exercise';
     if (entry.type === 'measurements') return 'measurements';
@@ -61,8 +68,14 @@ const GroupedEntries = ({
     return 'exercise';
   };
 
-  const categoryOrder = ['meal', 'exercise', 'measurements', 'sleep'];
-  const categoryLabels = ['Meals', 'Exercise', 'Measurements', 'Sleep'];
+  const categoryOrder = ['meal', 'exercise', 'measurements', 'sleep', 'photos'];
+  const categoryLabels = {
+    meal: 'Meals',
+    exercise: 'Exercise',
+    measurements: 'Measurements',
+    sleep: 'Sleep',
+    photos: 'Photos'
+  };
 
   const groupedByCategory = entries.reduce((acc, entry) => {
     const cat = getCategory(entry);
@@ -178,6 +191,7 @@ const GroupedEntries = ({
     exercise: { bg: 'bg-green-50', text: 'text-green-800', emoji: '💪' },
     measurements: { bg: 'bg-orange-50', text: 'text-orange-800', emoji: '📏' },
     sleep: { bg: 'bg-purple-50', text: 'text-purple-800', emoji: '😴' },
+    photos: { bg: 'bg-pink-50', text: 'text-pink-800', emoji: '📸' }
   };
 
   return (
@@ -186,7 +200,7 @@ const GroupedEntries = ({
         const group = groupedByCategory[catKey];
         if (!group || group.length === 0) return null;
 
-        const label = categoryLabels[categoryOrder.indexOf(catKey)];
+        const label = categoryLabels[catKey] || categoryLabels[categoryOrder.indexOf(catKey)];
         const entryCount = group.length;
         const style = categoryStyles[catKey] || categoryStyles.exercise;
         const isCollapsed = collapsedTimes.has(catKey);
@@ -245,7 +259,15 @@ const GroupedEntries = ({
                       onDrop={(e) => onDrop(e, entry)}
                       className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-white hover:bg-gray-50 transition-colors cursor-move hover:border-blue-300 touch-manipulation"
                     >
-                      <div className="flex-1">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        {entry.photo?.dataUrl && (
+                          <img
+                            src={entry.photo.dataUrl}
+                            alt=""
+                            className="w-14 h-14 rounded-lg object-cover flex-shrink-0 border border-gray-200 dark:border-gray-700"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 flex-wrap">
                           <div className="font-medium text-gray-900 dark:text-white text-lg">
                             {entry.name}
@@ -369,6 +391,7 @@ const GroupedEntries = ({
                             </div>
                           </div>
                         )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">

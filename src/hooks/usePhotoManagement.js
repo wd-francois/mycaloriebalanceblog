@@ -134,7 +134,7 @@ export function usePhotoManagement(formState, setFormState, setFormError) {
 
     const tempEntry = {
       id: entryId,
-      name: formState.name?.trim() || 'Untitled entry',
+      name: formState.name?.trim() || 'Photo',
       type: activeForm,
       date: selectedDate,
       time,

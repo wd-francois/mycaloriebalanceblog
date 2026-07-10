@@ -70,7 +70,7 @@ function groupPhotosByDate(entries) {
       entryId: entryIdentifier,
       image: entry.photo.dataUrl,
       entryName: entry.name || 'Untitled entry',
-      entryType: entry.type || 'meal',
+      entryType: entry.type || 'photo',
       timeLabel: formatEntryTime(entry.time) || capturedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       timestamp: capturedAt,
       timestampLabel: capturedAt.toLocaleString()
