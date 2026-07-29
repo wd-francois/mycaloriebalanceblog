@@ -26,12 +26,9 @@ export const sendCoachInvite = internalAction({
       <table width="100%" style="max-width:480px;background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden">
         <!-- Header -->
         <tr>
-          <td style="background:linear-gradient(135deg,#2563eb,#4f46e5);padding:32px 32px 24px;text-align:center">
-            <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:rgba(255,255,255,0.2);border-radius:14px;margin-bottom:12px">
-              <span style="font-size:28px">⭐</span>
-            </div>
-            <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700">My Calorie Balance</h1>
-            <p style="margin:4px 0 0;color:rgba(255,255,255,0.8);font-size:13px;font-weight:600">Pro</p>
+          <td style="background:#ffffff;padding:32px 32px 20px;text-align:center;border-bottom:1px solid #f1f5f9">
+            <img src="https://mycaloriebalance.com/email-logo.png" width="110" height="110" alt="My Calorie Balance" style="display:block;width:110px;height:110px;margin:0 auto 10px;border:0" />
+            <p style="margin:0;color:#2563eb;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Pro</p>
           </td>
         </tr>
         <!-- Body -->
@@ -39,7 +36,7 @@ export const sendCoachInvite = internalAction({
           <td style="padding:32px">
             <p style="margin:0 0 8px;font-size:15px;color:#374151">Hi ${displayClient},</p>
             <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6">
-              <strong style="color:#111827">${displayCoach}</strong> wants to be your coach on <strong>My Calorie Balance Pro</strong> — a free app to track your nutrition, sleep, and fitness.
+              <strong style="color:#111827">${displayCoach}</strong> wants to be your coach on <strong>My Calorie Balance Pro</strong>.
             </p>
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;margin-bottom:24px">
               <p style="margin:0 0 8px;font-size:13px;color:#1e40af;font-weight:600">How to accept:</p>
@@ -52,8 +49,8 @@ export const sendCoachInvite = internalAction({
             </div>
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px">
               <tr>
-                <td align="center">
-                  <a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:12px">
+                <td align="center" bgcolor="#2563eb" style="background-color:#2563eb;background:linear-gradient(135deg,#2563eb,#4f46e5);border-radius:12px">
+                  <a href="${appUrl}" style="display:inline-block;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:12px">
                     Create your account &amp; accept
                   </a>
                 </td>

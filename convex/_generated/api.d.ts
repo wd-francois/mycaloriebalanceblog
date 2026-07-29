@@ -9,11 +9,13 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as coachClientData from "../coachClientData.js";
 import type * as coaches from "../coaches.js";
 import type * as comments from "../comments.js";
 import type * as emails from "../emails.js";
 import type * as entries from "../entries.js";
 import type * as http from "../http.js";
+import type * as lib from "../lib.js";
 import type * as messages from "../messages.js";
 import type * as notifications from "../notifications.js";
 import type * as photos from "../photos.js";
@@ -29,11 +31,13 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  coachClientData: typeof coachClientData;
   coaches: typeof coaches;
   comments: typeof comments;
   emails: typeof emails;
   entries: typeof entries;
   http: typeof http;
+  lib: typeof lib;
   messages: typeof messages;
   notifications: typeof notifications;
   photos: typeof photos;
