@@ -20,18 +20,17 @@ export const getClientEntries = query({
 
     try { await assertCoachOf(ctx, userId, args.clientId); } catch (e) { console.warn("assertCoachOf denied:", e); return []; }
 
-    const { clientId, startDate, endDate } = args;
-
-    return await ctx.db
+    const all = await ctx.db
       .query("entries")
-      .withIndex("by_user_date", (q) => {
-        if (startDate && endDate) return q.eq("userId", clientId).gte("date", startDate).lte("date", endDate);
-        if (startDate) return q.eq("userId", clientId).gte("date", startDate);
-        if (endDate) return q.eq("userId", clientId).lte("date", endDate);
-        return q.eq("userId", clientId);
-      })
+      .withIndex("by_user", (q) => q.eq("userId", args.clientId))
       .order("desc")
       .collect();
+
+    return all.filter((e) => {
+      if (args.startDate && e.date < args.startDate) return false;
+      if (args.endDate   && e.date > args.endDate)   return false;
+      return true;
+    });
   },
 });
 
