@@ -225,12 +225,12 @@ const AddMealForm = () => {
             date: normalizedDate,
             time,
           };
-          const currentData = JSON.parse(localStorage.getItem('healthEntries') || '{}');
+          const currentData = healthDB.getHealthEntries();
           if (!currentData[dateKey]) currentData[dateKey] = [];
           const idx = currentData[dateKey].findIndex((e) => e.id === base.id);
           if (idx >= 0) currentData[dateKey][idx] = { ...updatedCalendarEntry, date: updatedCalendarEntry.date };
           else currentData[dateKey].push({ ...updatedCalendarEntry, date: updatedCalendarEntry.date });
-          localStorage.setItem('healthEntries', JSON.stringify(currentData));
+          healthDB.saveHealthEntries(currentData);
         } else {
           const storageKey = 'mealLibrary';
           const currentItems = JSON.parse(localStorage.getItem(storageKey) || '[]');
@@ -270,12 +270,11 @@ const AddMealForm = () => {
         } catch (entryErr) {
           console.warn('Calendar entry save failed, meal saved to library only:', entryErr);
           try {
-            const storageKey = 'healthEntries';
-            const currentData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            const currentData = healthDB.getHealthEntries();
             const dateKey = normalizedDate.toDateString();
             if (!currentData[dateKey]) currentData[dateKey] = [];
             currentData[dateKey].push(calendarEntry);
-            localStorage.setItem(storageKey, JSON.stringify(currentData));
+            healthDB.saveHealthEntries(currentData);
           } catch (_) {}
         }
         }

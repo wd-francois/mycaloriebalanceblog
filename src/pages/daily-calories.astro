@@ -159,6 +159,9 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <script>
+    import { normalizeEntryDate } from '../lib/dateUtils.js';
+    import healthDB from '../lib/database.js';
+
     // Declare Chart.js types
     declare const Chart: any;
     
@@ -186,65 +189,37 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
       
       // Load from localStorage first
       try {
-        const entriesData = localStorage.getItem('healthEntries');
-        console.log('localStorage data exists:', !!entriesData);
-        if (entriesData) {
-          const parsed = JSON.parse(entriesData);
-          console.log('Parsed localStorage keys:', Object.keys(parsed));
-          
-          Object.keys(parsed).forEach(dateKey => {
-            if (Array.isArray(parsed[dateKey])) {
-              console.log(`Processing ${parsed[dateKey].length} entries for dateKey: ${dateKey}`);
-              
-              // Process each entry and normalize date
-              parsed[dateKey].forEach(entry => {
-                if (!entry) return;
-                
-                // Try to get date from entry.date or use dateKey
-                let entryDate = null;
-                
-                if (entry.date) {
-                  if (entry.date instanceof Date) {
-                    entryDate = entry.date;
-                  } else if (typeof entry.date === 'string') {
-                    if (entry.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                      const [year, month, day] = entry.date.split('-').map(Number);
-                      entryDate = new Date(year, month - 1, day);
-                    } else {
-                      entryDate = new Date(entry.date);
-                    }
-                  } else {
-                    entryDate = new Date(entry.date);
-                  }
-                } else {
-                  // If no date in entry, try to parse the dateKey
-                  if (dateKey.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                    const [year, month, day] = dateKey.split('-').map(Number);
-                    entryDate = new Date(year, month - 1, day);
-                  } else {
-                    entryDate = new Date(dateKey);
-                  }
+        const parsed = healthDB.getHealthEntries();
+        console.log('Parsed localStorage keys:', Object.keys(parsed));
+
+        Object.keys(parsed).forEach(dateKey => {
+          if (Array.isArray(parsed[dateKey])) {
+            console.log(`Processing ${parsed[dateKey].length} entries for dateKey: ${dateKey}`);
+
+            // Process each entry and normalize date
+            parsed[dateKey].forEach(entry => {
+              if (!entry) return;
+
+              // Try to get date from entry.date or use dateKey
+              const entryDate = entry.date ? normalizeEntryDate(entry.date) : normalizeEntryDate(dateKey);
+
+              if (entryDate) {
+                const normalizedDateKey = entryDate.toDateString();
+
+                if (!entries[normalizedDateKey]) {
+                  entries[normalizedDateKey] = [];
                 }
-                
-                if (entryDate && !isNaN(entryDate.getTime())) {
-                  entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-                  const normalizedDateKey = entryDate.toDateString();
-                  
-                  if (!entries[normalizedDateKey]) {
-                    entries[normalizedDateKey] = [];
-                  }
-                  
-                  const exists = entries[normalizedDateKey].some(e => e.id === entry.id);
-                  if (!exists) {
-                    entries[normalizedDateKey].push({ ...entry, date: entryDate });
-                  }
-                } else {
-                  console.warn('Could not parse date for entry:', entry);
+
+                const exists = entries[normalizedDateKey].some(e => e.id === entry.id);
+                if (!exists) {
+                  entries[normalizedDateKey].push({ ...entry, date: entryDate });
                 }
-              });
-            }
-          });
-        }
+              } else {
+                console.warn('Could not parse date for entry:', entry);
+              }
+            });
+          }
+        });
       } catch (e) {
         console.error('Error loading from localStorage:', e);
       }
@@ -254,78 +229,30 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
       // Load from IndexedDB
       if (typeof indexedDB !== 'undefined') {
         try {
-          const dbName = 'HealthTrackerDB';
-          const request = indexedDB.open(dbName, 2);
-          
-          await new Promise<void>((resolve, reject) => {
-            request.onsuccess = () => {
-              const db = request.result;
-              console.log('IndexedDB opened, object stores:', Array.from(db.objectStoreNames));
-              
-              if (db.objectStoreNames.contains('userEntries')) {
-                const transaction = db.transaction(['userEntries'], 'readonly');
-                const store = transaction.objectStore('userEntries');
-                const getAllRequest = store.getAll();
-                
-                getAllRequest.onsuccess = () => {
-                  const allEntries = getAllRequest.result || [];
-                  console.log('Loaded', allEntries.length, 'entries from IndexedDB');
-                  
-                  allEntries.forEach(entry => {
-                    if (entry && entry.date) {
-                      let entryDate;
-                      if (entry.date instanceof Date) {
-                        entryDate = entry.date;
-                      } else if (typeof entry.date === 'string') {
-                        if (entry.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                          const [year, month, day] = entry.date.split('-').map(Number);
-                          entryDate = new Date(year, month - 1, day);
-                        } else {
-                          entryDate = new Date(entry.date);
-                        }
-                      } else {
-                        entryDate = new Date(entry.date);
-                      }
-                      
-                      if (!isNaN(entryDate.getTime())) {
-                        entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-                        const dateKey = entryDate.toDateString();
-                        
-                        if (!entries[dateKey]) {
-                          entries[dateKey] = [];
-                        }
-                        
-                        const exists = entries[dateKey].some(e => e.id === entry.id);
-                        if (!exists) {
-                          entries[dateKey].push({ ...entry, date: entryDate });
-                        }
-                      }
-                    }
-                  });
-                  
-                  console.log('After IndexedDB, entries:', Object.keys(entries).length, 'dates');
-                  resolve();
-                };
-                
-                getAllRequest.onerror = () => {
-                  console.log('IndexedDB read failed');
-                  resolve();
-                };
-              } else {
-                console.log('userEntries object store not found');
-                resolve();
+          await healthDB.init();
+          const allEntries = await healthDB.getAllUserEntries();
+          console.log('Loaded', allEntries.length, 'entries from IndexedDB');
+
+          allEntries.forEach(entry => {
+            if (entry && entry.date) {
+              const entryDate = normalizeEntryDate(entry.date);
+
+              if (entryDate) {
+                const dateKey = entryDate.toDateString();
+
+                if (!entries[dateKey]) {
+                  entries[dateKey] = [];
+                }
+
+                const exists = entries[dateKey].some(e => e.id === entry.id);
+                if (!exists) {
+                  entries[dateKey].push({ ...entry, date: entryDate });
+                }
               }
-            };
-            
-            request.onerror = () => {
-              console.log('IndexedDB open failed:', request.error);
-              resolve(); // Resolve instead of reject to continue
-            };
-            
-            request.onupgradeneeded = () => {
-              console.log('IndexedDB upgrade needed');
-            };
+            }
           });
+
+          console.log('After IndexedDB, entries:', Object.keys(entries).length, 'dates');
         } catch (e) {
           console.log('IndexedDB error:', e);
         }
@@ -383,17 +310,11 @@ console.log('Calories page - dateParam:', dateParam, 'backDate:', backDate);
         // Get the selected date or today's date
         let targetDate;
         if (this.selectedDate) {
-          // Parse YYYY-MM-DD format
-          if (this.selectedDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            const [year, month, day] = this.selectedDate.split('-').map(Number);
-            targetDate = new Date(year, month - 1, day);
-          } else {
-            targetDate = new Date(this.selectedDate);
-          }
+          targetDate = normalizeEntryDate(this.selectedDate) || new Date(this.selectedDate);
         } else {
           targetDate = new Date();
         }
-        
+
         // Normalize date to midnight to avoid timezone issues
         targetDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
         

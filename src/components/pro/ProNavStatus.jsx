@@ -3,6 +3,7 @@ import { ConvexReactClient, useQuery } from 'convex/react';
 import { ConvexAuthProvider, useConvexAuth } from '@convex-dev/auth/react';
 import { useAuthActions, useAuthToken } from '@convex-dev/auth/react';
 import { api } from '../../../convex/_generated/api';
+import { useProRole } from './useProRole';
 
 function proNavigate(tab) {
   // ProApp only listens for this event while it's mounted (i.e. on /pro/).
@@ -35,7 +36,7 @@ function ProNavInner() {
   const { signOut } = useAuthActions();
   const token = useAuthToken();
   const user         = useQuery(api.users.viewer);
-  const role         = useQuery(api.coaches.getRole);
+  const role         = useProRole();
   const notifCounts  = useQuery(api.notifications.getUnreadCounts) ?? { byType: { messages: 0, comments: 0 } };
 
   const [open, setOpen] = useState(false);

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { assertCoachOf } from "./lib";
 
 async function assertCoach(ctx: any) {
   const userId = await getAuthUserId(ctx);
@@ -26,6 +27,14 @@ export const list = query({
       .order("desc")
       .collect();
 
+    // Cache client lookups — the same client is often assigned to several
+    // programs, so this avoids re-fetching the same user doc repeatedly.
+    const userCache = new Map<string, ReturnType<typeof ctx.db.get>>();
+    const getCachedUser = (id: any) => {
+      if (!userCache.has(id)) userCache.set(id, ctx.db.get(id));
+      return userCache.get(id)!;
+    };
+
     return await Promise.all(
       programs.map(async (p) => {
         const assignments = await ctx.db
@@ -34,7 +43,7 @@ export const list = query({
           .collect();
         const clients = await Promise.all(
           assignments.map(async (a) => {
-            const user = await ctx.db.get(a.clientId);
+            const user = await getCachedUser(a.clientId);
             return { id: a.clientId, name: user?.name ?? user?.email ?? "Unknown" };
           }),
         );
@@ -104,6 +113,8 @@ export const assign = mutation({
     const coachId = await assertCoach(ctx);
     const program = await ctx.db.get(args.programId);
     if (!program || program.coachId !== coachId) throw new Error("Not authorized");
+
+    await assertCoachOf(ctx, coachId, args.clientId);
 
     const existing = await ctx.db
       .query("programAssignments")

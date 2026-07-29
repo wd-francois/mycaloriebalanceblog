@@ -16,22 +16,10 @@ import ProMessages   from './ProMessages';
 import ProMessageToast from './ProMessageToast';
 import ProPrograms   from './ProPrograms';
 import ProHelp       from './ProHelp';
+import ProErrorBoundary from './ProErrorBoundary';
+import { useProRole } from './useProRole';
 
 const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
-
-// ---------------------------------------------------------------------------
-// Role helper — reads/writes a localStorage cache so the nav is stable on
-// remount while the Convex query is still in-flight.
-// ---------------------------------------------------------------------------
-const ROLE_KEY = 'mcb_pro_role';
-
-function resolveRole(serverRole) {
-  if (serverRole) {
-    try { localStorage.setItem(ROLE_KEY, serverRole); } catch {}
-    return serverRole;
-  }
-  try { return localStorage.getItem(ROLE_KEY); } catch { return null; }
-}
 
 const VALID_TABS = ['home', 'insights', 'tools', 'photos', 'clients', 'programs', 'messages', 'help', 'settings'];
 
@@ -49,10 +37,9 @@ function initialTabFromURL() {
 function ProShell() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user        = useQuery(api.users.viewer);
-  const serverRole  = useQuery(api.coaches.getRole);
   const claimInvites = useMutation(api.coaches.claimPendingInvites);
 
-  const role = resolveRole(serverRole);
+  const role = useProRole();
 
   const [tab,            setTab]            = useState(initialTabFromURL);
   const [selectedClient, setSelectedClient] = useState(null);
@@ -114,7 +101,7 @@ function ProShell() {
       );
     }
     switch (tab) {
-      case 'home':     return <ProHome     onNavigate={navigate} role={role} />;
+      case 'home':     return <ProHome     onNavigate={navigate} />;
       case 'insights': return <ProInsights />;
       case 'tools':    return <ProTools />;
       case 'photos':   return <ProPhotos />;
@@ -122,7 +109,7 @@ function ProShell() {
       case 'programs': return <ProPrograms />;
       case 'messages': return <ProMessages />;
       case 'help':     return <ProHelp onBack={() => navigate('settings')} />;
-      case 'settings': return <ProSettings user={user} role={role} />;
+      case 'settings': return <ProSettings user={user} />;
       default:         return <ProHome     onNavigate={navigate} />;
     }
   }
@@ -130,8 +117,26 @@ function ProShell() {
   // ── Shell ────────────────────────────────────────────────────────────────
   return (
     <div className="pb-20 px-4">
-      {renderTab()}
-      <ProMessageToast activeTab={tab} onView={() => navigate('messages')} />
+      <ProErrorBoundary
+        key={tab}
+        fallback={
+          <div className="flex flex-col items-center justify-center gap-2 py-24 text-center">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Something went wrong loading this page.</p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="text-sm font-semibold text-blue-600 dark:text-blue-400"
+            >
+              Reload
+            </button>
+          </div>
+        }
+      >
+        {renderTab()}
+      </ProErrorBoundary>
+      <ProErrorBoundary>
+        <ProMessageToast activeTab={tab} onView={() => navigate('messages')} />
+      </ProErrorBoundary>
       <ProNavigation
         active={tab}
         role={role}

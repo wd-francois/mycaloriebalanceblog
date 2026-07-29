@@ -138,6 +138,9 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <script>
+    import { normalizeEntryDate } from '../lib/dateUtils.js';
+    import healthDB from '../lib/database.js';
+
     // Declare Chart.js types
     declare const Chart: any;
     // Statistics Dashboard
@@ -163,65 +166,31 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
           // Try to load from IndexedDB first
           if (typeof indexedDB !== 'undefined') {
             try {
-              const dbName = 'HealthTrackerDB';
-              const request = indexedDB.open(dbName, 2);
-              
-              await new Promise<void>((resolve, reject) => {
-                request.onsuccess = () => {
-                  const db = request.result;
-                  
-                  if (db.objectStoreNames.contains('userEntries')) {
-                    const transaction = db.transaction(['userEntries'], 'readonly');
-                    const store = transaction.objectStore('userEntries');
-                    const getAllRequest = store.getAll();
-                    
-                    getAllRequest.onsuccess = () => {
-                      const allEntries = getAllRequest.result || [];
-                      console.log('Loaded', allEntries.length, 'entries from IndexedDB for statistics');
-                      
-                      // Format entries by date
-                      const formattedEntries: any = {};
-                      allEntries.forEach((entry: any) => {
-                        if (!entry || !entry.date) return;
-                        
-                        let entryDate = entry.date instanceof Date ? entry.date : new Date(entry.date);
-                        if (isNaN(entryDate.getTime())) return;
-                        
-                        entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-                        const dateKey = entryDate.toDateString();
-                        
-                        if (!formattedEntries[dateKey]) {
-                          formattedEntries[dateKey] = [];
-                        }
-                        
-                        formattedEntries[dateKey].push({
-                          ...entry,
-                          date: entryDate
-                        });
-                      });
-                      
-                      this.entries = formattedEntries;
-                      resolve();
-                    };
-                    
-                    getAllRequest.onerror = () => {
-                      console.warn('Error loading from IndexedDB, falling back to localStorage');
-                      this.loadFromLocalStorage();
-                      resolve();
-                    };
-                  } else {
-                    console.warn('IndexedDB userEntries store not found, falling back to localStorage');
-                    this.loadFromLocalStorage();
-                    resolve();
-                  }
-                };
-                
-                request.onerror = () => {
-                  console.warn('IndexedDB open failed, falling back to localStorage');
-                  this.loadFromLocalStorage();
-                  resolve();
-                };
+              await healthDB.init();
+              const allEntries = await healthDB.getAllUserEntries();
+              console.log('Loaded', allEntries.length, 'entries from IndexedDB for statistics');
+
+              // Format entries by date
+              const formattedEntries: any = {};
+              allEntries.forEach((entry: any) => {
+                if (!entry || !entry.date) return;
+
+                const entryDate = normalizeEntryDate(entry.date);
+                if (!entryDate) return;
+
+                const dateKey = entryDate.toDateString();
+
+                if (!formattedEntries[dateKey]) {
+                  formattedEntries[dateKey] = [];
+                }
+
+                formattedEntries[dateKey].push({
+                  ...entry,
+                  date: entryDate
+                });
               });
+
+              this.entries = formattedEntries;
             } catch (dbError) {
               console.warn('IndexedDB error, falling back to localStorage:', dbError);
               this.loadFromLocalStorage();
@@ -239,16 +208,13 @@ import OfflineIndicator from '../components/OfflineIndicator.jsx';
       loadFromLocalStorage() {
         try {
           // Load entries from localStorage as fallback
-          const entriesData = localStorage.getItem('healthEntries');
-          if (entriesData) {
-            const parsed = JSON.parse(entriesData);
-            // Filter out settings and keep only date entries
-            Object.keys(parsed).forEach(dateKey => {
-              if (Array.isArray(parsed[dateKey])) {
-                this.entries[dateKey] = parsed[dateKey];
-              }
-            });
-          }
+          const parsed = healthDB.getHealthEntries();
+          // Filter out settings and keep only date entries
+          Object.keys(parsed).forEach(dateKey => {
+            if (Array.isArray(parsed[dateKey])) {
+              this.entries[dateKey] = parsed[dateKey];
+            }
+          });
 
           // Load measurements
           const measurementsData = localStorage.getItem('measurements');

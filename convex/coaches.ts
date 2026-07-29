@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
+import { resolveUserEmail } from "./lib";
 
 // ── Role ─────────────────────────────────────────────────────────────────────
 
@@ -46,21 +47,15 @@ export const getClients = query({
     return await Promise.all(
       relationships.map(async (rel) => {
         const clientId = rel.clientId!;
-        const user = await ctx.db.get(clientId);
-        const passwordAccount = await ctx.db
-          .query("authAccounts")
-          .withIndex("userIdAndProvider", (q) =>
-            q.eq("userId", clientId).eq("provider", "password"),
-          )
-          .first();
-        const email =
-          user?.email ?? passwordAccount?.providerAccountId ?? null;
-
-        const lastEntry = await ctx.db
-          .query("entries")
-          .withIndex("by_user", (q) => q.eq("userId", clientId))
-          .order("desc")
-          .first();
+        const [user, email, lastEntry] = await Promise.all([
+          ctx.db.get(clientId),
+          resolveUserEmail(ctx, clientId),
+          ctx.db
+            .query("entries")
+            .withIndex("by_user", (q) => q.eq("userId", clientId))
+            .order("desc")
+            .first(),
+        ]);
 
         return {
           id: clientId,
@@ -202,14 +197,7 @@ export const getPendingInvites = query({
       .collect();
 
     // Also check email-based invites (fallback if claimPendingInvites hasn't run yet)
-    const userRecord = await ctx.db.get(userId);
-    const authAccount = await ctx.db
-      .query("authAccounts")
-      .withIndex("userIdAndProvider", (q) =>
-        q.eq("userId", userId).eq("provider", "password"),
-      )
-      .first();
-    const userEmail = (userRecord?.email ?? authAccount?.providerAccountId ?? "").toLowerCase();
+    const userEmail = (await resolveUserEmail(ctx, userId) ?? "").toLowerCase();
     const emailBased = userEmail
       ? await ctx.db
           .query("coachClients")
@@ -228,16 +216,11 @@ export const getPendingInvites = query({
     return await Promise.all(
       all.map(async (rel) => {
         const coachUser = await ctx.db.get(rel.coachId);
-        const coachAccount = await ctx.db
-          .query("authAccounts")
-          .withIndex("userIdAndProvider", (q) =>
-            q.eq("userId", rel.coachId).eq("provider", "password"),
-          )
-          .first();
+        const email = await resolveUserEmail(ctx, rel.coachId);
         return {
           id: rel._id,
           coachId: rel.coachId,
-          email: coachUser?.email ?? coachAccount?.providerAccountId ?? null,
+          email,
           name: coachUser?.name ?? null,
         };
       }),
@@ -259,14 +242,7 @@ export const acceptInvite = mutation({
     if (rel.clientId && rel.clientId !== userId) throw new Error("Not authorized");
     if (!rel.clientId) {
       // Email-based invite — verify email matches and link the userId
-      const userRecord = await ctx.db.get(userId);
-      const authAccount = await ctx.db
-        .query("authAccounts")
-        .withIndex("userIdAndProvider", (q) =>
-          q.eq("userId", userId).eq("provider", "password"),
-        )
-        .first();
-      const userEmail = (userRecord?.email ?? authAccount?.providerAccountId ?? "").toLowerCase();
+      const userEmail = (await resolveUserEmail(ctx, userId) ?? "").toLowerCase();
       if (rel.inviteEmail !== userEmail) throw new Error("Not authorized");
       await ctx.db.patch(args.inviteId, { clientId: userId, inviteEmail: undefined, status: "accepted" });
       return;
@@ -302,16 +278,11 @@ export const getSentInvites = query({
         }
         // User-linked invite
         const user = await ctx.db.get(rel.clientId);
-        const account = await ctx.db
-          .query("authAccounts")
-          .withIndex("userIdAndProvider", (q) =>
-            q.eq("userId", rel.clientId!).eq("provider", "password"),
-          )
-          .first();
+        const email = await resolveUserEmail(ctx, rel.clientId!);
         return {
           id: rel._id,
           clientId: rel.clientId,
-          email: user?.email ?? account?.providerAccountId ?? null,
+          email,
           name: user?.name ?? null,
           signedUp: true,
         };
@@ -327,14 +298,7 @@ export const claimPendingInvites = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) return;
 
-    const user = await ctx.db.get(userId);
-    const account = await ctx.db
-      .query("authAccounts")
-      .withIndex("userIdAndProvider", (q) =>
-        q.eq("userId", userId).eq("provider", "password"),
-      )
-      .first();
-    const email = (user?.email ?? account?.providerAccountId ?? "").toLowerCase();
+    const email = (await resolveUserEmail(ctx, userId) ?? "").toLowerCase();
     if (!email) return;
 
     const emailInvites = await ctx.db
@@ -361,14 +325,7 @@ export const declineInvite = mutation({
 
     if (rel.clientId && rel.clientId !== userId) throw new Error("Not authorized");
     if (!rel.clientId) {
-      const userRecord = await ctx.db.get(userId);
-      const authAccount = await ctx.db
-        .query("authAccounts")
-        .withIndex("userIdAndProvider", (q) =>
-          q.eq("userId", userId).eq("provider", "password"),
-        )
-        .first();
-      const userEmail = (userRecord?.email ?? authAccount?.providerAccountId ?? "").toLowerCase();
+      const userEmail = (await resolveUserEmail(ctx, userId) ?? "").toLowerCase();
       if (rel.inviteEmail !== userEmail) throw new Error("Not authorized");
     }
 
@@ -397,86 +354,16 @@ export const getMyCoaches = query({
 
     return await Promise.all(
       relationships.map(async (rel) => {
-        const user = await ctx.db.get(rel.coachId);
-        const passwordAccount = await ctx.db
-          .query("authAccounts")
-          .withIndex("userIdAndProvider", (q) =>
-            q.eq("userId", rel.coachId).eq("provider", "password"),
-          )
-          .first();
-        const email = user?.email ?? passwordAccount?.providerAccountId ?? null;
+        const [user, email] = await Promise.all([
+          ctx.db.get(rel.coachId),
+          resolveUserEmail(ctx, rel.coachId),
+        ]);
         return {
           id: rel.coachId,
           email,
           name: user?.name ?? null,
         };
       }),
-    );
-  },
-});
-
-// ── Client data access ────────────────────────────────────────────────────────
-
-async function assertCoachOf(ctx: any, coachId: string, clientId: string) {
-  const rel = await ctx.db
-    .query("coachClients")
-    .withIndex("by_coach", (q: any) => q.eq("coachId", coachId))
-    .filter((q: any) =>
-      q.and(
-        q.eq(q.field("clientId"), clientId),
-        q.neq(q.field("status"), "pending"),
-      )
-    )
-    .first();
-  if (!rel) throw new Error("Not authorized");
-  return rel;
-}
-
-export const getClientEntries = query({
-  args: {
-    clientId: v.id("users"),
-    startDate: v.optional(v.string()),
-    endDate: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-
-    try { await assertCoachOf(ctx, userId, args.clientId); } catch { return []; }
-
-    const all = await ctx.db
-      .query("entries")
-      .withIndex("by_user", (q) => q.eq("userId", args.clientId))
-      .order("desc")
-      .collect();
-
-    return all.filter((e) => {
-      if (args.startDate && e.date < args.startDate) return false;
-      if (args.endDate   && e.date > args.endDate)   return false;
-      return true;
-    });
-  },
-});
-
-export const getClientPhotos = query({
-  args: { clientId: v.id("users") },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-
-    try { await assertCoachOf(ctx, userId, args.clientId); } catch { return []; }
-
-    const rows = await ctx.db
-      .query("photos")
-      .withIndex("by_user", (q) => q.eq("userId", args.clientId))
-      .order("desc")
-      .collect();
-
-    return await Promise.all(
-      rows.map(async (photo) => ({
-        ...photo,
-        url: await ctx.storage.getUrl(photo.storageId),
-      })),
     );
   },
 });

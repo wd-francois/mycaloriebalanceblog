@@ -1,7 +1,7 @@
 import { v } from "convex/values";
-import { action } from "./_generated/server";
+import { internalAction } from "./_generated/server";
 
-export const sendCoachInvite = action({
+export const sendCoachInvite = internalAction({
   args: {
     toEmail: v.string(),
     toName: v.optional(v.string()),

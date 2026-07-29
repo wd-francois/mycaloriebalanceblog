@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { notifyOnce } from "./lib";
 
 export const list = query({
   args: {
@@ -122,26 +123,9 @@ export const add = mutation({
       .collect();
 
     await Promise.all(
-      relationships.map(async (rel) => {
-        const existing = await ctx.db
-          .query("notifications")
-          .withIndex("by_recipient", (q) => q.eq("recipientId", rel.coachId))
-          .filter((q) =>
-            q.and(
-              q.eq(q.field("senderId"), userId),
-              q.eq(q.field("type"), "entry"),
-              q.eq(q.field("readAt"), undefined)
-            )
-          )
-          .first();
-        if (!existing) {
-          await ctx.db.insert("notifications", {
-            recipientId: rel.coachId,
-            senderId: userId,
-            type: "entry",
-          });
-        }
-      })
+      relationships.map((rel) =>
+        notifyOnce(ctx, { recipientId: rel.coachId, senderId: userId, type: "entry" })
+      )
     );
 
     return entryId;

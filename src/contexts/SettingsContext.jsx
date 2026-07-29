@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import healthDB from '../lib/database.js';
 
 const SettingsContext = createContext();
 
@@ -87,7 +88,7 @@ Please format your response clearly so I can easily update my meal entry.`,
     if (typeof window === 'undefined' || isInitialized) return;
 
     const savedSettings = localStorage.getItem('healthTrackerSettings');
-    const healthEntries = localStorage.getItem('healthEntries');
+    const healthEntries = healthDB.getHealthEntries();
 
     if (savedSettings) {
       try {
@@ -118,13 +119,12 @@ Please format your response clearly so I can easily update my meal entry.`,
     }
 
     // Load feature toggles from healthEntries if present (same object also stores per-day entry arrays — never merge those into settings)
-    if (healthEntries) {
+    if (Object.keys(healthEntries).length > 0) {
       try {
-        const parsed = JSON.parse(healthEntries);
         const toggleKeys = ['enableMeals', 'enableExercise', 'enableSleep', 'enableMeasurements'];
         const toggles = {};
         for (const key of toggleKeys) {
-          if (parsed[key] !== undefined) toggles[key] = parsed[key];
+          if (healthEntries[key] !== undefined) toggles[key] = healthEntries[key];
         }
         if (Object.keys(toggles).length > 0) {
           setSettings((prev) => ({ ...prev, ...toggles }));
@@ -153,9 +153,9 @@ Please format your response clearly so I can easily update my meal entry.`,
       enableMeasurements: settings.enableMeasurements
     };
 
-    const existingHealthEntries = JSON.parse(localStorage.getItem('healthEntries') || '{}');
+    const existingHealthEntries = healthDB.getHealthEntries();
     const updatedHealthEntries = { ...existingHealthEntries, ...featureToggles };
-    localStorage.setItem('healthEntries', JSON.stringify(updatedHealthEntries));
+    healthDB.saveHealthEntries(updatedHealthEntries);
   }, [settings]);
 
   const updateSetting = useCallback((key, value) => {

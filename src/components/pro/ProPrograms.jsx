@@ -13,18 +13,33 @@ const emptyExercise = () => ({
 
 // Normalise exercises saved in older formats
 function normaliseEx(e) {
+  let result;
   if (e.extraSets !== undefined || e.load !== undefined) {
     // Already new-ish format — migrate videoUrl string → videoUrls array if needed
-    if (!e.videoUrls) return { ...e, videoUrls: e.videoUrl ? [e.videoUrl] : [] };
-    return e;
+    result = !e.videoUrls ? { ...e, videoUrls: e.videoUrl ? [e.videoUrl] : [] } : e;
+  } else {
+    // Old flat format {name,sets,reps,weight,notes}
+    const count = Math.max(1, parseInt(e.sets) || 1);
+    const load  = e.weight || '';
+    const reps  = e.reps   || '';
+    result = { ...emptyExercise(), name: e.name || '', load, reps, notes: e.notes || '',
+      videoUrls: e.videoUrl ? [e.videoUrl] : [],
+      extraSets: Array.from({ length: count - 1 }, () => ({ load, reps })) };
   }
-  // Old flat format {name,sets,reps,weight,notes}
-  const count = Math.max(1, parseInt(e.sets) || 1);
-  const load  = e.weight || '';
-  const reps  = e.reps   || '';
-  return { ...emptyExercise(), name: e.name || '', load, reps, notes: e.notes || '',
-    videoUrls: e.videoUrl ? [e.videoUrl] : [],
-    extraSets: Array.from({ length: count - 1 }, () => ({ load, reps })) };
+  // Migrate any URLs left in notes into videoUrls, then strip them from notes —
+  // covers programs authored before the Media Links UI existed, when a coach's
+  // only option was to paste a video URL into Notes.
+  const urlsInNotes = (result.notes ?? '').match(/https?:\/\/\S+/g) ?? [];
+  if (urlsInNotes.length > 0) {
+    const existing = new Set(result.videoUrls ?? []);
+    const newUrls  = urlsInNotes.filter(u => !existing.has(u));
+    result = {
+      ...result,
+      videoUrls: [...(result.videoUrls ?? []), ...newUrls],
+      notes: (result.notes ?? '').replace(/https?:\/\/\S+/g, '').trim(),
+    };
+  }
+  return result;
 }
 
 const SET_INPUT = 'w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-xl px-2 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition';

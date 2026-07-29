@@ -1,35 +1,10 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { assertRelationship, resolveUserEmail, notifyOnce } from "./lib";
 
 function conversationId(a: string, b: string) {
   return [a, b].sort().join("|");
-}
-
-async function assertRelationship(ctx: any, userId: string, otherId: string) {
-  const asCoach = await ctx.db
-    .query("coachClients")
-    .withIndex("by_coach", (q: any) => q.eq("coachId", userId))
-    .filter((q: any) =>
-      q.and(
-        q.eq(q.field("clientId"), otherId),
-        q.neq(q.field("status"), "pending"),
-      )
-    )
-    .first();
-  if (asCoach) return;
-
-  const asClient = await ctx.db
-    .query("coachClients")
-    .withIndex("by_coach", (q: any) => q.eq("coachId", otherId))
-    .filter((q: any) =>
-      q.and(
-        q.eq(q.field("clientId"), userId),
-        q.neq(q.field("status"), "pending"),
-      )
-    )
-    .first();
-  if (!asClient) throw new Error("Not authorized");
 }
 
 // Bounded to the most recent 200 messages — keeps the query and payload
@@ -110,12 +85,7 @@ export const listConversations = query({
     const conversations = await Promise.all(
       contactIds.map(async (contactId) => {
         const user = await ctx.db.get(contactId as any);
-        const account = await ctx.db
-          .query("authAccounts")
-          .withIndex("userIdAndProvider", (q) =>
-            q.eq("userId", contactId as any).eq("provider", "password"),
-          )
-          .first();
+        const email = await resolveUserEmail(ctx, contactId as any);
 
         const cid = conversationId(userId, contactId);
         const lastMessage = await ctx.db
@@ -127,7 +97,7 @@ export const listConversations = query({
         return {
           id: contactId,
           name: (user as any)?.name ?? null,
-          email: (user as any)?.email ?? account?.providerAccountId ?? null,
+          email,
           lastMessagePreview: lastMessage
             ? lastMessage.text ?? (lastMessage.fileName ?? "Attachment")
             : null,
@@ -170,24 +140,7 @@ export const send = mutation({
     });
 
     // Notify receiver — coalesced so only one unread message notification at a time
-    const existing = await ctx.db
-      .query("notifications")
-      .withIndex("by_recipient", (q) => q.eq("recipientId", args.receiverId))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("senderId"), userId),
-          q.eq(q.field("type"), "message"),
-          q.eq(q.field("readAt"), undefined)
-        )
-      )
-      .first();
-    if (!existing) {
-      await ctx.db.insert("notifications", {
-        recipientId: args.receiverId,
-        senderId: userId,
-        type: "message",
-      });
-    }
+    await notifyOnce(ctx, { recipientId: args.receiverId, senderId: userId, type: "message" });
 
     return msgId;
   },

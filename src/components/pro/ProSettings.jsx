@@ -3,6 +3,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useConvexSettings } from '../../contexts/ConvexSettingsContext';
 import { useAuthActions } from '@convex-dev/auth/react';
+import { useProRole } from './useProRole';
 
 const INPUT  = 'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
 const LABEL  = 'block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1';
@@ -73,14 +74,13 @@ function ToggleSwitch({ checked, onChange }) {
   );
 }
 
-export default function ProSettings({ user, role: cachedRole }) {
+export default function ProSettings({ user }) {
   // ── Convex goals ─────────────────────────────────────────────────────────
   const convexSettings   = useQuery(api.userSettings.get);
-  const queriedRole      = useQuery(api.coaches.getRole);
-  // Fall back to the already-resolved role (cached in ProApp) while this
+  // useProRole() already falls back to a localStorage cache while the fresh
   // query is loading, e.g. right after a back/forward navigation — avoids
-  // flashing "Client" for a coach before the fresh query resolves.
-  const currentRole      = queriedRole ?? cachedRole;
+  // flashing "Client" for a coach before the query resolves.
+  const currentRole      = useProRole();
   const saveGoals      = useMutation(api.userSettings.set);
   const updateName     = useMutation(api.users.updateName);
   const { signOut }    = useAuthActions();

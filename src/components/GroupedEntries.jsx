@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSettings } from '../contexts/SettingsContext.jsx';
 import { EmptyState } from './ui/EmptyState.jsx';
 import { defaultGenerateAIPrompt, defaultGetAIServiceUrl } from '../lib/utils';
@@ -77,13 +77,6 @@ const GroupedEntries = ({
     photos: 'Photos'
   };
 
-  const groupedByCategory = entries.reduce((acc, entry) => {
-    const cat = getCategory(entry);
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(entry);
-    return acc;
-  }, {});
-
   // Sort entries within each category by time (sleep uses bedtime)
   const sortByTime = (a, b) => {
     const timeA = a.type === 'sleep' ? a.bedtime : a.time;
@@ -95,11 +88,22 @@ const GroupedEntries = ({
     return (timeA.minute || 0) - (timeB.minute || 0);
   };
 
-  categoryOrder.forEach((cat) => {
-    if (groupedByCategory[cat]) {
-      groupedByCategory[cat].sort(sortByTime);
-    }
-  });
+  const groupedByCategory = useMemo(() => {
+    const grouped = entries.reduce((acc, entry) => {
+      const cat = getCategory(entry);
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(entry);
+      return acc;
+    }, {});
+
+    categoryOrder.forEach((cat) => {
+      if (grouped[cat]) {
+        grouped[cat].sort(sortByTime);
+      }
+    });
+
+    return grouped;
+  }, [entries]);
 
   const toggleCategory = (catKey) => {
     setCollapsedTimes(prev => {

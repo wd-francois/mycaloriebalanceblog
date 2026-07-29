@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { assertCoachOf, notifyOnce } from "./lib";
+
+// Bounded to the most recent 300 comments — same rationale as messages.ts's
+// MESSAGE_HISTORY_LIMIT: keeps the query cheap for long-running coach/client
+// relationships instead of an unbounded .collect() that grows forever.
+const COMMENT_HISTORY_LIMIT = 300;
 
 export const listForClient = query({
   args: { targetUserId: v.id("users") },
@@ -8,13 +14,20 @@ export const listForClient = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
-    return await ctx.db
+    // Callers may view their own comments, or a coach may view comments
+    // for one of their linked clients — nobody else.
+    if (userId !== args.targetUserId) {
+      try { await assertCoachOf(ctx, userId, args.targetUserId); } catch (e) { console.warn("assertCoachOf denied:", e); return []; }
+    }
+
+    const recent = await ctx.db
       .query("comments")
       .withIndex("by_target_user", (q) =>
         q.eq("targetUserId", args.targetUserId),
       )
-      .order("asc")
-      .collect();
+      .order("desc")
+      .take(COMMENT_HISTORY_LIMIT);
+    return recent.reverse();
   },
 });
 
@@ -25,11 +38,12 @@ export const listMyCoachComments = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
 
-    return await ctx.db
+    const recent = await ctx.db
       .query("comments")
       .withIndex("by_target_user", (q) => q.eq("targetUserId", userId))
-      .order("asc")
-      .collect();
+      .order("desc")
+      .take(COMMENT_HISTORY_LIMIT);
+    return recent.reverse();
   },
 });
 
@@ -51,34 +65,12 @@ export const add = mutation({
       .first();
     if (settings?.role !== "coach") throw new Error("Not authorized");
 
-    const rel = await ctx.db
-      .query("coachClients")
-      .withIndex("by_coach", (q) => q.eq("coachId", userId))
-      .filter((q) => q.eq(q.field("clientId"), args.targetUserId))
-      .first();
-    if (!rel) throw new Error("Not authorized");
+    await assertCoachOf(ctx, userId, args.targetUserId);
 
     const commentId = await ctx.db.insert("comments", { authorId: userId, ...args });
 
     // Notify the client — coalesced so only one unread comment notification at a time
-    const existing = await ctx.db
-      .query("notifications")
-      .withIndex("by_recipient", (q) => q.eq("recipientId", args.targetUserId))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("senderId"), userId),
-          q.eq(q.field("type"), "comment"),
-          q.eq(q.field("readAt"), undefined)
-        )
-      )
-      .first();
-    if (!existing) {
-      await ctx.db.insert("notifications", {
-        recipientId: args.targetUserId,
-        senderId: userId,
-        type: "comment",
-      });
-    }
+    await notifyOnce(ctx, { recipientId: args.targetUserId, senderId: userId, type: "comment" });
 
     return commentId;
   },

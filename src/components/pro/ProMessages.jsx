@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
+import ProErrorBoundary from './ProErrorBoundary';
 
 function relativeTime(ms) {
   if (!ms) return '';
@@ -298,7 +299,9 @@ export default function ProMessages() {
     <div className="w-full">
       <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Messages</h2>
-        <ConversationList onSelect={setSelectedContact} />
+        <ProErrorBoundary>
+          <ConversationList onSelect={setSelectedContact} />
+        </ProErrorBoundary>
       </div>
     </div>
   );

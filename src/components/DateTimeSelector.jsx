@@ -1,10 +1,6 @@
 import { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Calendar from './Calendar';
 
-import AutocompleteInput from './AutocompleteInput';
-import TimePicker from './TimePicker';
-import ExerciseForm from './ExerciseForm.jsx';
-
 import healthDB from '../lib/database.js';
 import { SettingsProvider, useSettings } from '../contexts/SettingsContext.jsx';
 import { formatDate, formatTime } from '../lib/utils';
@@ -14,6 +10,12 @@ import { useHealthData } from '../hooks/useHealthData';
 import { useLibraryPlaceholders } from '../hooks/useLibraryPlaceholders.js';
 import { useFormState } from '../hooks/useFormState';
 import { usePhotoManagement } from '../hooks/usePhotoManagement';
+import InfoModal from './dateTimeSelector/InfoModal';
+import SettingsModal from './dateTimeSelector/SettingsModal';
+import EntryTypeButtons from './dateTimeSelector/EntryTypeButtons';
+import PhotoAttachSection from './dateTimeSelector/PhotoAttachSection';
+import MealFormFields from './dateTimeSelector/MealFormFields';
+import ExerciseSection from './dateTimeSelector/ExerciseSection';
 
 /** Map a calendar userEntry (exercise) to ExerciseForm initial exercise row (includes entryId for save/sync). */
 function calendarEntryToInitialExercise(entry) {
@@ -1223,431 +1225,68 @@ const DateTimeSelector = () => {
                       {!(showMealInput || showActivityInput || showSleepInput || showMeasurementsInput) && (
                         <div className="space-y-6 relative z-10">
                           {/* Section Header + Entry Type Buttons */}
-                          <div className="rounded-3xl border border-gray-200/70 dark:border-gray-700/70 bg-gray-50/90 dark:bg-slate-950/70 p-4">
-                            <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Select Entry Type</div>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Choose what you'd like to track and log it in seconds.</p>
-
-                            {/* Action Buttons */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                              {settings.enableMeals && (
-                                <a
-                                  href={selectedDate ? `/add-meal?date=${formatDateLocalYYYYMMDD(selectedDate)}` : '/add-meal'}
-                                  className="group relative py-4 md:py-5 rounded-[1.75rem] text-sm md:text-base overflow-hidden transition-all duration-300 flex flex-col items-center justify-center min-h-[4rem] w-full focus:outline-none border-2 border-transparent bg-white dark:bg-gray-900/90 shadow-lg hover:border-gray-300 dark:hover:border-gray-600 hover:-translate-y-0.5 no-underline"
-                                >
-                                  <div className="relative z-10 flex flex-col items-center gap-3 text-gray-700 dark:text-gray-200">
-                                    <div className="w-12 h-12 rounded-3xl flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                                      <span className="text-2xl md:text-3xl">🍽️</span>
-                                    </div>
-                                    <span>Meal</span>
-                                  </div>
-                                </a>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveForm('exercise');
-                                  const base = { id: null, name: '', type: 'exercise', notes: '', durationMinutes: '', photo: null };
-                                  const sets = (formState.sets && formState.sets.length > 0) ? formState.sets : [{ reps: '', load: '' }];
-                                  setFormState((prev) => ({ ...prev, ...base, sets }));
-                                  setShowActivityInput(true);
-                                  setShowModal(true);
-                                }}
-                                className={`group relative py-4 md:py-5 rounded-[1.75rem] text-sm md:text-base overflow-hidden transition-all duration-300 flex flex-col items-center justify-center min-h-[4rem] w-full focus:outline-none border-2 ${showActivityInput ? 'border-blue-500 bg-white shadow-[0_20px_45px_-30px_rgba(59,130,246,0.8)]' : 'border-transparent bg-white dark:bg-gray-900/90 shadow-lg hover:border-gray-300 dark:hover:border-gray-600 hover:-translate-y-0.5'}`}
-                              >
-                                <div className={`relative z-10 flex flex-col items-center gap-3 ${showActivityInput ? 'text-blue-600 dark:text-blue-300' : 'text-gray-700 dark:text-gray-200'}`}>
-                                  <div className={`w-12 h-12 rounded-3xl flex items-center justify-center ${showActivityInput ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg' : 'bg-gray-100 dark:bg-gray-800'}`}>
-                                    <span className="text-2xl md:text-3xl">🏃</span>
-                                  </div>
-                                  <span>Exercise</span>
-                                </div>
-                              </button>
-                              {settings.enableSleep !== false && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const dateStr = selectedDate ? formatDateLocalYYYYMMDD(selectedDate) : formatDateLocalYYYYMMDD(new Date());
-                                    window.location.href = `/add-sleep?date=${dateStr}`;
-                                  }}
-                                  className="group relative py-4 md:py-5 rounded-[1.75rem] text-sm md:text-base overflow-hidden transition-all duration-300 flex flex-col items-center justify-center min-h-[4rem] w-full focus:outline-none border-2 border-transparent bg-white dark:bg-gray-900/90 shadow-lg hover:border-gray-300 dark:hover:border-gray-600 hover:-translate-y-0.5"
-                                >
-                                  <div className="relative z-10 flex flex-col items-center gap-3 text-gray-700 dark:text-gray-200">
-                                    <div className="w-12 h-12 rounded-3xl flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                                      <span className="text-2xl md:text-3xl">🛌</span>
-                                    </div>
-                                    <span>Sleep</span>
-                                  </div>
-                                </button>
-                              )}
-                              {settings.enableMeasurements && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const dateStr = selectedDate ? formatDateLocalYYYYMMDD(selectedDate) : formatDateLocalYYYYMMDD(new Date());
-                                    window.location.assign(`/add-measurement?date=${dateStr}`);
-                                  }}
-                                  className="group relative py-4 md:py-5 rounded-[1.75rem] text-sm md:text-base overflow-hidden transition-all duration-300 flex flex-col items-center justify-center min-h-[4rem] w-full focus:outline-none border-2 border-transparent bg-white dark:bg-gray-900/90 shadow-lg hover:border-gray-300 dark:hover:border-gray-600 hover:-translate-y-0.5"
-                                >
-                                  <div className="relative z-10 flex flex-col items-center gap-3 text-gray-700 dark:text-gray-200">
-                                    <div className="w-12 h-12 rounded-3xl flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                                      <span className="text-2xl md:text-3xl">📏</span>
-                                    </div>
-                                    <span>Measure</span>
-                                  </div>
-                                </button>
-                              )}
-                            </div>
-                          </div>
+                          <EntryTypeButtons
+                            settings={settings}
+                            selectedDate={selectedDate}
+                            formState={formState}
+                            setFormState={setFormState}
+                            setActiveForm={setActiveForm}
+                            showActivityInput={showActivityInput}
+                            setShowActivityInput={setShowActivityInput}
+                            setShowModal={setShowModal}
+                          />
 
                           {/* Attach Photo - below entry type buttons */}
-                          <div className="relative z-10">
-                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Photo (optional)</p>
-                            {formState.photo ? (
-                              <div>
-                                <div className="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                                  <img
-                                    src={formState.photo.dataUrl}
-                                    alt="Preview"
-                                    className="w-full h-44 object-cover"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={removePhoto}
-                                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center transition-colors"
-                                    aria-label="Remove photo"
-                                  >
-                                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                                    </svg>
-                                  </button>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={handleSavePhotoClick}
-                                  disabled={savingPhoto}
-                                  className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm transition-all flex items-center justify-center gap-2"
-                                >
-                                  {savingPhoto ? (
-                                    <>
-                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                      <span>Saving…</span>
-                                    </>
-                                  ) : 'Save Photo'}
-                                </button>
-                                {photoSaveMessage && (
-                                  <p className="mt-2 text-xs font-medium text-green-600 dark:text-green-400">{photoSaveMessage}</p>
-                                )}
-                                {photoSaveError && (
-                                  <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">{photoSaveError}</p>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="flex gap-3">
-                                <button
-                                  type="button"
-                                  onClick={triggerCameraCapture}
-                                  className="flex flex-col items-center justify-center gap-2 flex-1 h-28 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all"
-                                >
-                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-                                    <circle cx="12" cy="13" r="4" />
-                                  </svg>
-                                  <span className="text-xs font-medium">Attach a photo</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={triggerPhotoUpload}
-                                  className="flex flex-col items-center justify-center gap-2 flex-1 h-28 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all"
-                                >
-                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-                                  </svg>
-                                  <span className="text-xs font-medium">Upload</span>
-                                </button>
-                              </div>
-                            )}
-                            <input
-                              ref={cameraInputRef}
-                              type="file"
-                              accept="image/*"
-                              capture="environment"
-                              className="hidden"
-                              onChange={(event) => handlePhotoSelection(event, 'camera')}
-                            />
-                            <input
-                              ref={uploadInputRef}
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(event) => handlePhotoSelection(event, 'library')}
-                            />
-                          </div>
+                          <PhotoAttachSection
+                            photo={formState.photo}
+                            removePhoto={removePhoto}
+                            savingPhoto={savingPhoto}
+                            handleSavePhotoClick={handleSavePhotoClick}
+                            photoSaveMessage={photoSaveMessage}
+                            photoSaveError={photoSaveError}
+                            triggerCameraCapture={triggerCameraCapture}
+                            triggerPhotoUpload={triggerPhotoUpload}
+                            cameraInputRef={cameraInputRef}
+                            uploadInputRef={uploadInputRef}
+                            handlePhotoSelection={handlePhotoSelection}
+                          />
                         </div>
                       )}
 
 
                       {/* Meal Form Fields */}
                       {settings.enableMeals && activeForm === 'meal' && showMealInput && !isLoadingEdit && (
-                        <div className="pt-6 px-4 pb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg">
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Add Meal</h4>
-                              {selectedDate && (
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Date: {selectedDate.toLocaleDateString()}</p>
-                              )}
-                            </div>
-                            <button
-                              onClick={() => {
-                                setShowMealInput(false);
-                                setActiveForm('meal');
-                              }}
-                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                            >
-                              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                          <div className="space-y-4">
-                            {/* Time Picker */}
-                            <div>
-                              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Time
-                              </label>
-                              <TimePicker
-                                value={time}
-                                onChange={(newTime) => setTime(newTime)}
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-name">
-                                Meal Name
-                              </label>
-                              <div className="flex gap-2">
-                                <div className="flex-1">
-                                  <AutocompleteInput
-                                    type="food"
-                                    value={formState.name}
-                                    onChange={(value) => setFormState((s) => ({ ...s, name: value }))}
-                                    onSelect={handleAutocompleteSelect}
-                                    placeholder={mealLibPh.mealNamePlaceholder}
-                                    autoFocus
-                                    id="meal-name"
-                                    className="dark:border-gray-600 dark:bg-[var(--color-bg-subtle)] dark:text-white dark:placeholder-gray-400"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-amount">
-                                Amount
-                              </label>
-                              <input
-                                id="meal-amount"
-                                type="text"
-                                list="meal-amount-datalist"
-                                autoComplete="off"
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                placeholder={mealLibPh.mealAmountPlaceholder}
-                                value={formState.amount}
-                                onChange={(e) => setFormState((s) => ({ ...s, amount: e.target.value }))}
-                                onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                              />
-                              <datalist id="meal-amount-datalist">
-                                {mealLibPh.mealAmountOptions.map((a) => (
-                                  <option key={a} value={a} />
-                                ))}
-                              </datalist>
-                            </div>
-
-                            {/* Nutrition Information */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-calories">
-                                  Calories
-                                </label>
-                                <input
-                                  id="meal-calories"
-                                  type="number"
-                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder={mealLibPh.mealCaloriesPlaceholder}
-                                  value={formState.calories}
-                                  onChange={(e) => setFormState((s) => ({ ...s, calories: e.target.value }))}
-                                  onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-protein">
-                                  Protein (g)
-                                </label>
-                                <input
-                                  id="meal-protein"
-                                  type="number"
-                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder={mealLibPh.mealProteinPlaceholder}
-                                  value={formState.protein}
-                                  onChange={(e) => setFormState((s) => ({ ...s, protein: e.target.value }))}
-                                  onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-carbs">
-                                  Carbs (g)
-                                </label>
-                                <input
-                                  id="meal-carbs"
-                                  type="number"
-                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder={mealLibPh.mealCarbsPlaceholder}
-                                  value={formState.carbs}
-                                  onChange={(e) => setFormState((s) => ({ ...s, carbs: e.target.value }))}
-                                  onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-fats">
-                                  Fats (g)
-                                </label>
-                                <input
-                                  id="meal-fats"
-                                  type="number"
-                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder={mealLibPh.mealFatsPlaceholder}
-                                  value={formState.fats}
-                                  onChange={(e) => setFormState((s) => ({ ...s, fats: e.target.value }))}
-                                  onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-fibre">
-                                  Fibre (g)
-                                </label>
-                                <input
-                                  id="meal-fibre"
-                                  type="number"
-                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder={mealLibPh.mealFibrePlaceholder}
-                                  value={formState.fibre}
-                                  onChange={(e) => setFormState((s) => ({ ...s, fibre: e.target.value }))}
-                                  onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="meal-other">
-                                  Other
-                                </label>
-                                <input
-                                  id="meal-other"
-                                  type="text"
-                                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                  placeholder={mealLibPh.mealOtherPlaceholder}
-                                  value={formState.other}
-                                  onChange={(e) => setFormState((s) => ({ ...s, other: e.target.value }))}
-                                  onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-3 pb-4">
-                              <button
-                                type="button"
-                                onClick={(e) => handleSubmit(e, time, selectedDate, { setShowMealInput, setShowExerciseInput: setShowActivityInput, setShowSleepInput, setShowMeasurementsInput })}
-                                className="inline-flex items-center px-6 py-3 bg-blue-600 dark:bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
-                              >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                {formState.id == null ? 'Add Meal Entry' : 'Save Changes'}
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setShowMealInput(false);
-                                }}
-                                className="inline-flex items-center px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-semibold rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
-                              >
-                                {formState.id == null ? 'Cancel' : 'Cancel Edit'}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                        <MealFormFields
+                          selectedDate={selectedDate}
+                          setShowMealInput={setShowMealInput}
+                          setActiveForm={setActiveForm}
+                          time={time}
+                          setTime={setTime}
+                          formState={formState}
+                          setFormState={setFormState}
+                          handleAutocompleteSelect={handleAutocompleteSelect}
+                          mealLibPh={mealLibPh}
+                          handleSubmit={handleSubmit}
+                          setShowExerciseInput={setShowActivityInput}
+                          setShowSleepInput={setShowSleepInput}
+                          setShowMeasurementsInput={setShowMeasurementsInput}
+                        />
                       )}
 
                       {/* Exercise Form (from ExerciseForm.jsx) */}
                       {activeForm === 'exercise' && showActivityInput && !isLoadingEdit && (
-                        <div className="pt-2 pb-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Exercise</h4>
-                            </div>
-                            <button type="button" onClick={() => setShowActivityInput(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Close">
-                              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                          </div>
-                          {selectedDate && (
-                            <div className="mb-3">
-                              <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-3">
-                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
-                                  <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                  </svg>
-                                  <span>Date</span>
-                                </p>
-                                <p className="text-base text-gray-900 dark:text-white font-medium">
-                                  {selectedDate.toLocaleDateString()}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          <section className="space-y-4 mb-4" aria-label="Time">
-                            <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-4">
-                              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Time
-                              </label>
-                              <TimePicker value={time} onChange={(newTime) => setTime(newTime)} />
-                            </div>
-                          </section>
-                          <ExerciseForm
-                            key={`ex-${formState.id ?? 'new'}-${(exerciseEditSession?.sessionEntryIds || []).join('-')}${initialAppendBlankExercise ? '-append' : ''}`}
-                            embedded
-                            selectedDate={selectedDate}
-                            time={time}
-                            onSave={handleExerciseFormSave}
-                            onCancel={() => {
-                              setShowActivityInput(false);
-                              setInitialAppendBlankExercise(false);
-                            }}
-                            initialAppendBlankExercise={initialAppendBlankExercise}
-                            initialExercises={
-                              formState.id != null
-                                ? exerciseEditSession?.initialExercises?.length
-                                  ? exerciseEditSession.initialExercises
-                                  : [calendarEntryToInitialExercise({
-                                      id: formState.id,
-                                      name: formState.name,
-                                      type: 'exercise',
-                                      sets: formState.sets,
-                                      notes: formState.notes,
-                                      videoUrl: formState.videoUrl,
-                                    })].filter(Boolean)
-                                : undefined
-                            }
-                            editId={formState.id != null ? formState.id : undefined}
-                            editSessionEntryIds={
-                              formState.id != null
-                                ? exerciseEditSession?.sessionEntryIds ?? [formState.id]
-                                : []
-                            }
-                          />
-                        </div>
+                        <ExerciseSection
+                          selectedDate={selectedDate}
+                          time={time}
+                          setTime={setTime}
+                          formState={formState}
+                          exerciseEditSession={exerciseEditSession}
+                          initialAppendBlankExercise={initialAppendBlankExercise}
+                          setInitialAppendBlankExercise={setInitialAppendBlankExercise}
+                          setShowActivityInput={setShowActivityInput}
+                          handleExerciseFormSave={handleExerciseFormSave}
+                          calendarEntryToInitialExercise={calendarEntryToInitialExercise}
+                        />
                       )}
 
                       {formError && (
@@ -1698,415 +1337,19 @@ const DateTimeSelector = () => {
 
       {/* Information Modal */}
       {showInfoModal && selectedEntry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ overflow: 'hidden' }}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleInfoCancel} />
-          <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl mx-4 max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Add Information - {selectedEntry.name}
-                </h3>
-                <button
-                  onClick={handleInfoCancel}
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Form */}
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notes
-                </label>
-                <textarea
-                  value={infoFormData.notes}
-                  onChange={(e) => setInfoFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder="Add any additional notes about this entry..."
-                />
-              </div>
-
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={handleInfoSave}
-                  className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
-                >
-                  Save Information
-                </button>
-                <button
-                  onClick={handleInfoCancel}
-                  className="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-semibold rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition-all shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <InfoModal
+          selectedEntry={selectedEntry}
+          infoFormData={infoFormData}
+          setInfoFormData={setInfoFormData}
+          onSave={handleInfoSave}
+          onCancel={handleInfoCancel}
+        />
       )}
 
 
       {/* Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
-          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl mx-4 max-h-[80vh] overflow-hidden">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="px-6 py-4 max-h-96 overflow-y-auto">
-              {!settings && (
-                <div className="text-center py-4 text-gray-500">Loading settings...</div>
-              )}
-              {settings && (
-                <div className="space-y-6">
-
-                  {/* Weight & Measurements */}
-                  <div className="border-b border-gray-200 pb-4">
-                    <h4 className="text-lg font-medium text-gray-900 mb-3">Weight & Measurements</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="weightUnit" className="block text-sm font-medium text-gray-700 mb-1">
-                          Weight Unit
-                        </label>
-
-                        {/* Mobile: Radio buttons */}
-                        <div className="flex gap-3 sm:hidden">
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="weightUnit"
-                              value="lbs"
-                              checked={(settings.weightUnit || 'kg') === 'lbs'}
-                              onChange={(e) => updateSetting('weightUnit', e.target.value)}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">Pounds (lbs)</span>
-                          </label>
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="weightUnit"
-                              value="kg"
-                              checked={(settings.weightUnit || 'kg') === 'kg'}
-                              onChange={(e) => updateSetting('weightUnit', e.target.value)}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">Kilograms (kg)</span>
-                          </label>
-                        </div>
-
-                        {/* Desktop: Select dropdown */}
-                        <select
-                          key={`weightUnit-${settings.weightUnit || 'kg'}`}
-                          id="weightUnit"
-                          value={settings.weightUnit || 'kg'}
-                          onChange={(e) => updateSetting('weightUnit', e.target.value)}
-                          className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                        >
-                          <option value="lbs">Pounds (lbs)</option>
-                          <option value="kg">Kilograms (kg)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label htmlFor="lengthUnit" className="block text-sm font-medium text-gray-700 mb-1">
-                          Length Unit (Girth)
-                        </label>
-
-                        {/* Mobile: Radio buttons */}
-                        <div className="flex gap-3 sm:hidden">
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="lengthUnit"
-                              value="in"
-                              checked={(settings.lengthUnit || 'cm') === 'in'}
-                              onChange={(e) => updateSetting('lengthUnit', e.target.value)}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">Inches (in)</span>
-                          </label>
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="lengthUnit"
-                              value="cm"
-                              checked={(settings.lengthUnit || 'cm') === 'cm'}
-                              onChange={(e) => updateSetting('lengthUnit', e.target.value)}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">Centimeters (cm)</span>
-                          </label>
-                        </div>
-
-                        {/* Desktop: Select dropdown */}
-                        <select
-                          key={`lengthUnit-${settings.lengthUnit || 'cm'}`}
-                          id="lengthUnit"
-                          value={settings.lengthUnit || 'cm'}
-                          onChange={(e) => {
-                            e.preventDefault();
-                            updateSetting('lengthUnit', e.target.value);
-                          }}
-                          className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                        >
-                          <option value="in">Inches (in)</option>
-                          <option value="cm">Centimeters (cm)</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Date & Time */}
-                  <div>
-                    <h4 className="text-lg font-medium text-gray-900 mb-3">Date & Time</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="dateFormat" className="block text-sm font-medium text-gray-700 mb-1">
-                          Date Format
-                        </label>
-
-                        {/* Mobile: Radio buttons */}
-                        <div className="flex gap-3 sm:hidden">
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="dateFormat"
-                              value="MM/DD/YYYY"
-                              checked={(settings.dateFormat || 'MM/DD/YYYY') === 'MM/DD/YYYY'}
-                              onChange={(e) => updateSetting('dateFormat', e.target.value)}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">MM/DD/YYYY</span>
-                          </label>
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="dateFormat"
-                              value="DD/MM/YYYY"
-                              checked={(settings.dateFormat || 'MM/DD/YYYY') === 'DD/MM/YYYY'}
-                              onChange={(e) => updateSetting('dateFormat', e.target.value)}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">DD/MM/YYYY</span>
-                          </label>
-                        </div>
-
-                        {/* Desktop: Select dropdown */}
-                        <select
-                          key={`dateFormat-${settings.dateFormat || 'MM/DD/YYYY'}`}
-                          id="dateFormat"
-                          value={settings.dateFormat || 'MM/DD/YYYY'}
-                          onChange={(e) => {
-                            e.preventDefault();
-                            updateSetting('dateFormat', e.target.value);
-                          }}
-                          className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                        >
-                          <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                          <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label htmlFor="timeFormat" className="block text-sm font-medium text-gray-700 mb-1">
-                          Time Format
-                        </label>
-
-                        {/* Mobile: Radio buttons */}
-                        <div className="flex gap-3 sm:hidden">
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="timeFormat"
-                              value="12h"
-                              checked={(settings.timeFormat || '12h') === '12h'}
-                              onChange={(e) => updateSetting('timeFormat', e.target.value)}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">12h (AM/PM)</span>
-                          </label>
-                          <label className="flex items-center gap-1 text-sm">
-                            <input
-                              type="radio"
-                              name="timeFormat"
-                              value="24h"
-                              checked={(settings.timeFormat || '12h') === '24h'}
-                              onChange={(e) => updateSetting('timeFormat', e.target.value)}
-                              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">24h</span>
-                          </label>
-                        </div>
-
-                        {/* Desktop: Select dropdown */}
-                        <select
-                          key={`timeFormat-${settings.timeFormat || '12h'}`}
-                          id="timeFormat"
-                          value={settings.timeFormat || '12h'}
-                          onChange={(e) => {
-                            e.preventDefault();
-                            updateSetting('timeFormat', e.target.value);
-                          }}
-                          className="hidden sm:block mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                        >
-                          <option value="12h">12-hour (AM/PM)</option>
-                          <option value="24h">24-hour</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* AI Assistant */}
-                  <div className="border-b border-gray-200 pb-4">
-                    <h4 className="text-lg font-medium text-gray-900 mb-3">AI Assistant</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="aiService" className="block text-sm font-medium text-gray-700 mb-1">
-                          AI Service
-                        </label>
-                        <select
-                          key={`aiService-${settings.aiService || 'chatgpt'}`}
-                          id="aiService"
-                          value={settings.aiService || 'chatgpt'}
-                          onChange={(e) => {
-                            e.preventDefault();
-                            updateSetting('aiService', e.target.value);
-                          }}
-                          className="mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                        >
-                          <option value="chatgpt">ChatGPT</option>
-                          <option value="claude">Claude AI</option>
-                          <option value="gemini">Google Gemini</option>
-                          <option value="grok">Grok (X)</option>
-                          <option value="custom">Custom URL</option>
-                        </select>
-                        {settings.aiService === 'custom' && (
-                          <div className="mt-2">
-                            <label htmlFor="aiCustomUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                              Custom AI Service URL
-                            </label>
-                            <input
-                              type="url"
-                              id="aiCustomUrl"
-                              value={settings.aiCustomUrl || ''}
-                              onChange={(e) => updateSetting('aiCustomUrl', e.target.value)}
-                              placeholder="https://your-ai-service.com/?q="
-                              className="w-full px-3 py-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <label htmlFor="aiRequestFormat" className="block text-sm font-medium text-gray-700 mb-1">
-                          Request Format
-                        </label>
-                        <select
-                          key={`aiRequestFormat-${settings.aiRequestFormat || 'detailed'}`}
-                          id="aiRequestFormat"
-                          value={settings.aiRequestFormat || 'detailed'}
-                          onChange={(e) => {
-                            e.preventDefault();
-                            updateSetting('aiRequestFormat', e.target.value);
-                          }}
-                          className="mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                        >
-                          <option value="detailed">Detailed (Full prompt)</option>
-                          <option value="simple">Simple (Basic request)</option>
-                          <option value="custom">Custom Template</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label htmlFor="aiLanguage" className="block text-sm font-medium text-gray-700 mb-1">
-                          Language
-                        </label>
-                        <select
-                          key={`aiLanguage-${settings.aiLanguage || 'english'}`}
-                          id="aiLanguage"
-                          value={settings.aiLanguage || 'english'}
-                          onChange={(e) => {
-                            e.preventDefault();
-                            updateSetting('aiLanguage', e.target.value);
-                          }}
-                          className="mt-1 w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                        >
-                          <option value="english">English</option>
-                          <option value="spanish">Spanish</option>
-                          <option value="french">French</option>
-                          <option value="german">German</option>
-                          <option value="portuguese">Portuguese</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
-                          <input
-                            type="checkbox"
-                            checked={settings.aiIncludeCurrentValues !== false}
-                            onChange={(e) => updateSetting('aiIncludeCurrentValues', e.target.checked)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          Include Current Values
-                        </label>
-                        <p className="text-xs text-gray-500 mt-1">Include existing nutritional values in AI prompt</p>
-                      </div>
-                    </div>
-                    {settings.aiRequestFormat === 'custom' && (
-                      <div className="mt-4">
-                        <label htmlFor="aiPromptTemplate" className="block text-sm font-medium text-gray-700 mb-1">
-                          Custom Prompt Template
-                        </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          Use placeholders: {'{mealName}'}, {'{amount}'}, {'{calories}'}, {'{protein}'}, {'{carbs}'}, {'{fats}'}, {'{fibre}'}, {'{other}'}
-                        </p>
-                        <textarea
-                          id="aiPromptTemplate"
-                          value={settings.aiPromptTemplate || ''}
-                          onChange={(e) => updateSetting('aiPromptTemplate', e.target.value)}
-                          rows={6}
-                          className="w-full px-3 py-2 text-sm border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 font-mono"
-                          placeholder="Enter your custom prompt template..."
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SettingsModal onClose={() => setShowSettings(false)} />
       )}
 
 

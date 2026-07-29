@@ -1,22 +1,16 @@
-import { ConvexReactClient, useQuery } from 'convex/react';
+import { ConvexReactClient } from 'convex/react';
 import { ConvexAuthProvider, useConvexAuth } from '@convex-dev/auth/react';
-import { api } from '../../../convex/_generated/api';
+import { useIsCoach } from './useProRole';
 
 const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 
-const ROLE_KEY = 'mcb_pro_role';
-
 function DashboardButtonInner() {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const serverRole = useQuery(api.coaches.getRole);
-
-  let cachedRole = null;
-  try { cachedRole = localStorage.getItem(ROLE_KEY); } catch {}
-  const role = serverRole ?? cachedRole;
+  const isCoach = useIsCoach();
 
   // Only coaches get this shortcut — clients don't have the same
   // "stuck outside the dashboard" problem this button solves.
-  if (isLoading || !isAuthenticated || role !== 'coach') return null;
+  if (isLoading || !isAuthenticated || !isCoach) return null;
 
   return (
     <a

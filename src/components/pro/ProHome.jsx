@@ -4,6 +4,8 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import Calendar from '../Calendar';
 import ProDayModal from './ProDayModal';
+import { useIsCoach } from './useProRole';
+import ProErrorBoundary from './ProErrorBoundary';
 
 // Isolated so a query failure can't crash the home screen
 function PendingInviteModal() {
@@ -143,7 +145,8 @@ const CARD_TITLE = 'text-xs sm:text-sm font-semibold text-gray-700 dark:text-gra
 const METRIC_VAL = 'text-xl sm:text-2xl font-bold';
 const METRIC_LBL = 'text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1';
 
-export default function ProHome({ onNavigate, role }) {
+export default function ProHome({ onNavigate }) {
+  const isCoach = useIsCoach();
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [viewedMonth, setViewedMonth]   = useState(() => ({ year: new Date().getFullYear(), month: new Date().getMonth() }));
   const [showDayModal, setShowDayModal] = useState(false);
@@ -188,7 +191,7 @@ export default function ProHome({ onNavigate, role }) {
     ? `${sleepEntry.sleepDuration.toFixed(1)}h`
     : null;
 
-  if (role === 'coach') {
+  if (isCoach) {
     return (
       <div className="w-full">
         <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
@@ -213,7 +216,9 @@ export default function ProHome({ onNavigate, role }) {
     <div className="w-full">
       <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
 
-        <PendingInviteModal />
+        <ProErrorBoundary>
+          <PendingInviteModal />
+        </ProErrorBoundary>
 
         {/* Calorie Goal Card */}
         <div className={CARD}>
@@ -283,7 +288,9 @@ export default function ProHome({ onNavigate, role }) {
           </div>
         </div>
 
-        <CoachFeedbackCard />
+        <ProErrorBoundary>
+          <CoachFeedbackCard />
+        </ProErrorBoundary>
 
       </div>
 

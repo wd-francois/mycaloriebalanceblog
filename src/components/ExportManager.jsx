@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { exportToJSON, exportToCSV, exportToPDF } from '../lib/exportUtils.js';
+import healthDB from '../lib/database.js';
 
 const ExportManager = () => {
   const [lastExport, setLastExport] = useState(null);
@@ -13,8 +14,7 @@ const ExportManager = () => {
     if (typeof window === 'undefined') return;
 
     try {
-      const raw = localStorage.getItem('healthEntries');
-      const parsed = raw ? JSON.parse(raw) : {};
+      const parsed = healthDB.getHealthEntries();
       setEntries(parsed);
       setDateCount(Object.keys(parsed).length);
       setEntryCount(Object.values(parsed).reduce((sum, arr) => sum + arr.length, 0));

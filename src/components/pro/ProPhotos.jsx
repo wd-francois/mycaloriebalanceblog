@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 
@@ -187,11 +187,11 @@ export default function ProPhotos() {
   const [deleteId,    setDeleteId]    = useState(null);
 
   // Group by date for section headers
-  const grouped = photos.reduce((acc, p) => {
+  const grouped = useMemo(() => photos.reduce((acc, p) => {
     (acc[p.date] ??= []).push(p);
     return acc;
-  }, {});
-  const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+  }, {}), [photos]);
+  const dates = useMemo(() => Object.keys(grouped).sort((a, b) => b.localeCompare(a)), [grouped]);
 
   const confirmDelete = async (id) => {
     await removePhoto({ id });

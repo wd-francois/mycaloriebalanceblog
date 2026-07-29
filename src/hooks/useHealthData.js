@@ -1,148 +1,100 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import healthDB from '../lib/database';
+import { groupEntriesByDate } from '../lib/dateUtils';
 
 export function useHealthData() {
     const [entries, setEntries] = useState({});
     const [isDBInitialized, setIsDBInitialized] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const mountedRef = useRef(true);
 
     // Helper to load from localStorage as fallback
     const loadFromLocalStorage = useCallback(() => {
         if (typeof window === 'undefined') return {};
         try {
-            const saved = localStorage.getItem('healthEntries');
-            if (!saved) return {};
-            const parsed = JSON.parse(saved);
+            const parsed = healthDB.getHealthEntries();
 
-            // Convert localStorage entries to proper format with normalized dates
-            const formattedEntries = {};
-            Object.keys(parsed).forEach(dateKey => {
-                const dateEntries = parsed[dateKey];
-                if (Array.isArray(dateEntries)) {
-                    dateEntries.forEach(entry => {
-                        if (!entry || !entry.date) return;
-
-                        let entryDate;
-                        if (entry.date instanceof Date) {
-                            entryDate = entry.date;
-                        } else if (typeof entry.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
-                            entryDate = new Date(entry.date + 'T12:00:00');
-                        } else if (typeof entry.date === 'string') {
-                            entryDate = new Date(entry.date);
-                        } else {
-                            entryDate = new Date(entry.date);
-                        }
-
-                        // Normalize date to midnight to avoid timezone issues
-                        if (!isNaN(entryDate.getTime())) {
-                            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-                            const normalizedDateKey = entryDate.toDateString();
-
-                            if (!formattedEntries[normalizedDateKey]) {
-                                formattedEntries[normalizedDateKey] = [];
-                            }
-
-                            formattedEntries[normalizedDateKey].push({
-                                ...entry,
-                                date: entryDate
-                            });
-                        }
-                    });
-                }
+            // Flatten per-day arrays, then regroup by each entry's own
+            // (normalized) date — matches the previous behavior where
+            // entries are keyed by their own date, not the raw storage key.
+            const flat = [];
+            Object.values(parsed).forEach(dateEntries => {
+                if (Array.isArray(dateEntries)) flat.push(...dateEntries);
             });
 
-            return formattedEntries;
+            return groupEntriesByDate(flat);
         } catch (error) {
             console.error('Error loading from localStorage:', error);
             return {};
         }
     }, []);
 
+    // Load (or reload) everything from IndexedDB — shared by the initial
+    // mount effect and by refresh(), so refreshing doesn't need a full
+    // page reload.
+    const loadData = useCallback(async () => {
+        try {
+            setLoading(true);
+            await healthDB.init();
+            if (!mountedRef.current) return;
+            setIsDBInitialized(true);
+
+            // Try to migrate from localStorage if needed
+            await healthDB.migrateFromLocalStorage();
+
+            // Load all entries
+            const dbEntries = await healthDB.getAllUserEntries();
+
+            // Load photos
+            let photoEntries = [];
+            try {
+                photoEntries = await healthDB.getAllPhotoEntries();
+            } catch (e) {
+                console.warn('Could not load photo entries:', e);
+            }
+
+            const photosByEntryId = {};
+            photoEntries.forEach(p => {
+                const entryId = p.entryId || p.id;
+                if (entryId && p.photo) photosByEntryId[entryId] = p.photo;
+            });
+
+            // Format entries
+            const formattedEntries = groupEntriesByDate(dbEntries, (e) => e.date, (entry, entryDate) => {
+                const entryPhoto = photosByEntryId[entry.id] || entry.photo;
+                return {
+                    ...entry,
+                    date: entryDate,
+                    photo: entryPhoto || entry.photo
+                };
+            });
+
+            if (mountedRef.current) {
+                setEntries(formattedEntries);
+                setLoading(false);
+            }
+        } catch (err) {
+            console.error('Error initializing/loading data:', err);
+            if (mountedRef.current) {
+                // Fallback to localStorage
+                const localEntries = loadFromLocalStorage();
+                setEntries(localEntries);
+                setError(err);
+                setLoading(false);
+            }
+        }
+    }, [loadFromLocalStorage]);
+
     // Initialize DB and load entries
     useEffect(() => {
-        let mounted = true;
-
-        const initAndLoad = async () => {
-            try {
-                setLoading(true);
-                await healthDB.init();
-                if (!mounted) return;
-                setIsDBInitialized(true);
-
-                // Try to migrate from localStorage if needed
-                await healthDB.migrateFromLocalStorage();
-
-                // Load all entries
-                const dbEntries = await healthDB.getAllUserEntries();
-
-                // Load photos
-                let photoEntries = [];
-                try {
-                    photoEntries = await healthDB.getAllPhotoEntries();
-                } catch (e) {
-                    console.warn('Could not load photo entries:', e);
-                }
-
-                const photosByEntryId = {};
-                photoEntries.forEach(p => {
-                    const entryId = p.entryId || p.id;
-                    if (entryId && p.photo) photosByEntryId[entryId] = p.photo;
-                });
-
-                // Format entries
-                const formattedEntries = {};
-                dbEntries.forEach(entry => {
-                    if (!entry || !entry.date) return;
-
-                    let entryDate;
-                    if (entry.date instanceof Date) {
-                        entryDate = entry.date;
-                    } else if (typeof entry.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
-                        // Local date-only string (YYYY-MM-DD): parse as local noon to avoid UTC shifting the day
-                        entryDate = new Date(entry.date + 'T12:00:00');
-                    } else {
-                        entryDate = new Date(entry.date);
-                    }
-                    if (isNaN(entryDate.getTime())) return;
-
-                    entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-                    const dateKey = entryDate.toDateString();
-
-                    if (!formattedEntries[dateKey]) {
-                        formattedEntries[dateKey] = [];
-                    }
-
-                    const entryPhoto = photosByEntryId[entry.id] || entry.photo;
-                    formattedEntries[dateKey].push({
-                        ...entry,
-                        date: entryDate,
-                        photo: entryPhoto || entry.photo
-                    });
-                });
-
-                if (mounted) {
-                    setEntries(formattedEntries);
-                    setLoading(false);
-                }
-            } catch (err) {
-                console.error('Error initializing/loading data:', err);
-                if (mounted) {
-                    // Fallback to localStorage
-                    const localEntries = loadFromLocalStorage();
-                    setEntries(localEntries);
-                    setError(err);
-                    setLoading(false);
-                }
-            }
-        };
-
-        initAndLoad();
+        mountedRef.current = true;
+        loadData();
 
         return () => {
-            mounted = false;
+            mountedRef.current = false;
         };
-    }, [loadFromLocalStorage]);
+    }, [loadData]);
 
     // CRUD Operations
     const addEntry = async (entry) => {
@@ -178,23 +130,21 @@ export function useHealthData() {
                 } catch (dbError) {
                     console.warn('IndexedDB save failed, using localStorage fallback:', dbError);
                     // Fallback to localStorage
-                    const storageKey = 'healthEntries';
-                    const currentData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                    const currentData = healthDB.getHealthEntries();
                     if (!currentData[dateKey]) {
                         currentData[dateKey] = [];
                     }
                     currentData[dateKey].push(entry);
-                    localStorage.setItem(storageKey, JSON.stringify(currentData));
+                    healthDB.saveHealthEntries(currentData);
                 }
             } else {
                 // If DB not initialized, save to localStorage
-                const storageKey = 'healthEntries';
-                const currentData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                const currentData = healthDB.getHealthEntries();
                 if (!currentData[dateKey]) {
                     currentData[dateKey] = [];
                 }
                 currentData[dateKey].push(entry);
-                localStorage.setItem(storageKey, JSON.stringify(currentData));
+                healthDB.saveHealthEntries(currentData);
             }
         } catch (err) {
             console.error('Error adding entry:', err);
@@ -240,8 +190,7 @@ export function useHealthData() {
                 } catch (dbError) {
                     console.warn('IndexedDB update failed, using localStorage fallback:', dbError);
                     // Fallback to localStorage
-                    const storageKey = 'healthEntries';
-                    const currentData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                    const currentData = healthDB.getHealthEntries();
                     if (!currentData[dateKey]) {
                         currentData[dateKey] = [];
                     }
@@ -251,12 +200,11 @@ export function useHealthData() {
                     } else {
                         currentData[dateKey].push(entry);
                     }
-                    localStorage.setItem(storageKey, JSON.stringify(currentData));
+                    healthDB.saveHealthEntries(currentData);
                 }
             } else {
                 // If DB not initialized, save to localStorage
-                const storageKey = 'healthEntries';
-                const currentData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                const currentData = healthDB.getHealthEntries();
                 if (!currentData[dateKey]) {
                     currentData[dateKey] = [];
                 }
@@ -266,7 +214,7 @@ export function useHealthData() {
                 } else {
                     currentData[dateKey].push(entry);
                 }
-                localStorage.setItem(storageKey, JSON.stringify(currentData));
+                healthDB.saveHealthEntries(currentData);
             }
         } catch (err) {
             console.error('Error updating entry:', err);
@@ -290,20 +238,18 @@ export function useHealthData() {
                 } catch (dbError) {
                     console.warn('IndexedDB delete failed, using localStorage fallback:', dbError);
                     // Fallback to localStorage
-                    const storageKey = 'healthEntries';
-                    const currentData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                    const currentData = healthDB.getHealthEntries();
                     if (currentData[dateKey]) {
                         currentData[dateKey] = currentData[dateKey].filter(e => e.id !== entryId);
-                        localStorage.setItem(storageKey, JSON.stringify(currentData));
+                        healthDB.saveHealthEntries(currentData);
                     }
                 }
             } else {
                 // If DB not initialized, delete from localStorage
-                const storageKey = 'healthEntries';
-                const currentData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                const currentData = healthDB.getHealthEntries();
                 if (currentData[dateKey]) {
                     currentData[dateKey] = currentData[dateKey].filter(e => e.id !== entryId);
-                    localStorage.setItem(storageKey, JSON.stringify(currentData));
+                    healthDB.saveHealthEntries(currentData);
                 }
             }
         } catch (err) {
@@ -312,19 +258,7 @@ export function useHealthData() {
         }
     };
 
-    const refresh = async () => {
-        // Re-run load logic
-        setLoading(true);
-        try {
-            await healthDB.getAllUserEntries();
-            // ... (re-use formatting logic, maybe extract it)
-            // For brevity, just reloading basic entries for now or triggering re-mount effect
-            // A simple way is to just toggle a counter dependency in useEffect, but for now:
-            window.location.reload(); // Brute force refresh if needed, or better:
-        } catch (e) {
-            console.error(e);
-        }
-    };
+    const refresh = useCallback(() => loadData(), [loadData]);
 
     return {
         entries,

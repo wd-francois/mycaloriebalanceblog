@@ -56,22 +56,19 @@ const AddSleepForm = () => {
     } catch (e) {
       console.warn('Load sleep entry failed, trying localStorage:', e);
       try {
-        const saved = localStorage.getItem('healthEntries');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          for (const dateKey of Object.keys(parsed)) {
-            const arr = parsed[dateKey];
-            if (Array.isArray(arr)) {
-              const entry = arr.find((e) => e.id === id);
-              if (entry && (entry.type === 'sleep' || !entry.type)) {
-                setBedtime(entry.bedtime || defaultBedtime);
-                setWaketime(entry.waketime || defaultWaketime);
-                if (entry.date) {
-                  const d = entry.date instanceof Date ? entry.date : new Date(entry.date);
-                  if (!isNaN(d.getTime())) setSelectedDate(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
-                }
-                break;
+        const parsed = healthDB.getHealthEntries();
+        for (const dateKey of Object.keys(parsed)) {
+          const arr = parsed[dateKey];
+          if (Array.isArray(arr)) {
+            const entry = arr.find((e) => e.id === id);
+            if (entry && (entry.type === 'sleep' || !entry.type)) {
+              setBedtime(entry.bedtime || defaultBedtime);
+              setWaketime(entry.waketime || defaultWaketime);
+              if (entry.date) {
+                const d = entry.date instanceof Date ? entry.date : new Date(entry.date);
+                if (!isNaN(d.getTime())) setSelectedDate(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
               }
+              break;
             }
           }
         }
@@ -87,7 +84,7 @@ const AddSleepForm = () => {
 
   const saveToLocalStorage = (entry) => {
     const dateKey = entry.date instanceof Date ? entry.date.toDateString() : new Date(entry.date).toDateString();
-    const currentData = JSON.parse(localStorage.getItem('healthEntries') || '{}');
+    const currentData = healthDB.getHealthEntries();
     if (!currentData[dateKey]) currentData[dateKey] = [];
     if (editingId) {
       const idx = currentData[dateKey].findIndex((e) => e.id === editingId);
@@ -96,7 +93,7 @@ const AddSleepForm = () => {
     } else {
       currentData[dateKey].push(entry);
     }
-    localStorage.setItem('healthEntries', JSON.stringify(currentData));
+    healthDB.saveHealthEntries(currentData);
   };
 
   const handleSave = async () => {

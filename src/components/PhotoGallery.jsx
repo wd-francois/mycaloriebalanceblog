@@ -35,9 +35,7 @@ function normalizeEntries(rawEntries = []) {
 function loadEntriesFromLocalStorage() {
   if (typeof window === 'undefined') return [];
   try {
-    const saved = localStorage.getItem('healthEntries');
-    if (!saved) return [];
-    const parsed = JSON.parse(saved);
+    const parsed = healthDB.getHealthEntries();
     if (!parsed || typeof parsed !== 'object') return [];
     const entries = [];
     Object.values(parsed).forEach((value) => {

@@ -5,6 +5,7 @@ import {
   renderInsightCharts,
   renderInsightStats
 } from './insightsCharts.js';
+import healthDB from '../lib/database.js';
 
 /**
  * Insights hub + per-category detail pages (loads HealthTrackerDB / localStorage healthEntries).
@@ -38,15 +39,12 @@ export class InsightsDashboard {
       console.warn('IndexedDB load failed:', error);
     }
     try {
-      const raw = localStorage.getItem('healthEntries');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        Object.keys(parsed || {}).forEach((key) => {
-          if (Array.isArray(parsed[key])) {
-            parsed[key].forEach((entry) => flat.push(entry));
-          }
-        });
-      }
+      const parsed = healthDB.getHealthEntries();
+      Object.keys(parsed || {}).forEach((key) => {
+        if (Array.isArray(parsed[key])) {
+          parsed[key].forEach((entry) => flat.push(entry));
+        }
+      });
     } catch (error) {
       console.warn('Failed to read healthEntries from localStorage:', error);
     }
@@ -63,34 +61,13 @@ export class InsightsDashboard {
     this.entries = this.groupEntriesByDate([...withIds, ...orphans]);
   }
 
-  loadFromIndexedDB() {
-    return new Promise((resolve) => {
-      try {
-        const request = indexedDB.open('HealthTrackerDB', 2);
-
-        request.onsuccess = () => {
-          const db = request.result;
-          if (!db.objectStoreNames.contains('userEntries')) {
-            resolve([]);
-            return;
-          }
-
-          const tx = db.transaction(['userEntries'], 'readonly');
-          const store = tx.objectStore('userEntries');
-          const getAllRequest = store.getAll();
-
-          getAllRequest.onsuccess = () => {
-            resolve(getAllRequest.result || []);
-          };
-
-          getAllRequest.onerror = () => resolve([]);
-        };
-
-        request.onerror = () => resolve([]);
-      } catch (error) {
-        resolve([]);
-      }
-    });
+  async loadFromIndexedDB() {
+    try {
+      await healthDB.init();
+      return await healthDB.getAllUserEntries();
+    } catch (error) {
+      return [];
+    }
   }
 
   groupEntriesByDate(allEntries) {
@@ -856,38 +833,21 @@ export class InsightsDashboard {
 
     try {
       if (typeof indexedDB !== 'undefined') {
-        await new Promise((resolve) => {
-          const request = indexedDB.open('HealthTrackerDB', 2);
-          request.onsuccess = () => {
-            const db = request.result;
-            if (!db.objectStoreNames.contains('userEntries')) {
-              resolve();
-              return;
-            }
-            const tx = db.transaction(['userEntries'], 'readwrite');
-            const store = tx.objectStore('userEntries');
-            store.delete(idToDelete);
-            tx.oncomplete = () => resolve();
-            tx.onerror = () => resolve();
-          };
-          request.onerror = () => resolve();
-        });
+        await healthDB.init();
+        await healthDB.deleteUserEntry(idToDelete);
       }
     } catch (error) {
       console.warn('IndexedDB delete failed:', error);
     }
 
     try {
-      const raw = localStorage.getItem('healthEntries');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        Object.keys(parsed || {}).forEach((key) => {
-          if (Array.isArray(parsed[key])) {
-            parsed[key] = parsed[key].filter((entry) => String(entry?.id) !== String(entryId));
-          }
-        });
-        localStorage.setItem('healthEntries', JSON.stringify(parsed));
-      }
+      const parsed = healthDB.getHealthEntries();
+      Object.keys(parsed || {}).forEach((key) => {
+        if (Array.isArray(parsed[key])) {
+          parsed[key] = parsed[key].filter((entry) => String(entry?.id) !== String(entryId));
+        }
+      });
+      healthDB.saveHealthEntries(parsed);
     } catch (error) {
       console.warn('localStorage delete failed:', error);
     }

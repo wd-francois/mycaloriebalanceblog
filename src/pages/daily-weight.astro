@@ -83,6 +83,9 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <script>
+    import { normalizeEntryDate } from '../lib/dateUtils.js';
+    import healthDB from '../lib/database.js';
+
     // Declare Chart.js types
     declare const Chart: any;
     
@@ -124,70 +127,36 @@ const backDate = (dateParam && dateParam.trim() !== '') ? dateParam : (() => {
       async loadData() {
         try {
           // Load entries from localStorage
-          const entriesData = localStorage.getItem('healthEntries');
-          if (entriesData) {
-            const parsed = JSON.parse(entriesData);
-            Object.keys(parsed).forEach(dateKey => {
-              if (Array.isArray(parsed[dateKey])) {
-                this.entries[dateKey] = parsed[dateKey];
-              }
-            });
-          }
+          const parsed = healthDB.getHealthEntries();
+          Object.keys(parsed).forEach(dateKey => {
+            if (Array.isArray(parsed[dateKey])) {
+              this.entries[dateKey] = parsed[dateKey];
+            }
+          });
           
           // Also try to load from IndexedDB and merge
           if (typeof indexedDB !== 'undefined') {
             try {
-              const dbName = 'HealthTrackerDB';
-              const request = indexedDB.open(dbName, 2);
-              
-              await new Promise<void>((resolve) => {
-                request.onsuccess = () => {
-                  const db = request.result;
-                  if (db.objectStoreNames.contains('userEntries')) {
-                    const transaction = db.transaction(['userEntries'], 'readonly');
-                    const store = transaction.objectStore('userEntries');
-                    const getAllRequest = store.getAll();
-                    
-                    getAllRequest.onsuccess = () => {
-                      const allEntries = getAllRequest.result || [];
-                      
-                      allEntries.forEach(entry => {
-                        if (entry && entry.date) {
-                          let entryDate;
-                          if (entry.date instanceof Date) {
-                            entryDate = entry.date;
-                          } else if (typeof entry.date === 'string') {
-                            entryDate = new Date(entry.date);
-                          } else {
-                            entryDate = new Date(entry.date);
-                          }
-                          
-                          if (!isNaN(entryDate.getTime())) {
-                            entryDate = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-                            // Use toDateString() to match the format used by the main app
-                            const dateKey = entryDate.toDateString();
-                            
-                            if (!this.entries[dateKey]) {
-                              this.entries[dateKey] = [];
-                            }
-                            const exists = this.entries[dateKey].some((e: any) => e.id === entry.id);
-                            if (!exists) {
-                              this.entries[dateKey].push(entry);
-                            }
-                          }
-                        }
-                      });
-                      
-                      resolve();
-                    };
-                    
-                    getAllRequest.onerror = () => resolve();
-                  } else {
-                    resolve();
+              await healthDB.init();
+              const allEntries = await healthDB.getAllUserEntries();
+
+              allEntries.forEach(entry => {
+                if (entry && entry.date) {
+                  const entryDate = normalizeEntryDate(entry.date);
+
+                  if (entryDate) {
+                    // Use toDateString() to match the format used by the main app
+                    const dateKey = entryDate.toDateString();
+
+                    if (!this.entries[dateKey]) {
+                      this.entries[dateKey] = [];
+                    }
+                    const exists = this.entries[dateKey].some((e: any) => e.id === entry.id);
+                    if (!exists) {
+                      this.entries[dateKey].push(entry);
+                    }
                   }
-                  
-                  request.onerror = () => resolve();
-                };
+                }
               });
             } catch (e) {
               console.log('IndexedDB error:', e);

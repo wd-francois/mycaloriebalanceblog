@@ -406,9 +406,8 @@ class HealthDatabase {
     if (typeof window === 'undefined') return false;
     
     try {
-      const existingData = localStorage.getItem('healthEntries');
-      if (existingData) {
-        const parsed = JSON.parse(existingData);
+      const parsed = this.getHealthEntries();
+      if (Object.keys(parsed).length > 0) {
         const entries = [];
         
         Object.keys(parsed).forEach(dateKey => {
@@ -458,6 +457,25 @@ class HealthDatabase {
       return false;
     }
     return false;
+  }
+
+  // Reads the `healthEntries` localStorage blob — a plain object keyed by
+  // `date.toDateString()`, each value an array of entries for that day.
+  // Several components read/write this directly; new call sites should use
+  // this + saveHealthEntries() instead of touching localStorage themselves.
+  getHealthEntries() {
+    if (typeof window === 'undefined') return {};
+    try {
+      return JSON.parse(localStorage.getItem('healthEntries') || '{}');
+    } catch (error) {
+      console.error('Error reading healthEntries from localStorage:', error);
+      return {};
+    }
+  }
+
+  saveHealthEntries(data) {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('healthEntries', JSON.stringify(data));
   }
 
   // Generic methods for LibraryManager

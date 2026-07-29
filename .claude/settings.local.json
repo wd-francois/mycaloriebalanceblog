@@ -11,7 +11,8 @@
       "Bash(findstr \":3210\")",
       "Bash(npx convex *)",
       "Bash(npx astro *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\Francois\\\\OneDrive\\\\Desktop\\\\MyCalorieBalanceBlog\\\\src\\\\components\\\\pro\\\\ProAddEntry.jsx\")"
     ]
   }
 }

@@ -356,8 +356,8 @@ export default function ProClientDetail({ client, onBack }) {
   const range = RANGES[rangeIdx];
   const rangeArgs = range.days ? getRange(range.days) : {};
 
-  const entries  = useQuery(api.coaches.getClientEntries, { clientId: client.id, ...rangeArgs });
-  const photos   = useQuery(api.coaches.getClientPhotos,  { clientId: client.id });
+  const entries  = useQuery(api.coachClientData.getClientEntries, { clientId: client.id, ...rangeArgs });
+  const photos   = useQuery(api.coachClientData.getClientPhotos,  { clientId: client.id });
   const comments = useQuery(api.comments.listForClient,   { targetUserId: client.id });
 
   const coachInitial = viewer?.name

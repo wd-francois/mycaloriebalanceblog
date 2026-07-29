@@ -92,40 +92,37 @@ const AddMeasurementsFormPageInner = () => {
     } catch (e) {
       console.warn('Load measurements entry failed, trying localStorage:', e);
       try {
-        const saved = localStorage.getItem('healthEntries');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          for (const dateKey of Object.keys(parsed)) {
-            const arr = parsed[dateKey];
-            if (Array.isArray(arr)) {
-              const entry = arr.find((e) => e.id === id);
-              if (entry && (entry.type === 'measurements' || !entry.type)) {
-                setFormState({
-                  weight: entry.weight != null ? String(entry.weight) : '',
-                  neck: entry.neck != null ? String(entry.neck) : '',
-                  shoulders: entry.shoulders != null ? String(entry.shoulders) : '',
-                  chest: entry.chest != null ? String(entry.chest) : '',
-                  waist: entry.waist != null ? String(entry.waist) : '',
-                  thigh: entry.thigh != null ? String(entry.thigh) : '',
-                  arm: entry.arm != null ? String(entry.arm) : '',
-                  calf: entry.calf != null ? String(entry.calf) : '',
-                  chestSkinfold: entry.chestSkinfold != null ? String(entry.chestSkinfold) : '',
-                  abdominalSkinfold: entry.abdominalSkinfold != null ? String(entry.abdominalSkinfold) : '',
-                  thighSkinfold: entry.thighSkinfold != null ? String(entry.thighSkinfold) : '',
-                  tricepSkinfold: entry.tricepSkinfold != null ? String(entry.tricepSkinfold) : '',
-                  subscapularSkinfold: entry.subscapularSkinfold != null ? String(entry.subscapularSkinfold) : '',
-                  suprailiacSkinfold: entry.suprailiacSkinfold != null ? String(entry.suprailiacSkinfold) : '',
-                  notes: entry.notes || '',
-                });
-                if (entry.date) {
-                  const d = entry.date instanceof Date ? entry.date : new Date(entry.date);
-                  if (!isNaN(d.getTime())) setSelectedDate(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
-                }
-                if (entry.time && typeof entry.time === 'object' && entry.time.hour != null) {
-                  setTime(entry.time);
-                }
-                break;
+        const parsed = healthDB.getHealthEntries();
+        for (const dateKey of Object.keys(parsed)) {
+          const arr = parsed[dateKey];
+          if (Array.isArray(arr)) {
+            const entry = arr.find((e) => e.id === id);
+            if (entry && (entry.type === 'measurements' || !entry.type)) {
+              setFormState({
+                weight: entry.weight != null ? String(entry.weight) : '',
+                neck: entry.neck != null ? String(entry.neck) : '',
+                shoulders: entry.shoulders != null ? String(entry.shoulders) : '',
+                chest: entry.chest != null ? String(entry.chest) : '',
+                waist: entry.waist != null ? String(entry.waist) : '',
+                thigh: entry.thigh != null ? String(entry.thigh) : '',
+                arm: entry.arm != null ? String(entry.arm) : '',
+                calf: entry.calf != null ? String(entry.calf) : '',
+                chestSkinfold: entry.chestSkinfold != null ? String(entry.chestSkinfold) : '',
+                abdominalSkinfold: entry.abdominalSkinfold != null ? String(entry.abdominalSkinfold) : '',
+                thighSkinfold: entry.thighSkinfold != null ? String(entry.thighSkinfold) : '',
+                tricepSkinfold: entry.tricepSkinfold != null ? String(entry.tricepSkinfold) : '',
+                subscapularSkinfold: entry.subscapularSkinfold != null ? String(entry.subscapularSkinfold) : '',
+                suprailiacSkinfold: entry.suprailiacSkinfold != null ? String(entry.suprailiacSkinfold) : '',
+                notes: entry.notes || '',
+              });
+              if (entry.date) {
+                const d = entry.date instanceof Date ? entry.date : new Date(entry.date);
+                if (!isNaN(d.getTime())) setSelectedDate(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
               }
+              if (entry.time && typeof entry.time === 'object' && entry.time.hour != null) {
+                setTime(entry.time);
+              }
+              break;
             }
           }
         }
@@ -179,7 +176,7 @@ const AddMeasurementsFormPageInner = () => {
       } catch (dbErr) {
         console.warn('IndexedDB save failed, using localStorage:', dbErr);
         const dateKey = normalizedDate.toDateString();
-        const currentData = JSON.parse(localStorage.getItem('healthEntries') || '{}');
+        const currentData = healthDB.getHealthEntries();
         if (!currentData[dateKey]) currentData[dateKey] = [];
         if (editingId) {
           const idx = currentData[dateKey].findIndex((e) => e.id === editingId);
@@ -188,7 +185,7 @@ const AddMeasurementsFormPageInner = () => {
         } else {
           currentData[dateKey].push(entry);
         }
-        localStorage.setItem('healthEntries', JSON.stringify(currentData));
+        healthDB.saveHealthEntries(currentData);
       }
       alert(editingId ? 'Measurements updated.' : 'Measurements added.');
       window.location.href = '/';

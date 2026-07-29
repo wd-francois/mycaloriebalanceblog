@@ -94,6 +94,50 @@ export function parseDateLocalYYYYMMDD(dateStr) {
 }
 
 /**
+ * Normalize an entry's raw `.date` value (Date instance, "YYYY-MM-DD" string,
+ * or any other Date-parseable string) to a Date at local midnight. This is
+ * the exact normalization several places reimplement before grouping
+ * entries by day — new call sites should use this instead of re-deriving it.
+ * @param {Date|string} rawDate
+ * @returns {Date|null} Local midnight, or null if invalid/missing
+ */
+export function normalizeEntryDate(rawDate) {
+  if (!rawDate) return null;
+  let date;
+  if (rawDate instanceof Date) {
+    date = rawDate;
+  } else if (typeof rawDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+    date = new Date(rawDate + 'T12:00:00');
+  } else {
+    date = new Date(rawDate);
+  }
+  if (isNaN(date.getTime())) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/**
+ * Group a flat list of entries into `{ [dateKey]: entry[] }`, keyed by
+ * `normalizeEntryDate(entry).toDateString()`. Entries with an invalid/missing
+ * date are skipped.
+ * @param {Array<Object>} entries
+ * @param {(entry: Object) => (Date|string)} [getDate] - defaults to `entry.date`
+ * @param {(entry: Object, normalizedDate: Date) => Object} [mapEntry] - defaults to `{ ...entry, date: normalizedDate }`
+ * @returns {Object<string, Object[]>}
+ */
+export function groupEntriesByDate(entries, getDate = (e) => e.date, mapEntry = (e, d) => ({ ...e, date: d })) {
+  const grouped = {};
+  (entries || []).forEach((entry) => {
+    if (!entry) return;
+    const normalized = normalizeEntryDate(getDate(entry));
+    if (!normalized) return;
+    const dateKey = normalized.toDateString();
+    if (!grouped[dateKey]) grouped[dateKey] = [];
+    grouped[dateKey].push(mapEntry(entry, normalized));
+  });
+  return grouped;
+}
+
+/**
  * Get current time parts
  * @returns {Object} { hour, minute, period }
  */
