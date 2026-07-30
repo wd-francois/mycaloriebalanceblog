@@ -27,8 +27,7 @@ export const sendCoachInvite = internalAction({
         <!-- Header -->
         <tr>
           <td style="background:#ffffff;padding:32px 32px 20px;text-align:center;border-bottom:1px solid #f1f5f9">
-            <img src="https://mycaloriebalance.com/email-logo.png" width="110" height="110" alt="My Calorie Balance" style="display:block;width:110px;height:110px;margin:0 auto 10px;border:0" />
-            <p style="margin:0;color:#2563eb;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Pro</p>
+            <img src="https://mycaloriebalance.com/email-logo.png" width="110" height="110" alt="My Calorie Balance" style="display:block;width:110px;height:110px;margin:0 auto;border:0" />
           </td>
         </tr>
         <!-- Body -->
