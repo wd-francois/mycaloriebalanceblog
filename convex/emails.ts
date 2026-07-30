@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
+import { sendResendEmail } from "./lib";
 
 export const sendCoachInvite = internalAction({
   args: {
@@ -9,9 +10,6 @@ export const sendCoachInvite = internalAction({
     coachEmail: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) throw new Error("RESEND_API_KEY is not set");
-
     const displayCoach = args.coachName || args.coachEmail || "A coach";
     const displayClient = args.toName || args.toEmail;
     const appUrl = "https://mycaloriebalance.com/pro";
@@ -72,25 +70,10 @@ export const sendCoachInvite = internalAction({
 </body>
 </html>`;
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "My Calorie Balance Pro <noreply@mycaloriebalance.com>",
-        to: [args.toEmail],
-        subject: `${displayCoach} wants to be your coach on My Calorie Balance`,
-        html,
-      }),
+    return await sendResendEmail({
+      to: args.toEmail,
+      subject: `${displayCoach} wants to be your coach on My Calorie Balance`,
+      html,
     });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Resend error ${res.status}: ${text}`);
-    }
-
-    return await res.json();
   },
 });

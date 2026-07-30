@@ -1,9 +1,6 @@
-// Shared helpers for Convex query/mutation handlers.
-//
-// Additive only — nothing in convex/ imports from this file yet. Existing
-// call sites keep their inline copies of these patterns until they're
-// migrated one at a time (see APP_MAP refactor plan, Phase 3), so behavior
-// is unchanged by this file's existence.
+// Shared helpers used across Convex query/mutation/action handlers, and
+// (for sendResendEmail) from auth.ts's password-reset email callback, which
+// runs as a plain function call rather than a schedulable Convex function.
 
 // ── Coach ↔ client relationship checks ──────────────────────────────────────
 
@@ -102,4 +99,37 @@ export async function notifyOnce(
     senderId: args.senderId,
     type: args.type,
   });
+}
+
+// ── Resend email sending ─────────────────────────────────────────────────────
+
+// Sends a transactional HTML email via Resend. Shared by sendCoachInvite
+// (convex/emails.ts) and the password-reset email (convex/auth.ts).
+export async function sendResendEmail(args: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<unknown> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("RESEND_API_KEY is not set");
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "My Calorie Balance Pro <noreply@mycaloriebalance.com>",
+      to: [args.to],
+      subject: args.subject,
+      html: args.html,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Resend error ${res.status}: ${text}`);
+  }
+  return await res.json();
 }
