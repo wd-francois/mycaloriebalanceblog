@@ -73,6 +73,7 @@ export default defineSchema({
     weightUnit: v.optional(v.string()),
     theme: v.optional(v.string()),
     role: v.optional(v.union(v.literal("client"), v.literal("coach"))),
+    hasSeenWelcome: v.optional(v.boolean()),
   }).index("by_user", ["userId"]),
 
   coachClients: defineTable({

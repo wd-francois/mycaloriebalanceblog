@@ -4,6 +4,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import Calendar from '../Calendar';
 import ProDayModal from './ProDayModal';
+import ProWelcomeModal from './ProWelcomeModal';
 import { useIsCoach } from './useProRole';
 import ProErrorBoundary from './ProErrorBoundary';
 
@@ -215,6 +216,10 @@ export default function ProHome({ onNavigate }) {
   return (
     <div className="w-full">
       <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
+
+        <ProErrorBoundary>
+          <ProWelcomeModal onNavigate={onNavigate} />
+        </ProErrorBoundary>
 
         <ProErrorBoundary>
           <PendingInviteModal />
