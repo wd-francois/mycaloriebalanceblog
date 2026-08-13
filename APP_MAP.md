@@ -105,7 +105,7 @@ None. The Original app never calls `fetch()` — everything reads/writes straigh
 
 ### Database
 
-**Convex** — cloud document database with live/reactive queries + built-in file storage. Schema: [convex/schema.ts](convex/schema.ts). Shared backend helpers (auth/relationship checks, notification coalescing, email lookup) live in [convex/lib.ts](convex/lib.ts) and are imported by the API modules below rather than reimplemented per-file.
+**Convex** — cloud document database with live/reactive queries + built-in file storage. Schema: [convex/schema.ts](convex/schema.ts). Shared backend helpers (auth/relationship checks, notification coalescing, email lookup, Resend email sending) live in [convex/lib.ts](convex/lib.ts) and are imported by the API modules below rather than reimplemented per-file.
 
 | Table | Holds | Key fields |
 |---|---|---|
@@ -138,7 +138,7 @@ Pro is a single-page app — one real route, with in-app tabs swapped by [ProApp
 |---|---|---|
 | `/pro/` (route) | [src/pages/pro/index.astro](src/pages/pro/index.astro) | Mounts the whole Pro app |
 | — App shell | [src/components/pro/ProApp.jsx](src/components/pro/ProApp.jsx) | Auth check, role resolution, tab routing |
-| Sign In | [src/components/pro/SignInPage.jsx](src/components/pro/SignInPage.jsx) | Shown when not authenticated |
+| Sign In | [src/components/pro/SignInPage.jsx](src/components/pro/SignInPage.jsx) | Shown when not authenticated. Also hosts the "Forgot password?" flow — request a 6-digit email code, then enter it with a new password to reset (no separate route; it's a `view` state inside this component) |
 | Home tab | [src/components/pro/ProHome.jsx](src/components/pro/ProHome.jsx) | Today's dashboard; opens Day Entry modal |
 | Clients tab *(coach only)* | [src/components/pro/ProClients.jsx](src/components/pro/ProClients.jsx) | List/invite/manage clients |
 | Client Detail | [src/components/pro/ProClientDetail.jsx](src/components/pro/ProClientDetail.jsx) | One client's full history, comments, thread |
@@ -261,10 +261,16 @@ Backend = Convex functions (query = read, mutation = write, action = external si
 **[convex/emails.ts](convex/emails.ts)**
 | Function | Type | Purpose |
 |---|---|---|
-| `sendCoachInvite` | internalAction | Sends the invite email to a prospective client — internal-only (fixed from a public `action`, which let anyone trigger it directly) |
+| `sendCoachInvite` | internalAction | Sends the invite email to a prospective client — internal-only (fixed from a public `action`, which let anyone trigger it directly). Sends via the shared `sendResendEmail()` helper in [convex/lib.ts](convex/lib.ts) |
 
 **[convex/auth.ts](convex/auth.ts)** — authentication (email + password via `@convex-dev/auth`)
 Exports `auth`, `signIn`, `signOut`, `store`, `isAuthenticated` — consumed by `ConvexAuthProvider` in [ProApp.jsx](src/components/pro/ProApp.jsx), not called directly from pages.
+
+Password provider config includes a `reset` option (Convex Auth's built-in `Email()` verification mechanism, repurposed for password reset rather than magic-link sign-in):
+- Client calls `signIn('password', { flow: 'reset', email })` to request a code, then `signIn('password', { flow: 'reset-verification', email, code, newPassword })` to complete it — both from [SignInPage.jsx](src/components/pro/SignInPage.jsx).
+- `generateVerificationToken` produces a 6-digit numeric code (overriding the library's default 32-char token) with a 15-minute expiry.
+- `sendVerificationRequest` builds the reset-code email HTML and sends it via the shared `sendResendEmail()` helper in [convex/lib.ts](convex/lib.ts) — the same helper `sendCoachInvite` uses.
+- No magic link is sent — `SITE_URL` doesn't resolve to `mycaloriebalance.com`, so only the code is emailed; the user always types it in manually.
 
 **[convex/http.ts](convex/http.ts)**
 Wires up Convex Auth's built-in HTTP routes (sign-in/out/callback). No custom HTTP endpoints defined.
