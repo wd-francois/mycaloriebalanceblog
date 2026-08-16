@@ -6,6 +6,9 @@ import ProNavStatus from '@react/pro/ProNavStatus.jsx';
 
 // Get current URL to determine active state
 const currentUrl = Astro.url.pathname;
+// Keep Pro users inside Pro when they click "home" instead of dropping them
+// into the Original app's root page.
+const homeHref = currentUrl.startsWith('/pro') ? '/pro' : '/';
 ---
 
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-[var(--color-bg-base)] backdrop-blur-md dark:backdrop-blur-none border-0">
@@ -14,8 +17,8 @@ const currentUrl = Astro.url.pathname;
       <div class="flex items-center flex-1 min-w-0 gap-2 sm:gap-3">
       <!-- Heading - Show on all pages as clickable home link -->
       <h1 class="min-w-0">
-        <a 
-          href="/" 
+        <a
+          href={homeHref}
           class="inline-block group transition-all duration-200 relative"
           aria-label="Home"
           title="Go to Home"
@@ -24,14 +27,14 @@ const currentUrl = Astro.url.pathname;
             src={logo.src}
             alt="My Calorie Balance Diary"
             class={`h-[72px] w-auto sm:h-[68px] md:h-[80px] lg:h-[96px] xl:h-[112px] object-contain block dark:hidden transition-all duration-200 logo-light ${
-              currentUrl === '/' ? '' : 'group-hover:scale-105 group-hover:brightness-110'
+              currentUrl === homeHref ? '' : 'group-hover:scale-105 group-hover:brightness-110'
             }`}
           />
           <img
             src={darkLogo.src}
             alt="My Calorie Balance Diary"
             class={`dark-logo h-[72px] w-auto sm:h-[68px] md:h-[80px] lg:h-[96px] xl:h-[112px] object-contain hidden dark:block transition-all duration-200 logo-dark ${
-              currentUrl === '/' ? '' : 'group-hover:scale-105 group-hover:brightness-125'
+              currentUrl === homeHref ? '' : 'group-hover:scale-105 group-hover:brightness-125'
             }`}
           />
         </a>
