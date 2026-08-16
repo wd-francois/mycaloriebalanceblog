@@ -51,7 +51,12 @@ function exportProgram(program, exercises) {
           </tbody>
         </table>
         ${ex.notes ? `<p class="notes">${escapeHtml(ex.notes)}</p>` : ''}
-        ${links.length > 0 ? `<p class="links">${links.map(escapeHtml).join('<br>')}</p>` : ''}
+        ${links.length > 0 ? `<p class="links">${links.map(u => {
+          const safe = /^https?:\/\//i.test(u);
+          return safe
+            ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(u)}</a>`
+            : escapeHtml(u);
+        }).join('<br>')}</p>` : ''}
       </div>
     `;
   }).join('');
@@ -72,7 +77,9 @@ function exportProgram(program, exercises) {
         th, td { border: 1px solid #e5e7eb; padding: 4px 10px; text-align: left; font-size: 13px; }
         th { background: #f9fafb; font-weight: 600; color: #6b7280; }
         .notes { font-size: 13px; color: #4b5563; margin: 4px 0 0; }
-        .links { font-size: 12px; color: #2563eb; margin: 4px 0 0; word-break: break-all; }
+        .links { font-size: 12px; margin: 4px 0 0; word-break: break-all; }
+        .links a { color: #2563eb; text-decoration: none; }
+        .links a:hover { text-decoration: underline; }
         @media print { body { padding: 0; } }
       </style>
     </head>
