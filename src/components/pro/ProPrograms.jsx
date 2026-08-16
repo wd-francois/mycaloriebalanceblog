@@ -6,6 +6,28 @@ import ExercisePickerModal from './ExercisePickerModal';
 const INPUT = 'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
 const LABEL = 'block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1';
 
+// Runs assign/unassign calls in parallel without letting one failure hide the
+// rest — whatever succeeds stays committed either way, but callers need to
+// know which client(s) actually failed instead of just seeing a silent revert.
+async function runAssignments(ops, programId, assignProg, unassignProg, clients) {
+  if (ops.length === 0) return;
+  const results = await Promise.allSettled(
+    ops.map(({ clientId, type }) =>
+      type === 'assign'
+        ? assignProg({ programId, clientId })
+        : unassignProg({ programId, clientId })
+    )
+  );
+  const failed = results
+    .map((r, i) => ({ r, clientId: ops[i].clientId }))
+    .filter(({ r }) => r.status === 'rejected');
+  if (failed.length > 0) {
+    const names = failed.map(({ clientId }) => clients.find(c => c.id === clientId)?.name ?? 'a client');
+    const reason = failed[0].r.reason?.message ?? 'Not authorized';
+    throw new Error(`Couldn't update ${names.join(', ')}: ${reason}`);
+  }
+}
+
 const emptyExercise = () => ({
   id: Date.now() + Math.random(),
   name: '', load: '', reps: '', extraSets: [], notes: '', videoUrls: [], expanded: true,
@@ -353,7 +375,7 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
 }
 
 // ── Assign modal ──────────────────────────────────────────────────────────────
-function AssignModal({ program, clients, onSave, onClose }) {
+function AssignModal({ program, clients, error, onSave, onClose }) {
   const [selected, setSelected] = useState(
     () => new Set((program.assignedTo ?? []).map(c => c.id))
   );
@@ -411,6 +433,12 @@ function AssignModal({ program, clients, onSave, onClose }) {
           })}
         </div>
 
+        {error && (
+          <p className="mx-4 mb-2 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-xs font-medium text-red-600 dark:text-red-400">
+            {error}
+          </p>
+        )}
+
         <div className="flex gap-3 px-4 pb-4 pt-2 border-t border-gray-100 dark:border-gray-800">
           <button type="button" onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
@@ -440,6 +468,8 @@ export default function ProPrograms() {
   const [editTarget, setEditTarget] = useState(null);
   const [deleting, setDeleting]     = useState(null);
   const [assignTarget, setAssignTarget] = useState(null);
+  const [saveError, setSaveError]     = useState('');
+  const [assignError, setAssignError] = useState('');
 
   const clients = rawClients.map(c => ({
     id: c.id,
@@ -448,26 +478,34 @@ export default function ProPrograms() {
   }));
 
   const handleSave = async ({ name, description, exercises, assignedTo }) => {
-    if (view === 'new') {
-      const programId = await createProg({ name, description, exercises });
-      // Assign to selected clients
-      await Promise.all(assignedTo.map(clientId => assignProg({ programId, clientId })));
-    } else if (view === 'edit' && editTarget) {
-      await updateProg({ programId: editTarget._id, name, description, exercises });
-      // Diff assignments
-      const prevIds = new Set((editTarget.assignedTo ?? []).map(c => c.id));
-      const nextIds = new Set(assignedTo);
-      await Promise.all([
-        ...[...nextIds].filter(id => !prevIds.has(id)).map(clientId =>
-          assignProg({ programId: editTarget._id, clientId })
-        ),
-        ...[...prevIds].filter(id => !nextIds.has(id)).map(clientId =>
-          unassignProg({ programId: editTarget._id, clientId })
-        ),
-      ]);
+    setSaveError('');
+    try {
+      if (view === 'new') {
+        const programId = await createProg({ name, description, exercises });
+        // Switch to "edit" pointing at the new program so a retry after a
+        // partial assignment failure updates it instead of creating a duplicate.
+        setView('edit');
+        setEditTarget({ _id: programId, name, description, exercises, assignedTo: [] });
+        await runAssignments(
+          assignedTo.map(clientId => ({ clientId, type: 'assign' })),
+          programId, assignProg, unassignProg, clients,
+        );
+      } else if (view === 'edit' && editTarget) {
+        await updateProg({ programId: editTarget._id, name, description, exercises });
+        // Diff assignments
+        const prevIds = new Set((editTarget.assignedTo ?? []).map(c => c.id));
+        const nextIds = new Set(assignedTo);
+        const ops = [
+          ...[...nextIds].filter(id => !prevIds.has(id)).map(clientId => ({ clientId, type: 'assign' })),
+          ...[...prevIds].filter(id => !nextIds.has(id)).map(clientId => ({ clientId, type: 'unassign' })),
+        ];
+        await runAssignments(ops, editTarget._id, assignProg, unassignProg, clients);
+      }
+      setView('list');
+      setEditTarget(null);
+    } catch (err) {
+      setSaveError(err.message || 'Failed to save the program.');
     }
-    setView('list');
-    setEditTarget(null);
   };
 
   const handleDelete = async (programId) => {
@@ -477,17 +515,19 @@ export default function ProPrograms() {
   };
 
   const handleAssign = async (program, newClientIds) => {
+    setAssignError('');
     const prevIds = new Set((program.assignedTo ?? []).map(c => c.id));
     const nextIds = new Set(newClientIds);
-    await Promise.all([
-      ...[...nextIds].filter(id => !prevIds.has(id)).map(clientId =>
-        assignProg({ programId: program._id, clientId })
-      ),
-      ...[...prevIds].filter(id => !nextIds.has(id)).map(clientId =>
-        unassignProg({ programId: program._id, clientId })
-      ),
-    ]);
-    setAssignTarget(null);
+    const ops = [
+      ...[...nextIds].filter(id => !prevIds.has(id)).map(clientId => ({ clientId, type: 'assign' })),
+      ...[...prevIds].filter(id => !nextIds.has(id)).map(clientId => ({ clientId, type: 'unassign' })),
+    ];
+    try {
+      await runAssignments(ops, program._id, assignProg, unassignProg, clients);
+      setAssignTarget(null);
+    } catch (err) {
+      setAssignError(err.message || 'Failed to update assignments.');
+    }
   };
 
   // ── Editor view ─────────────────────────────────────────────────────────────
@@ -506,6 +546,11 @@ export default function ProPrograms() {
               {view === 'new' ? 'New Program' : 'Edit Program'}
             </h1>
           </div>
+          {saveError && (
+            <p className="px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm font-medium text-red-600 dark:text-red-400">
+              {saveError}
+            </p>
+          )}
           <ProgramEditor
             program={editTarget}
             clients={clients}
@@ -524,8 +569,9 @@ export default function ProPrograms() {
         <AssignModal
           program={assignTarget}
           clients={clients}
+          error={assignError}
           onSave={handleAssign}
-          onClose={() => setAssignTarget(null)}
+          onClose={() => { setAssignTarget(null); setAssignError(''); }}
         />
       )}
       <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
@@ -538,7 +584,7 @@ export default function ProPrograms() {
               {programs.length} program{programs.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <button onClick={() => setView('new')}
+          <button onClick={() => { setView('new'); setSaveError(''); }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 shadow-sm transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -630,12 +676,12 @@ export default function ProPrograms() {
                 {/* Actions */}
                 <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-gray-800">
                   <button
-                    onClick={() => setAssignTarget(program)}
+                    onClick={() => { setAssignTarget(program); setAssignError(''); }}
                     className="flex-1 py-2 rounded-xl text-xs font-semibold text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
                     Assign
                   </button>
                   <button
-                    onClick={() => { setEditTarget(program); setView('edit'); }}
+                    onClick={() => { setEditTarget(program); setView('edit'); setSaveError(''); }}
                     className="flex-1 py-2 rounded-xl text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                     Edit
                   </button>
