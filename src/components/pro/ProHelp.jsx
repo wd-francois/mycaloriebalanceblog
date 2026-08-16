@@ -218,7 +218,7 @@ export default function ProHelp({ onBack }) {
 
             <div>
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Programs tab — Library</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Build workout programs with exercises, per-set targets (load &amp; reps), notes, and video links. Programs are saved to your library and can be assigned to any client at any time using the <strong>Assign</strong> button on each card.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Build workout programs with exercises, per-set targets (load &amp; reps), notes, and video links. Programs are saved to your library and can be assigned to any client at any time using the <strong>Assign</strong> button on each card. Tap the download icon on a card to export a print-ready summary (save as PDF or print) — handy for sharing outside the app.</p>
             </div>
 
             <div>

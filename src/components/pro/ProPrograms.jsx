@@ -28,6 +28,66 @@ async function runAssignments(ops, programId, assignProg, unassignProg, clients)
   }
 }
 
+const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}[c]));
+
+// Opens a print-ready summary of the program in a new tab and triggers the
+// browser's print dialog — the coach can save it as a PDF or print it.
+function exportProgram(program, exercises) {
+  const win = window.open('', '_blank');
+  if (!win) return;
+
+  const exerciseHtml = exercises.map((ex, i) => {
+    const sets = [{ load: ex.load, reps: ex.reps }, ...(ex.extraSets ?? [])];
+    const links = (ex.videoUrls ?? []).filter(Boolean);
+    return `
+      <div class="exercise">
+        <h3>${i + 1}. ${escapeHtml(ex.name)}</h3>
+        <table>
+          <thead><tr><th>Set</th><th>Load</th><th>Reps</th></tr></thead>
+          <tbody>
+            ${sets.map((s, j) => `<tr><td>${j + 1}</td><td>${escapeHtml(s.load) || '—'}</td><td>${escapeHtml(s.reps) || '—'}</td></tr>`).join('')}
+          </tbody>
+        </table>
+        ${ex.notes ? `<p class="notes">${escapeHtml(ex.notes)}</p>` : ''}
+        ${links.length > 0 ? `<p class="links">${links.map(escapeHtml).join('<br>')}</p>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  win.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>${escapeHtml(program.name)}</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; padding: 32px; max-width: 720px; margin: 0 auto; }
+        h1 { font-size: 22px; margin: 0 0 4px; }
+        .desc { color: #6b7280; font-size: 14px; margin: 0 0 24px; }
+        .exercise { margin-bottom: 24px; page-break-inside: avoid; }
+        h3 { font-size: 15px; margin: 0 0 8px; }
+        table { border-collapse: collapse; width: 100%; max-width: 320px; margin-bottom: 6px; }
+        th, td { border: 1px solid #e5e7eb; padding: 4px 10px; text-align: left; font-size: 13px; }
+        th { background: #f9fafb; font-weight: 600; color: #6b7280; }
+        .notes { font-size: 13px; color: #4b5563; margin: 4px 0 0; }
+        .links { font-size: 12px; color: #2563eb; margin: 4px 0 0; word-break: break-all; }
+        @media print { body { padding: 0; } }
+      </style>
+    </head>
+    <body>
+      <h1>${escapeHtml(program.name)}</h1>
+      ${program.description ? `<p class="desc">${escapeHtml(program.description)}</p>` : ''}
+      ${exerciseHtml || '<p class="desc">No exercises yet.</p>'}
+    </body>
+    </html>
+  `);
+  win.document.close();
+  win.focus();
+  win.print();
+}
+
 const emptyExercise = () => ({
   id: Date.now() + Math.random(),
   name: '', load: '', reps: '', extraSets: [], notes: '', videoUrls: [], expanded: true,
@@ -675,6 +735,14 @@ export default function ProPrograms() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-gray-800">
+                  <button
+                    onClick={() => exportProgram(program, exercises)}
+                    title="Export program"
+                    className="px-2.5 py-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                    </svg>
+                  </button>
                   <button
                     onClick={() => { setAssignTarget(program); setAssignError(''); }}
                     className="flex-1 py-2 rounded-xl text-xs font-semibold text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
