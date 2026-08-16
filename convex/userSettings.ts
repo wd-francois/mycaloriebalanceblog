@@ -39,22 +39,3 @@ export const set = mutation({
     }
   },
 });
-
-export const markWelcomeSeen = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
-
-    const existing = await ctx.db
-      .query("userSettings")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .first();
-
-    if (existing) {
-      await ctx.db.patch(existing._id, { hasSeenWelcome: true });
-    } else {
-      await ctx.db.insert("userSettings", { userId, hasSeenWelcome: true });
-    }
-  },
-});
