@@ -92,12 +92,28 @@ function ProShell() {
 
   // ── Tab renderer ────────────────────────────────────────────────────────
   function renderTab() {
-    if (tab === 'clients' && selectedClient) {
+    if (tab === 'clients') {
+      // Both panes are always mounted from lg: up so Clients reads as a
+      // master-detail view; below lg: only one of them is visible at a time,
+      // matching the original single-pane mobile behavior.
       return (
-        <ProClientDetail
-          client={selectedClient}
-          onBack={() => setSelectedClient(null)}
-        />
+        <div className="lg:grid lg:grid-cols-[360px_1fr] lg:gap-6 lg:items-start lg:max-w-6xl lg:mx-auto">
+          <div className={selectedClient ? 'hidden lg:block' : ''}>
+            <ProClients onSelectClient={setSelectedClient} selectedClientId={selectedClient?.id} />
+          </div>
+          <div className={selectedClient ? '' : 'hidden lg:flex lg:items-center lg:justify-center lg:min-h-[50vh]'}>
+            {selectedClient ? (
+              <ProClientDetail
+                client={selectedClient}
+                onBack={() => setSelectedClient(null)}
+              />
+            ) : (
+              <p className="hidden lg:block text-sm text-gray-400 dark:text-gray-500">
+                Select a client to view their details
+              </p>
+            )}
+          </div>
+        </div>
       );
     }
     switch (tab) {
@@ -105,7 +121,6 @@ function ProShell() {
       case 'insights': return <ProInsights />;
       case 'tools':    return <ProTools />;
       case 'photos':   return <ProPhotos />;
-      case 'clients':  return <ProClients  onSelectClient={setSelectedClient} />;
       case 'programs': return <ProPrograms />;
       case 'messages': return <ProMessages />;
       case 'help':     return <ProHelp onBack={() => navigate('settings')} />;
@@ -116,7 +131,7 @@ function ProShell() {
 
   // ── Shell ────────────────────────────────────────────────────────────────
   return (
-    <div className="pb-20 px-4">
+    <div className="pb-20 px-4 lg:pb-4 lg:pl-24 xl:pl-60">
       <ProErrorBoundary
         key={tab}
         fallback={

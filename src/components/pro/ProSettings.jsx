@@ -150,7 +150,7 @@ export default function ProSettings({ user }) {
 
   return (
     <div className="w-full">
-      <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-5">
+      <div className="max-w-sm lg:max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-5">
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Settings</h1>
 
         {/* ── Profile & Goals (Convex) ────────────────────────────────── */}

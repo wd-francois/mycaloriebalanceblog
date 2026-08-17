@@ -352,7 +352,7 @@ export default function ProInsights() {
 
   return (
     <div className="w-full">
-      <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-5 px-3 sm:px-4 py-4 sm:py-6">
+      <div className="max-w-sm lg:max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5 px-3 sm:px-4 py-4 sm:py-6">
 
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Insights</h1>
 
@@ -435,53 +435,55 @@ export default function ProInsights() {
           </div>
         </div>
 
-        {/* ── Trend chart ──────────────────────────────────────────────── */}
-        <div className={CARD}>
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <h2 className={CARD_TITLE} style={{ marginBottom: 0 }}>Calories & Sleep Trend</h2>
-            <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 p-0.5 bg-gray-50 dark:bg-gray-900/30">
-              {['weekly', 'monthly'].map(p => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setTrendPeriod(p)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                    trendPeriod === p
-                      ? 'bg-blue-600 text-white dark:bg-blue-500'
-                      : 'text-gray-600 dark:text-gray-300'
-                  }`}
-                >
-                  {p.charAt(0).toUpperCase() + p.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-          {trendData?.hasData ? (
-            <div className="relative h-52 sm:h-60 w-full">
-              <canvas ref={trendRef} />
-            </div>
-          ) : (
-            <p className="text-sm text-center text-gray-500 dark:text-gray-400 py-8">
-              Not enough calorie or sleep data to draw a trend yet.
-            </p>
-          )}
-        </div>
-
-        {/* ── Correlation chart ────────────────────────────────────────── */}
-        <div className={CARD}>
-          <h2 className={CARD_TITLE}>Sleep vs Calories Correlation</h2>
-          {corrData?.points.length >= 2 ? (
-            <>
-              <div className="relative h-52 sm:h-60 w-full">
-                <canvas ref={corrRef} />
+        <div className="flex flex-col gap-4 sm:gap-5 lg:grid lg:grid-cols-2 lg:gap-4">
+          {/* ── Trend chart ──────────────────────────────────────────────── */}
+          <div className={CARD}>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h2 className={CARD_TITLE} style={{ marginBottom: 0 }}>Calories & Sleep Trend</h2>
+              <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 p-0.5 bg-gray-50 dark:bg-gray-900/30">
+                {['weekly', 'monthly'].map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setTrendPeriod(p)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                      trendPeriod === p
+                        ? 'bg-blue-600 text-white dark:bg-blue-500'
+                        : 'text-gray-600 dark:text-gray-300'
+                    }`}
+                  >
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </button>
+                ))}
               </div>
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{corrSummary}</p>
-            </>
-          ) : (
-            <p className="text-sm text-center text-gray-500 dark:text-gray-400 py-8">
-              Need days with both sleep and meal logs to show correlation.
-            </p>
-          )}
+            </div>
+            {trendData?.hasData ? (
+              <div className="relative h-52 sm:h-60 w-full">
+                <canvas ref={trendRef} />
+              </div>
+            ) : (
+              <p className="text-sm text-center text-gray-500 dark:text-gray-400 py-8">
+                Not enough calorie or sleep data to draw a trend yet.
+              </p>
+            )}
+          </div>
+
+          {/* ── Correlation chart ────────────────────────────────────────── */}
+          <div className={CARD}>
+            <h2 className={CARD_TITLE}>Sleep vs Calories Correlation</h2>
+            {corrData?.points.length >= 2 ? (
+              <>
+                <div className="relative h-52 sm:h-60 w-full">
+                  <canvas ref={corrRef} />
+                </div>
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{corrSummary}</p>
+              </>
+            ) : (
+              <p className="text-sm text-center text-gray-500 dark:text-gray-400 py-8">
+                Need days with both sleep and meal logs to show correlation.
+              </p>
+            )}
+          </div>
         </div>
 
       </div>

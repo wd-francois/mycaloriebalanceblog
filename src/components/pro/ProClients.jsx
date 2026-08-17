@@ -15,7 +15,7 @@ function relativeDate(dateStr) {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-export default function ProClients({ onSelectClient }) {
+export default function ProClients({ onSelectClient, selectedClientId }) {
   const clients        = useQuery(api.coaches.getClients);
   const sentInvites    = useQuery(api.coaches.getSentInvites) ?? [];
   const unreadCounts   = useQuery(api.notifications.getUnreadCounts) ?? { total: 0, byClient: {} };
@@ -57,7 +57,7 @@ export default function ProClients({ onSelectClient }) {
 
   return (
     <div className="w-full">
-      <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
+      <div className="max-w-sm lg:max-w-none mx-auto lg:mx-0 px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -192,17 +192,22 @@ export default function ProClients({ onSelectClient }) {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 xl:grid xl:grid-cols-2 xl:gap-2">
             {clients.map((client) => {
               const initial     = (client.name || client.email || '?')[0].toUpperCase();
               const displayName = client.name || client.email || 'Unknown client';
               const lastSeen    = relativeDate(client.lastActiveDate);
               const clientNotifs = unreadCounts.byClient[client.id] ?? { entries: 0, messages: 0 };
+              const isSelected  = selectedClientId === client.id;
 
               return (
                 <div
                   key={client.id}
-                  className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-3 px-4 py-3 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-sm transition-all group"
+                  className={`bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border flex items-center gap-3 px-4 py-3 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-sm transition-all group ${
+                    isSelected
+                      ? 'border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10'
+                      : 'border-gray-100 dark:border-gray-800'
+                  }`}
                 >
                   {/* Avatar */}
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base flex-shrink-0">

@@ -272,7 +272,7 @@ function OverviewTab({ entries, photos, comments }) {
   return (
     <div className="flex flex-col gap-3">
       {/* Quick stats row */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {[
           { label: 'Avg calories',   value: stats.avgCal7  != null ? stats.avgCal7        : '—', sub: stats.avgCal7  != null ? `${stats.calDays7Len}d this week` : 'No meals this week', color: 'text-orange-600 dark:text-orange-400' },
           { label: 'Avg sleep',      value: stats.avgSleep7 != null ? `${stats.avgSleep7.toFixed(1)}h` : '—', sub: stats.avgSleep7 != null ? `${stats.sleepDays7Len}d this week` : 'No sleep this week', color: 'text-purple-600 dark:text-purple-400' },
@@ -396,7 +396,7 @@ export default function ProClientDetail({ client, onBack }) {
 
   return (
     <div className="w-full">
-      <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
+      <div className="max-w-sm lg:max-w-2xl mx-auto lg:mx-0 px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
 
         {/* Header */}
         <div className="flex items-center gap-3">

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 
 const CARD = 'group block p-4 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200';
-const GRID = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
+const GRID = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
 
 const CalcIcon = ({ color }) => (
   <svg className={`w-7 h-7 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">

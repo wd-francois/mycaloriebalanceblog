@@ -80,33 +80,65 @@ export default function ProNavigation({ active, onNavigate, role }) {
   const activeLink = 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg';
   const inactiveLink = 'text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400';
 
+  const railLinkBase = 'flex items-center gap-3 px-3 xl:px-4 py-2.5 rounded-xl transition-all duration-200 group w-full';
+  const railActive = 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20';
+  const railInactive = 'text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800/50';
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[var(--color-bg-base)] shadow-lg">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-around items-center py-2">
-          {tabs.map((tab) => {
-            const isActive = active === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onNavigate(tab.id)}
-                className={`${linkBase} ${isActive ? activeLink : inactiveLink}`}
-                aria-label={tab.label}
-              >
-                <span className={`relative ${isActive ? 'scale-110' : 'group-hover:scale-110 transition-transform duration-200'}`}>
-                  {tab.icon}
-                  {tab.badge && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-[var(--color-bg-base)]" />
-                  )}
-                </span>
-                <span className={`text-xs font-medium ${isActive ? 'text-blue-600 dark:text-blue-400' : ''}`}>
-                  {tab.label}
-                </span>
-              </button>
-            );
-          })}
+    <>
+      {/* Mobile / tablet — bottom tab bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-[var(--color-bg-base)] shadow-lg lg:hidden">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-around items-center py-2">
+            {tabs.map((tab) => {
+              const isActive = active === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onNavigate(tab.id)}
+                  className={`${linkBase} ${isActive ? activeLink : inactiveLink}`}
+                  aria-label={tab.label}
+                >
+                  <span className={`relative ${isActive ? 'scale-110' : 'group-hover:scale-110 transition-transform duration-200'}`}>
+                    {tab.icon}
+                    {tab.badge && (
+                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-[var(--color-bg-base)]" />
+                    )}
+                  </span>
+                  <span className={`text-xs font-medium ${isActive ? 'text-blue-600 dark:text-blue-400' : ''}`}>
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Desktop — left sidebar rail */}
+      <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50 flex-col w-20 xl:w-56 bg-white dark:bg-[var(--color-bg-base)] border-r border-gray-100 dark:border-gray-800 py-6 px-2 xl:px-3 gap-1 overflow-y-auto">
+        {tabs.map((tab) => {
+          const isActive = active === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onNavigate(tab.id)}
+              className={`${railLinkBase} ${isActive ? railActive : railInactive}`}
+              aria-label={tab.label}
+            >
+              <span className="relative shrink-0">
+                {tab.icon}
+                {tab.badge && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-[var(--color-bg-base)]" />
+                )}
+              </span>
+              <span className="hidden xl:inline text-sm font-medium">
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+    </>
   );
 }

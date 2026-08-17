@@ -89,7 +89,7 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
         <div className="flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-gray-800">
           <button
             onClick={onBack}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -215,7 +215,7 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
 // resolves "the other side of every coach/client relationship I have," so
 // this one inbox serves a coach's client list and a client's coach list.
 
-function ConversationItem({ conversation, onClick }) {
+function ConversationItem({ conversation, onClick, isSelected }) {
   const { name, email, lastMessagePreview, lastMessageAt, lastMessageMine, unreadCount } = conversation;
   const displayName = name || email || 'Unknown';
   const initial = displayName[0].toUpperCase();
@@ -231,7 +231,11 @@ function ConversationItem({ conversation, onClick }) {
     <button
       onClick={onClick}
       aria-label={accessibleLabel}
-      className="w-full flex items-center gap-3 p-3 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all text-left"
+      className={`w-full flex items-center gap-3 p-3 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border hover:border-blue-300 dark:hover:border-blue-700 transition-all text-left ${
+        isSelected
+          ? 'border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10'
+          : 'border-gray-100 dark:border-gray-800'
+      }`}
     >
       <div className="relative flex-shrink-0">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base">
@@ -264,7 +268,7 @@ function ConversationItem({ conversation, onClick }) {
 }
 
 // Isolated so a query failure can't crash the whole messages screen
-function ConversationList({ onSelect }) {
+function ConversationList({ onSelect, selectedId }) {
   const conversations = useQuery(api.messages.listConversations) ?? [];
   if (conversations.length === 0) {
     return <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-12">No conversations yet</p>;
@@ -272,7 +276,12 @@ function ConversationList({ onSelect }) {
   return (
     <div className="flex flex-col gap-2">
       {conversations.map(conversation => (
-        <ConversationItem key={conversation.id} conversation={conversation} onClick={() => onSelect(conversation)} />
+        <ConversationItem
+          key={conversation.id}
+          conversation={conversation}
+          isSelected={conversation.id === selectedId}
+          onClick={() => onSelect(conversation)}
+        />
       ))}
     </div>
   );
@@ -281,27 +290,26 @@ function ConversationList({ onSelect }) {
 export default function ProMessages() {
   const [selectedContact, setSelectedContact] = useState(null);
 
-  if (selectedContact) {
-    return (
-      <div className="w-full">
-        <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6">
-          <CoachThread
-            otherUserId={selectedContact.id}
-            otherName={selectedContact.name || selectedContact.email}
-            onBack={() => setSelectedContact(null)}
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full">
-      <div className="max-w-sm mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Messages</h2>
-        <ProErrorBoundary>
-          <ConversationList onSelect={setSelectedContact} />
-        </ProErrorBoundary>
+      <div className="max-w-sm lg:max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:grid lg:grid-cols-[320px_1fr] lg:gap-5 lg:items-start">
+        <div className={selectedContact ? 'hidden lg:block' : ''}>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Messages</h2>
+          <ProErrorBoundary>
+            <ConversationList onSelect={setSelectedContact} selectedId={selectedContact?.id} />
+          </ProErrorBoundary>
+        </div>
+        <div className={selectedContact ? '' : 'hidden lg:flex lg:items-center lg:justify-center lg:min-h-[50vh]'}>
+          {selectedContact ? (
+            <CoachThread
+              otherUserId={selectedContact.id}
+              otherName={selectedContact.name || selectedContact.email}
+              onBack={() => setSelectedContact(null)}
+            />
+          ) : (
+            <p className="hidden lg:block text-sm text-gray-400 dark:text-gray-500">Select a conversation</p>
+          )}
+        </div>
       </div>
     </div>
   );

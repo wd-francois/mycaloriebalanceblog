@@ -194,7 +194,7 @@ export default function ProHome({ onNavigate }) {
   if (isCoach) {
     return (
       <div className="w-full">
-        <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
+        <div className="max-w-sm lg:max-w-2xl mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
           <div className={CARD}>
             <h3 className={CARD_TITLE}>Coach Dashboard</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -214,7 +214,7 @@ export default function ProHome({ onNavigate }) {
 
   return (
     <div className="w-full">
-      <div className="max-w-sm mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
+      <div className="max-w-sm lg:max-w-2xl mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
 
         <ProErrorBoundary>
           <PendingInviteModal />
