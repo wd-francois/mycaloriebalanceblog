@@ -111,6 +111,64 @@ export default function ProHelp({ onBack }) {
           </div>
         </div>
 
+        {/* Install the app */}
+        <Section emoji="📱" title="Install the App">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            <a href="https://mycaloriebalance.com" target="_blank" rel="noopener noreferrer"
+              className="text-blue-600 dark:text-blue-400 font-medium hover:underline">mycaloriebalance.com</a>
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            For the best experience, install My Calorie Balance Pro on your phone or tablet.
+            Once installed, it works offline and launches just like a native app from your home screen.
+          </p>
+
+          <div className="flex flex-col gap-3 mt-1">
+            <p className="text-sm font-bold text-gray-800 dark:text-gray-200">🤖 Android and PC</p>
+            <Step n="1" title="Open mycaloriebalance.com in Chrome." />
+            <Step n="2" title="Tap the ⋮ menu in the top-right corner." />
+            <Step n="3" title='Select "Add to Home screen".' />
+            <Step n="4" title='Tap "Add" to confirm.' />
+          </div>
+
+          <div className="flex flex-col gap-3 mt-2">
+            <p className="text-sm font-bold text-gray-800 dark:text-gray-200">🍎 iPhone &amp; iPad (iOS)</p>
+            <Step n="1" title="Open mycaloriebalance.com in Safari." />
+            <Step n="2" title="Tap the Share button (□↑)." />
+            <Step n="3" title='Scroll down and tap "Add to Home Screen".' />
+            <Step n="4" title='Tap "Add" to confirm.' />
+          </div>
+
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-xl p-3 mt-1">
+            <p className="text-sm text-blue-700 dark:text-blue-300">✨ That's it! Your app is now installed and ready to use, even when you're offline.</p>
+          </div>
+        </Section>
+
+        {/* Choose your version */}
+        <Section emoji="🔀" title="Choose Your Version">
+          <p className="text-sm text-gray-500 dark:text-gray-400">There are two versions of My Calorie Balance:</p>
+
+          <div className="flex flex-col gap-1.5">
+            <p className="text-sm font-bold text-gray-800 dark:text-gray-200">🆓 Basic (Free)</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">The Basic version is completely free to use and is available immediately after installation.</p>
+            <ul className="list-disc list-inside text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-0.5 mt-0.5">
+              <li>No account required.</li>
+              <li>All your data is stored locally on your device only.</li>
+              <li>Ideal if you simply want to track your own nutrition, workouts, sleep and measurements.</li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col gap-1.5 mt-2">
+            <p className="text-sm font-bold text-gray-800 dark:text-gray-200">⭐ Pro (Coach Connected)</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">The Pro version lets you work directly with a coach. Simply create an account to connect with your coach and unlock additional features, including:</p>
+            <ul className="list-disc list-inside text-sm text-gray-500 dark:text-gray-400 flex flex-col gap-0.5 mt-0.5">
+              <li>Personalized coaching and feedback.</li>
+              <li>Your coach can view your entries.</li>
+              <li>Comments and recommendations based on your progress.</li>
+              <li>Secure cloud backup and access across your devices.</li>
+            </ul>
+          </div>
+        </Section>
+
         {/* Quick start */}
         <Section emoji="🚀" title="Quick Start" defaultOpen>
           <Step n="1" title="Open any day on the calendar">
