@@ -1,5 +1,12 @@
 import { useState } from 'react';
 
+// Same star used for the "Pro" badge in the top navigation (ProNavStatus.jsx)
+const StarIcon = ({ className }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+  </svg>
+);
+
 // ── Accordion section ──────────────────────────────────────────────────────────
 function Section({ emoji, title, children, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -67,9 +74,9 @@ function Step({ n, title, children }) {
       <div className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
         {n}
       </div>
-      <div>
+      <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{title}</p>
-        {children && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{children}</p>}
+        {children && <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{children}</div>}
       </div>
     </div>
   );
@@ -92,50 +99,28 @@ export default function ProHelp({ onBack }) {
             </button>
           )}
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Help &amp; Guide</h1>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Everything you need to know about My Calorie Balance Pro</p>
-          </div>
-        </div>
-
-        {/* About */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 text-white">
-          <p className="text-base font-bold mb-1">My Calorie Balance Pro</p>
-          <p className="text-sm text-blue-100 leading-relaxed">
-            A complete health tracking platform — log meals, workouts, sleep, and body measurements.
-            Connect with a coach who can build custom programs, monitor your progress, and send feedback.
-          </p>
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {['Nutrition', 'Exercise', 'Sleep', 'Measurements', 'Photos', 'Coaching'].map(t => (
-              <span key={t} className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/20">{t}</span>
-            ))}
-          </div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Help &amp; FAQs</h1>
+            </div>
         </div>
 
         {/* Install the app */}
-        <Section emoji="📱" title="Install the App">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            <a href="https://mycaloriebalance.com" target="_blank" rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 font-medium hover:underline">mycaloriebalance.com</a>
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            For the best experience, install My Calorie Balance Pro on your phone or tablet.
-            Once installed, it works offline and launches just like a native app from your home screen.
-          </p>
+        <Section emoji="📱" title="Installing the App">
+          <Step n="1" title={<>Go to <a href="https://mycaloriebalance.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">mycaloriebalance.com</a></>} />
 
           <div className="flex flex-col gap-3 mt-1">
             <p className="text-sm font-bold text-gray-800 dark:text-gray-200">🤖 Android and PC</p>
-            <Step n="1" title="Open mycaloriebalance.com in Chrome." />
-            <Step n="2" title="Tap the ⋮ menu in the top-right corner." />
-            <Step n="3" title='Select "Add to Home screen".' />
-            <Step n="4" title='Tap "Add" to confirm.' />
+            <Step n="2" title="Open the site in Chrome." />
+            <Step n="3" title="Tap the ⋮ menu in the top-right corner." />
+            <Step n="4" title='Select "Add to Home screen".' />
+            <Step n="5" title='Tap "Add" to confirm.' />
           </div>
 
           <div className="flex flex-col gap-3 mt-2">
             <p className="text-sm font-bold text-gray-800 dark:text-gray-200">🍎 iPhone &amp; iPad (iOS)</p>
-            <Step n="1" title="Open mycaloriebalance.com in Safari." />
-            <Step n="2" title="Tap the Share button (□↑)." />
-            <Step n="3" title='Scroll down and tap "Add to Home Screen".' />
-            <Step n="4" title='Tap "Add" to confirm.' />
+            <Step n="2" title="Open the site in Safari." />
+            <Step n="3" title="Tap the Share button (□↑)." />
+            <Step n="4" title='Scroll down and tap "Add to Home Screen".' />
+            <Step n="5" title='Tap "Add" to confirm.' />
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-xl p-3 mt-1">
@@ -169,64 +154,58 @@ export default function ProHelp({ onBack }) {
           </div>
         </Section>
 
-        {/* Quick start */}
-        <Section emoji="🚀" title="Quick Start" defaultOpen>
+        {/* Set your goals */}
+        <Section emoji="🎯" title="Set Your Goals">
+          <Step n="1" title="Set your goals">
+            Head to Settings → Profile &amp; Goals to set your daily calorie, protein, and weight targets.
+          </Step>
+          <Step n="2" title="Not sure what your numbers should be?">
+            Use the Calorie &amp; Nutrition Tools in the Tools section to calculate your calorie needs based on your goals. Then, set your calorie and nutrition goals accordingly.
+          </Step>
+        </Section>
+
+        {/* How to start logging entries */}
+        <Section emoji="🚀" title="How to Start Logging Entries" defaultOpen>
           <Step n="1" title="Open any day on the calendar">
             Tap any date on the Home screen to open the day log.
           </Step>
           <Step n="2" title="Choose what to log">
-            Pick from Meal, Exercise, Sleep, or Measurements and fill in the details.
+            <p className="mb-2">Pick from Meal, Exercise, Sleep, Measurements, or Photos and fill in the details:</p>
+            <div className="flex flex-col gap-2.5">
+              <div className="flex gap-2 items-start">
+                <span className="shrink-0">🍽️</span>
+                <span><strong className="font-semibold text-gray-700 dark:text-gray-300">Meal</strong> — Log food with name, amount, and nutritional info (calories, protein, carbs, fat, fibre). The AI button opens your preferred AI assistant pre-filled with the meal details for instant macro estimates.</span>
+              </div>
+              <div className="flex gap-2 items-start">
+                <span className="shrink-0">🏋️</span>
+                <span><strong className="font-semibold text-gray-700 dark:text-gray-300">Exercise</strong> — Add exercises with individual set rows — each set has its own Load and Reps. Use "+ Add Set" to log multiple sets. Tap "Load coach program" to pre-fill the form with a program your coach assigned you.</span>
+              </div>
+              <div className="flex gap-2 items-start">
+                <span className="shrink-0">😴</span>
+                <span><strong className="font-semibold text-gray-700 dark:text-gray-300">Sleep</strong> — Log bedtime and wake time. The app calculates your sleep duration automatically. Rate your quality as Poor, Fair, Good, or Excellent.</span>
+              </div>
+              <div className="flex gap-2 items-start">
+                <span className="shrink-0">📏</span>
+                <span><strong className="font-semibold text-gray-700 dark:text-gray-300">Measurements</strong> — Track body weight, girth measurements (neck, shoulders, chest, waist, hips, thigh, arm, calf), and skinfold sites for body composition tracking.</span>
+              </div>
+              <div className="flex gap-2 items-start">
+                <span className="shrink-0">📷</span>
+                <span><strong className="font-semibold text-gray-700 dark:text-gray-300">Add Photos</strong> — Take and upload photos of your meals, exercise equipment, progress, or anything else you want to track. Your photos are securely stored in the cloud and are only visible to you (and your coach, if connected).</span>
+              </div>
+            </div>
           </Step>
-          <Step n="3" title="Review your progress">
-            Go to Insights to see charts for calories, nutrition, weight, and sleep over time.
+          <Step n="3" title="View Entries">
+            Once an entry is logged it can be viewed in the "View Entries" section.
           </Step>
-          <Step n="4" title="Set your goals">
-            Head to Settings → Profile &amp; Goals to set your daily calorie, protein, and weight targets.
-          </Step>
-        </Section>
-
-        {/* Logging entries */}
-        <Section emoji="📋" title="Logging Entries">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Tap any day on the calendar to open the day log, then choose an entry type.</p>
-
-          <div className="flex flex-col gap-3 mt-1">
-            <div className="flex gap-3 items-start">
-              <span className="text-lg shrink-0">🍽️</span>
-              <div>
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Meal</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Log food with name, amount, and nutritional info — calories, protein, carbs, fat, fibre. The AI button opens your preferred AI assistant pre-filled with the meal details for instant macro estimates.</p>
-              </div>
-            </div>
-
-            <div className="flex gap-3 items-start">
-              <span className="text-lg shrink-0">🏋️</span>
-              <div>
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Exercise</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Add exercises with individual set rows — each set has its own Load and Reps. Use "+ Add Set" to log multiple sets. Tap "Load coach program" to pre-fill the form with a program your coach assigned you.</p>
-              </div>
-            </div>
-
-            <div className="flex gap-3 items-start">
-              <span className="text-lg shrink-0">😴</span>
-              <div>
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Sleep</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Log bedtime and wake time. The app calculates your sleep duration automatically. Rate your quality as Poor, Fair, Good, or Excellent.</p>
-              </div>
-            </div>
-
-            <div className="flex gap-3 items-start">
-              <span className="text-lg shrink-0">📏</span>
-              <div>
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Measurements</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Track body weight, girth measurements (neck, shoulders, chest, waist, hips, thigh, arm, calf), and skinfold sites for body composition tracking.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 dark:bg-[var(--color-bg-subtle)] rounded-xl p-3 mt-1">
-            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Deleting entries</p>
+            <div className="bg-gray-50 dark:bg-[var(--color-bg-subtle)] rounded-xl p-3 mt-1">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">💡 Deleting entries</p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Tap "View Entries" inside any day log to see all logged entries. Hover or long-press an entry to reveal the delete button.</p>
           </div>
+        </Section>
+
+        {/* Photos */}
+        <Section emoji="📷" title="Add Photos">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Take and upload photos of your meals, exercise equipment, progress, or anything else you want to track. Your photos are securely stored in the cloud and are only visible to you (and your coach, if connected).</p>
         </Section>
 
         {/* Insights */}
@@ -247,10 +226,24 @@ export default function ProHelp({ onBack }) {
           </div>
         </Section>
 
-        {/* Photos */}
-        <Section emoji="📷" title="Progress Photos">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Upload progress photos to track visual changes over time. Photos are stored securely in the cloud and only visible to you (and your coach if connected).</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Access the Photos tab from the bottom navigation.</p>
+        {/* Settings */}
+        <Section emoji="⚙️" title="Settings">
+          <div className="flex flex-col gap-2.5">
+            {[
+              ['Profile & Goals', 'Set your display name, daily calorie goal, protein goal, and target weight.'],
+              ['App Preferences', 'Toggle dark mode, choose weight/length units (kg/lbs, cm/in), and set date/time format.'],
+              ['AI Assistant', 'Choose which AI service (ChatGPT, Claude, Gemini, Grok) opens when you tap the AI button on a meal entry. Customise the prompt format and language.'],
+              ['Account', 'Switch between Client and Coach role. Sign out of your account.'],
+            ].map(([title, desc]) => (
+              <div key={title} className="flex gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-2" />
+                <div>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{title}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </Section>
 
         {/* Tools */}
@@ -264,9 +257,12 @@ export default function ProHelp({ onBack }) {
           <p className="text-xs text-gray-400 dark:text-gray-500">All tools open in-page — no external navigation required.</p>
         </Section>
 
-        {/* Coach features */}
-        <Section emoji="👨‍💼" title="Coach Features">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Switch to Coach role in Settings → Account to access coach features.</p>
+        {/* Pro features */}
+        <Section emoji={<StarIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />} title="Pro Features">
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-bold text-gray-800 dark:text-gray-200">👨‍💼 Coach Features</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Switch to Coach role in Settings → Account to access coach features.</p>
+          </div>
 
           <div className="flex flex-col gap-3 mt-1">
             <div>
@@ -294,10 +290,9 @@ export default function ProHelp({ onBack }) {
               <p className="text-sm text-gray-500 dark:text-gray-400">Send direct messages to clients. Clients receive a notification badge on their Home tab.</p>
             </div>
           </div>
-        </Section>
 
-        {/* Client features */}
-        <Section emoji="🧑‍💪" title="Client Features">
+          <p className="text-sm font-bold text-gray-800 dark:text-gray-200 mt-2">🧑‍💪 Client Features</p>
+
           <div className="flex flex-col gap-3">
             <div>
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Accepting a coach invite</p>
@@ -313,26 +308,6 @@ export default function ProHelp({ onBack }) {
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Coach feedback</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">Coach comments appear below the relevant entry in your day log. A notification badge on your Home tab alerts you to new feedback.</p>
             </div>
-          </div>
-        </Section>
-
-        {/* Settings */}
-        <Section emoji="⚙️" title="Settings">
-          <div className="flex flex-col gap-2.5">
-            {[
-              ['Profile & Goals', 'Set your display name, daily calorie goal, protein goal, and target weight.'],
-              ['App Preferences', 'Toggle dark mode, choose weight/length units (kg/lbs, cm/in), and set date/time format.'],
-              ['AI Assistant', 'Choose which AI service (ChatGPT, Claude, Gemini, Grok) opens when you tap the AI button on a meal entry. Customise the prompt format and language.'],
-              ['Account', 'Switch between Client and Coach role. Sign out of your account.'],
-            ].map(([title, desc]) => (
-              <div key={title} className="flex gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-2" />
-                <div>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{title}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{desc}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </Section>
 

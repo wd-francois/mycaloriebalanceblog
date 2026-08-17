@@ -415,7 +415,7 @@ export default function ProSettings({ user }) {
           </div>
         </div>
 
-        {/* Help & Guide */}
+        {/* Help & FAQs */}
         <button
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent('pro:navigate', { detail: 'help' }))}
@@ -427,7 +427,7 @@ export default function ProSettings({ user }) {
             </svg>
           </div>
           <div className="flex-1 text-left">
-            <p className="text-sm lg:text-base font-semibold text-gray-800 dark:text-gray-200">Help &amp; Guide</p>
+            <p className="text-sm lg:text-base font-semibold text-gray-800 dark:text-gray-200">Help &amp; FAQs</p>
             <p className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 mt-0.5">Features, tips, and FAQ</p>
           </div>
           <svg className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
