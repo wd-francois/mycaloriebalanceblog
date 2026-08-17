@@ -3,8 +3,8 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import ExercisePickerModal from './ExercisePickerModal';
 
-const INPUT = 'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
-const LABEL = 'block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1';
+const INPUT = 'w-full px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
+const LABEL = 'block text-xs lg:text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 lg:mb-1.5';
 
 // Runs assign/unassign calls in parallel without letting one failure hide the
 // rest — whatever succeeds stays committed either way, but callers need to
@@ -131,7 +131,7 @@ function normaliseEx(e) {
   return result;
 }
 
-const SET_INPUT = 'w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-xl px-2 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
+const SET_INPUT = 'w-full bg-white dark:bg-[var(--color-bg-subtle)] border border-gray-200 dark:border-gray-700 rounded-xl px-2 py-2.5 lg:py-3.5 text-sm lg:text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 transition';
 
 // ── Exercise card (collapsible, per-set rows) ─────────────────────────────────
 function ExerciseCard({ ex, index, onChange, onRemove }) {
@@ -160,32 +160,32 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
   return (
     <div className={`rounded-xl border transition-all ${done ? 'border-blue-500/30' : 'border-gray-200 dark:border-gray-700'} bg-gray-50 dark:bg-[var(--color-bg-muted)]`}>
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer select-none"
+      <div className="flex items-center gap-2.5 lg:gap-3 px-3.5 py-2.5 lg:px-5 lg:py-3.5 cursor-pointer select-none"
         onClick={() => onChange({ ...ex, expanded: !ex.expanded })}>
-        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${done ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'}`}>
+        <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-xs lg:text-sm font-bold shrink-0 ${done ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'}`}>
           {done
-            ? <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+            ? <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
             : index + 1}
         </div>
-        <span className={`flex-1 text-sm font-semibold truncate min-w-0 ${ex.name ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
+        <span className={`flex-1 text-sm lg:text-base font-semibold truncate min-w-0 ${ex.name ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
           {ex.name || 'New exercise'}
         </span>
-        <span className="text-xs text-gray-400 shrink-0 mr-1 hidden sm:block">
+        <span className="text-xs lg:text-sm text-gray-400 shrink-0 mr-1 hidden sm:block">
           {totalSets} set{totalSets !== 1 ? 's' : ''}{done && (ex.load || ex.reps) ? ` · ${ex.load || '—'} · ${ex.reps || '—'} reps` : ''}
         </span>
         <button type="button" onClick={e => { e.stopPropagation(); onRemove(); }}
           className="p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
         </button>
-        <svg className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${ex.expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <svg className={`w-4 h-4 lg:w-5 lg:h-5 text-gray-400 shrink-0 transition-transform duration-200 ${ex.expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </div>
 
       {ex.expanded && (
-        <div className="px-3.5 pb-3.5 border-t border-gray-200 dark:border-gray-600/50 pt-3 flex flex-col gap-4">
+        <div className="px-3.5 pb-3.5 lg:px-5 lg:pb-5 border-t border-gray-200 dark:border-gray-600/50 pt-3 lg:pt-4 flex flex-col gap-4 lg:gap-5">
           {showPicker && (
             <ExercisePickerModal
               onSelect={({ name, gifUrl }) => {
@@ -205,8 +205,8 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
               <input className={INPUT} value={ex.name} placeholder="e.g. Bench Press"
                 onChange={e => onChange({ ...ex, name: e.target.value })} />
               <button type="button" onClick={() => setShowPicker(true)} title="Browse exercise database"
-                className="flex-shrink-0 px-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                className="flex-shrink-0 px-2.5 lg:px-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
+                <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <ellipse cx="12" cy="5" rx="9" ry="3" />
                   <path d="M21 12c0 1.657-4.03 3-9 3s-9-1.343-9-3" />
                   <path d="M3 5v14c0 1.657 4.03 3 9 3s9-1.343 9-3V5" />
@@ -223,16 +223,16 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
           )}
 
           {/* Sets table */}
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-white/[0.04] p-3 flex flex-col gap-2">
-            <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 pb-1">
-              <span className="text-[10px] font-semibold text-gray-400 uppercase text-center">Set</span>
-              <span className="text-[10px] font-semibold text-gray-400 uppercase">Load</span>
-              <span className="text-[10px] font-semibold text-gray-400 uppercase">Reps</span>
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-white/[0.04] p-3 lg:p-4 flex flex-col gap-2 lg:gap-3">
+            <div className="grid grid-cols-[2rem_1fr_1fr_2rem] lg:grid-cols-[2.5rem_1fr_1fr_2.5rem] gap-2 pb-1">
+              <span className="text-[10px] lg:text-xs font-semibold text-gray-400 uppercase text-center">Set</span>
+              <span className="text-[10px] lg:text-xs font-semibold text-gray-400 uppercase">Load</span>
+              <span className="text-[10px] lg:text-xs font-semibold text-gray-400 uppercase">Reps</span>
               <span />
             </div>
             {/* Row 1 */}
-            <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 text-center tabular-nums">1</span>
+            <div className="grid grid-cols-[2rem_1fr_1fr_2rem] lg:grid-cols-[2.5rem_1fr_1fr_2.5rem] gap-2 items-center">
+              <span className="text-sm lg:text-base font-medium text-gray-600 dark:text-gray-300 text-center tabular-nums">1</span>
               <input className={SET_INPUT} value={ex.load} placeholder="—"
                 onChange={e => onChange({ ...ex, load: e.target.value, extraSets: syncExtras('load', e.target.value) })} />
               <input className={SET_INPUT} value={ex.reps} placeholder="—"
@@ -240,22 +240,22 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
               <div className="flex justify-center">
                 {totalSets > 1 && (
                   <button type="button" onClick={() => removeSet(0)} className="p-1 text-red-400 hover:text-red-600 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 )}
               </div>
             </div>
             {/* Extra rows */}
             {(ex.extraSets ?? []).map((s, i) => (
-              <div key={i} className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 text-center tabular-nums">{i + 2}</span>
+              <div key={i} className="grid grid-cols-[2rem_1fr_1fr_2rem] lg:grid-cols-[2.5rem_1fr_1fr_2.5rem] gap-2 items-center">
+                <span className="text-sm lg:text-base font-medium text-gray-600 dark:text-gray-300 text-center tabular-nums">{i + 2}</span>
                 <input className={SET_INPUT} value={s.load || ''} placeholder="—"
                   onChange={e => onChange({ ...ex, extraSets: ex.extraSets.map((x, j) => j === i ? { ...x, load: e.target.value } : x) })} />
                 <input className={SET_INPUT} value={s.reps || ''} placeholder="—"
                   onChange={e => onChange({ ...ex, extraSets: ex.extraSets.map((x, j) => j === i ? { ...x, reps: e.target.value } : x) })} />
                 <div className="flex justify-center">
                   <button type="button" onClick={() => removeSet(i + 1)} className="p-1 text-red-400 hover:text-red-600 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
               </div>
@@ -263,8 +263,8 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
             {/* Add Set */}
             <div className="flex justify-center pt-1">
               <button type="button" onClick={addSet}
-                className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-white/[0.06] border border-gray-200 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                className="flex items-center gap-2 px-5 py-2 lg:px-6 lg:py-2.5 rounded-xl text-sm lg:text-base font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-white/[0.06] border border-gray-200 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
+                <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                 Add Set
               </button>
             </div>
@@ -297,8 +297,8 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
               ))}
               <button type="button"
                 onClick={() => onChange({ ...ex, videoUrls: [...(ex.videoUrls ?? []), ''] })}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                className="flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2.5 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-xs lg:text-sm font-semibold text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
+                <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 Add link
@@ -355,10 +355,10 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-5 items-start">
+    <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 items-start">
 
       {/* Left column — exercises (takes more space) */}
-      <div className="w-full lg:flex-1 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-3">
+      <div className="w-full lg:flex-1 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 lg:p-6 flex flex-col gap-3 lg:gap-4">
         <p className={LABEL}>Exercises</p>
         {exercises.map((ex, i) => (
           <ExerciseCard
@@ -370,8 +370,8 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
           />
         ))}
         <button type="button" onClick={addEx}
-          className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-sm font-semibold mt-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+          className="flex items-center justify-center gap-2 py-3 lg:py-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-sm lg:text-base font-semibold mt-1">
+          <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           Add Exercise
@@ -379,10 +379,10 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
       </div>
 
       {/* Right column — details + actions (fixed width on desktop) */}
-      <div className="w-full lg:w-80 flex flex-col gap-4">
+      <div className="w-full lg:w-96 flex flex-col gap-4 lg:gap-5">
 
         {/* Program name & description */}
-        <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-3">
+        <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 lg:p-6 flex flex-col gap-3 lg:gap-4">
           <div>
             <label className={LABEL}>Program name</label>
             <input className={INPUT} value={name} onChange={e => setName(e.target.value)}
@@ -397,25 +397,25 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
 
         {/* Assign to clients */}
         {clients.length > 0 && (
-          <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-2">
+          <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 lg:p-6 flex flex-col gap-2 lg:gap-2.5">
             <p className={LABEL}>Assign to clients</p>
             {clients.map(client => {
               const checked = selectedClients.has(client.id);
               return (
-                <label key={client.id} className="flex items-center gap-3 py-1.5 cursor-pointer">
-                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                <label key={client.id} className="flex items-center gap-3 py-1.5 lg:py-2 cursor-pointer">
+                  <div className={`w-5 h-5 lg:w-6 lg:h-6 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
                     checked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 dark:border-gray-600'
                   }`} onClick={() => toggleClient(client.id)}>
                     {checked && (
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 lg:w-4 lg:h-4 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{client.name}</p>
+                    <p className="text-sm lg:text-base font-semibold text-gray-800 dark:text-gray-200">{client.name}</p>
                     {client.email && client.name !== client.email && (
-                      <p className="text-xs text-gray-400">{client.email}</p>
+                      <p className="text-xs lg:text-sm text-gray-400">{client.email}</p>
                     )}
                   </div>
                 </label>
@@ -427,11 +427,11 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
         {/* Actions */}
         <div className="flex gap-3">
           <button type="button" onClick={onCancel}
-            className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            className="flex-1 py-3 lg:py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm lg:text-base font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
             Cancel
           </button>
           <button type="button" onClick={handleSave} disabled={!name.trim() || saving}
-            className="flex-1 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors">
+            className="flex-1 py-3 lg:py-3.5 rounded-xl bg-blue-600 text-white text-sm lg:text-base font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors">
             {saving ? 'Saving…' : 'Save program'}
           </button>
         </div>
@@ -601,15 +601,15 @@ export default function ProPrograms() {
   if (view === 'new' || view === 'edit') {
     return (
       <div className="w-full">
-        <div className="max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
+        <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 flex flex-col gap-4 lg:gap-5">
           <div className="flex items-center gap-3">
             <button onClick={() => { setView('list'); setEditTarget(null); }}
-              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-              <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              className="p-2 lg:p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <svg className="w-5 h-5 lg:w-6 lg:h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {view === 'new' ? 'New Program' : 'Edit Program'}
             </h1>
           </div>
@@ -641,19 +641,19 @@ export default function ProPrograms() {
           onClose={() => { setAssignTarget(null); setAssignError(''); }}
         />
       )}
-      <div className="max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
+      <div className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 flex flex-col gap-4 lg:gap-5">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Programs</h1>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">Programs</h1>
+            <p className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 mt-0.5">
               {programs.length} program{programs.length !== 1 ? 's' : ''}
             </p>
           </div>
           <button onClick={() => { setView('new'); setSaveError(''); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 shadow-sm transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            className="flex items-center gap-1.5 px-3 py-2 lg:px-4 lg:py-2.5 rounded-xl bg-blue-600 text-white text-sm lg:text-base font-semibold hover:bg-blue-700 shadow-sm transition-colors">
+            <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             New program
@@ -676,28 +676,28 @@ export default function ProPrograms() {
         )}
 
         {/* Program cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
           {programs.map(program => {
             let exercises = [];
             try { exercises = JSON.parse(program.exercises); } catch {}
 
             return (
               <div key={program._id}
-                className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-3">
+                className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 lg:p-5 flex flex-col gap-3 lg:gap-4">
 
                 {/* Title row */}
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">{program.name}</p>
+                    <p className="text-sm lg:text-base font-bold text-gray-900 dark:text-white">{program.name}</p>
                     {program.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{program.description}</p>
+                      <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-0.5">{program.description}</p>
                     )}
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    <p className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 mt-1">
                       {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
                     </p>
                   </div>
@@ -705,7 +705,7 @@ export default function ProPrograms() {
 
                 {/* Exercise preview */}
                 {exercises.length > 0 && (
-                  <div className="bg-gray-50 dark:bg-[var(--color-bg-subtle)] rounded-xl px-3 py-2 flex flex-col gap-1">
+                  <div className="bg-gray-50 dark:bg-[var(--color-bg-subtle)] rounded-xl px-3 py-2 lg:px-4 lg:py-3 flex flex-col gap-1 lg:gap-1.5">
                     {exercises.slice(0, 4).map((ex, i) => {
                       const n = ex.extraSets !== undefined
                         ? 1 + (ex.extraSets?.length ?? 0)
@@ -713,7 +713,7 @@ export default function ProPrograms() {
                       const load = ex.load ?? ex.weight ?? '';
                       const reps = ex.reps ?? '';
                       return (
-                        <div key={i} className="flex items-center justify-between text-xs">
+                        <div key={i} className="flex items-center justify-between text-xs lg:text-sm">
                           <span className="text-gray-700 dark:text-gray-300 font-medium truncate">{ex.name}</span>
                           <span className="text-gray-400 dark:text-gray-500 flex-shrink-0 ml-2">
                             {[n > 1 && `${n}×`, reps && reps, load && load].filter(Boolean).join(' ')}
@@ -722,7 +722,7 @@ export default function ProPrograms() {
                       );
                     })}
                     {exercises.length > 4 && (
-                      <p className="text-[10px] text-gray-400 mt-0.5">+{exercises.length - 4} more</p>
+                      <p className="text-[10px] lg:text-xs text-gray-400 mt-0.5">+{exercises.length - 4} more</p>
                     )}
                   </div>
                 )}
@@ -731,13 +731,13 @@ export default function ProPrograms() {
                 {program.assignedTo?.length > 0 ? (
                   <div className="flex flex-wrap gap-1.5">
                     {program.assignedTo.map(c => (
-                      <span key={c.id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                      <span key={c.id} className="text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                         {c.name}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[11px] text-gray-400 dark:text-gray-500 italic">Not assigned to anyone</p>
+                  <p className="text-[11px] lg:text-xs text-gray-400 dark:text-gray-500 italic">Not assigned to anyone</p>
                 )}
 
                 {/* Actions */}
@@ -745,25 +745,25 @@ export default function ProPrograms() {
                   <button
                     onClick={() => exportProgram(program, exercises)}
                     title="Export program"
-                    className="px-2.5 py-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    className="px-2.5 py-2 lg:px-3 lg:py-2.5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
                     </svg>
                   </button>
                   <button
                     onClick={() => { setAssignTarget(program); setAssignError(''); }}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+                    className="flex-1 py-2 lg:py-2.5 rounded-xl text-xs lg:text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
                     Assign
                   </button>
                   <button
                     onClick={() => { setEditTarget(program); setView('edit'); setSaveError(''); }}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                    className="flex-1 py-2 lg:py-2.5 rounded-xl text-xs lg:text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(program._id)}
                     disabled={deleting === program._id}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-40 transition-colors">
+                    className="flex-1 py-2 lg:py-2.5 rounded-xl text-xs lg:text-sm font-semibold text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-40 transition-colors">
                     {deleting === program._id ? '…' : 'Delete'}
                   </button>
                 </div>
