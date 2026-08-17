@@ -601,7 +601,7 @@ export default function ProPrograms() {
   if (view === 'new' || view === 'edit') {
     return (
       <div className="w-full">
-        <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
+        <div className="max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <button onClick={() => { setView('list'); setEditTarget(null); }}
               className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -641,7 +641,7 @@ export default function ProPrograms() {
           onClose={() => { setAssignTarget(null); setAssignError(''); }}
         />
       )}
-      <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
+      <div className="max-w-4xl lg:max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
 
         {/* Header */}
         <div className="flex items-center justify-between">
