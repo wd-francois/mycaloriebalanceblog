@@ -86,7 +86,7 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
   return (
     <div className="flex flex-col gap-3">
       {onBack && (
-        <div className="flex items-center gap-2 pb-1 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex items-center gap-2 lg:gap-3 pb-1 lg:pb-2 border-b border-gray-100 dark:border-gray-800">
           <button
             onClick={onBack}
             className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -95,7 +95,7 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <p className="text-sm font-semibold text-gray-900 dark:text-white">{otherName}</p>
+          <p className="text-sm lg:text-base font-semibold text-gray-900 dark:text-white">{otherName}</p>
         </div>
       )}
 
@@ -106,21 +106,21 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
         aria-live="polite"
         aria-relevant="additions"
         aria-label={otherName ? `Conversation with ${otherName}` : 'Conversation'}
-        className="flex flex-col gap-2 max-h-[55vh] overflow-y-auto py-1"
+        className="flex flex-col gap-2 lg:gap-3 max-h-[55vh] overflow-y-auto py-1"
       >
         {messages.length === 0 && (
-          <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-10">No messages yet</p>
+          <p className="text-center text-sm lg:text-base text-gray-400 dark:text-gray-500 py-10">No messages yet</p>
         )}
         {messages.map(msg => {
           const isMine = msg.senderId === myId;
           return (
             <div key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[78%] rounded-2xl px-3 py-2 ${isMine ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm'}`}>
+              <div className={`max-w-[78%] rounded-2xl px-3 py-2 lg:px-4 lg:py-2.5 ${isMine ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm'}`}>
                 {msg.url && isImage(msg.fileType) && (
                   <img
                     src={msg.url}
                     alt={msg.fileName ?? 'Image'}
-                    className="rounded-xl max-w-[200px] mb-1 cursor-pointer"
+                    className="rounded-xl max-w-[200px] lg:max-w-[280px] mb-1 cursor-pointer"
                     onClick={() => window.open(msg.url, '_blank')}
                   />
                 )}
@@ -129,20 +129,20 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
                     href={msg.url}
                     target="_blank"
                     rel="noreferrer"
-                    className={`flex items-center gap-1.5 text-xs underline mb-1 ${isMine ? 'text-blue-100' : 'text-blue-600 dark:text-blue-400'}`}
+                    className={`flex items-center gap-1.5 text-xs lg:text-sm underline mb-1 ${isMine ? 'text-blue-100' : 'text-blue-600 dark:text-blue-400'}`}
                   >
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
                     </svg>
                     {msg.fileName ?? 'File'}
                   </a>
                 )}
-                {msg.text && <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>}
+                {msg.text && <p className="text-sm lg:text-base leading-relaxed whitespace-pre-wrap">{msg.text}</p>}
                 {isMine && (
                   <button
                     onClick={() => removeMsg({ id: msg._id })}
                     aria-label="Delete message"
-                    className={`block ml-auto text-[10px] mt-0.5 opacity-40 hover:opacity-80 transition-opacity ${isMine ? 'text-white' : 'text-gray-500'}`}
+                    className={`block ml-auto text-[10px] lg:text-xs mt-0.5 opacity-40 hover:opacity-80 transition-opacity ${isMine ? 'text-white' : 'text-gray-500'}`}
                   >
                     ×
                   </button>
@@ -155,9 +155,9 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
       </div>
 
       {/* Input bar */}
-      <form onSubmit={handleSend} className="border-t border-gray-100 dark:border-gray-800 pt-3 flex flex-col gap-2">
-        {error && <p className="text-xs text-red-500 dark:text-red-400">{error}</p>}
-        <div className="flex gap-2 items-center">
+      <form onSubmit={handleSend} className="border-t border-gray-100 dark:border-gray-800 pt-3 lg:pt-4 flex flex-col gap-2">
+        {error && <p className="text-xs lg:text-sm text-red-500 dark:text-red-400">{error}</p>}
+        <div className="flex gap-2 lg:gap-3 items-center">
           <label htmlFor="pro-message-input" className="sr-only">Message</label>
           <input
             id="pro-message-input"
@@ -165,7 +165,7 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder="Message…"
-            className="flex-1 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
+            className="flex-1 text-sm lg:text-base bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 lg:px-4 lg:py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
           />
           <button
             type="button"
@@ -173,12 +173,12 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
             disabled={uploading}
             title="Attach file"
             aria-label="Attach file"
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 flex-shrink-0"
+            className="w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 flex-shrink-0"
           >
             {uploading ? (
               <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
               </svg>
             )}
@@ -187,12 +187,12 @@ export function CoachThread({ otherUserId, otherName, onBack }) {
             type="submit"
             disabled={!text.trim() || sending}
             aria-label="Send message"
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 transition-colors flex-shrink-0"
+            className="w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 transition-colors flex-shrink-0"
           >
             {sending ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.269 20.876L5.999 12zm0 0h7.5" />
               </svg>
             )}
@@ -231,35 +231,35 @@ function ConversationItem({ conversation, onClick, isSelected }) {
     <button
       onClick={onClick}
       aria-label={accessibleLabel}
-      className={`w-full flex items-center gap-3 p-3 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border hover:border-blue-300 dark:hover:border-blue-700 transition-all text-left ${
+      className={`w-full flex items-center gap-3 lg:gap-4 p-3 lg:p-4 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border hover:border-blue-300 dark:hover:border-blue-700 transition-all text-left ${
         isSelected
           ? 'border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10'
           : 'border-gray-100 dark:border-gray-800'
       }`}
     >
       <div className="relative flex-shrink-0">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base">
+        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base lg:text-lg">
           {initial}
         </div>
         {hasUnread && (
           <span
             aria-hidden="true"
-            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-[var(--color-bg-muted)]"
+            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] lg:min-w-[20px] lg:h-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] lg:text-[11px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-[var(--color-bg-muted)]"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm truncate ${hasUnread ? 'font-bold text-gray-900 dark:text-white' : 'font-semibold text-gray-900 dark:text-white'}`}>
+        <p className={`text-sm lg:text-base truncate ${hasUnread ? 'font-bold text-gray-900 dark:text-white' : 'font-semibold text-gray-900 dark:text-white'}`}>
           {displayName}
         </p>
-        <p className={`text-xs truncate mt-0.5 ${hasUnread ? 'text-gray-700 dark:text-gray-300 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+        <p className={`text-xs lg:text-sm truncate mt-0.5 ${hasUnread ? 'text-gray-700 dark:text-gray-300 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
           {previewText}
         </p>
       </div>
       {lastMessageAt && (
-        <span aria-hidden="true" className="text-[10px] text-gray-400 dark:text-gray-500 flex-shrink-0 self-start mt-1">
+        <span aria-hidden="true" className="text-[10px] lg:text-xs text-gray-400 dark:text-gray-500 flex-shrink-0 self-start mt-1">
           {relativeTime(lastMessageAt)}
         </span>
       )}
@@ -271,10 +271,10 @@ function ConversationItem({ conversation, onClick, isSelected }) {
 function ConversationList({ onSelect, selectedId }) {
   const conversations = useQuery(api.messages.listConversations) ?? [];
   if (conversations.length === 0) {
-    return <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-12">No conversations yet</p>;
+    return <p className="text-sm lg:text-base text-gray-400 dark:text-gray-500 text-center py-12">No conversations yet</p>;
   }
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 lg:gap-3">
       {conversations.map(conversation => (
         <ConversationItem
           key={conversation.id}
@@ -292,9 +292,9 @@ export default function ProMessages() {
 
   return (
     <div className="w-full">
-      <div className="max-w-sm lg:max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:grid lg:grid-cols-[320px_1fr] lg:gap-5 lg:items-start">
+      <div className="max-w-sm lg:max-w-5xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 lg:grid lg:grid-cols-[360px_1fr] lg:gap-6 lg:items-start">
         <div className={selectedContact ? 'hidden lg:block' : ''}>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Messages</h2>
+          <h2 className="text-lg lg:text-2xl font-bold text-gray-900 dark:text-white mb-4 lg:mb-5">Messages</h2>
           <ProErrorBoundary>
             <ConversationList onSelect={setSelectedContact} selectedId={selectedContact?.id} />
           </ProErrorBoundary>

@@ -69,8 +69,8 @@ function isDarkMode() {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-const CARD = 'bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4';
-const CARD_TITLE = 'text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3 uppercase tracking-wide';
+const CARD = 'bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4 lg:p-6';
+const CARD_TITLE = 'text-xs sm:text-sm lg:text-base font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3 lg:mb-4 uppercase tracking-wide';
 
 export default function ProInsights() {
   const allEntries = useQuery(api.entries.listAll);
@@ -352,65 +352,65 @@ export default function ProInsights() {
 
   return (
     <div className="w-full">
-      <div className="max-w-sm lg:max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5 px-3 sm:px-4 py-4 sm:py-6">
+      <div className="max-w-sm lg:max-w-3xl mx-auto flex flex-col gap-4 sm:gap-5 lg:gap-6 px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
 
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Insights</h1>
+        <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">Insights</h1>
 
         {/* ── 4 category cards ────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:gap-4">
 
           {/* Calories */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-3 sm:p-4">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-2 h-5 rounded-full bg-blue-500 shrink-0" />
-              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Calories</span>
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-3 sm:p-4 lg:p-5">
+            <div className="flex items-center gap-1.5 mb-2 lg:mb-3">
+              <span className="w-2 h-5 lg:h-6 rounded-full bg-blue-500 shrink-0" />
+              <span className="text-[10px] lg:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Calories</span>
             </div>
-            <p className="text-xl font-extrabold text-blue-600 dark:text-blue-400 leading-tight">
+            <p className="text-xl lg:text-3xl font-extrabold text-blue-600 dark:text-blue-400 leading-tight">
               {stats?.avgCal7 != null ? stats.avgCal7 : '—'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1">
               {stats?.avgCal7 != null ? `avg/day · ${stats.calDays7Len} day${stats.calDays7Len === 1 ? '' : 's'} this week` : 'No meals this week'}
             </p>
           </div>
 
           {/* Exercise */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-3 sm:p-4">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-2 h-5 rounded-full bg-orange-500 shrink-0" />
-              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Exercise</span>
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-3 sm:p-4 lg:p-5">
+            <div className="flex items-center gap-1.5 mb-2 lg:mb-3">
+              <span className="w-2 h-5 lg:h-6 rounded-full bg-orange-500 shrink-0" />
+              <span className="text-[10px] lg:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Exercise</span>
             </div>
-            <p className="text-xl font-extrabold text-orange-600 dark:text-orange-400 leading-tight">
+            <p className="text-xl lg:text-3xl font-extrabold text-orange-600 dark:text-orange-400 leading-tight">
               {stats?.exerciseLast7 ?? '—'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">sessions this week</p>
+            <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1">sessions this week</p>
           </div>
 
           {/* Sleep */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-3 sm:p-4">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-2 h-5 rounded-full bg-purple-500 shrink-0" />
-              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sleep</span>
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-3 sm:p-4 lg:p-5">
+            <div className="flex items-center gap-1.5 mb-2 lg:mb-3">
+              <span className="w-2 h-5 lg:h-6 rounded-full bg-purple-500 shrink-0" />
+              <span className="text-[10px] lg:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sleep</span>
             </div>
-            <p className="text-xl font-extrabold text-purple-600 dark:text-purple-400 leading-tight">
+            <p className="text-xl lg:text-3xl font-extrabold text-purple-600 dark:text-purple-400 leading-tight">
               {stats?.avgSleep7 != null ? `${stats.avgSleep7.toFixed(1)}h` : '—'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1">
               {stats?.avgSleep7 != null ? `avg/night · ${stats.sleepDays7Len} night${stats.sleepDays7Len === 1 ? '' : 's'} this week` : 'No sleep this week'}
             </p>
           </div>
 
           {/* Measurements */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-3 sm:p-4">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-2 h-5 rounded-full bg-green-500 shrink-0" />
-              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Weight</span>
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-muted)] p-3 sm:p-4 lg:p-5">
+            <div className="flex items-center gap-1.5 mb-2 lg:mb-3">
+              <span className="w-2 h-5 lg:h-6 rounded-full bg-green-500 shrink-0" />
+              <span className="text-[10px] lg:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Weight</span>
             </div>
-            <p className="text-xl font-extrabold text-green-600 dark:text-green-400 leading-tight">
+            <p className="text-xl lg:text-3xl font-extrabold text-green-600 dark:text-green-400 leading-tight">
               {stats?.latestWeight
                 ? `${stats.latestWeight.weight}${stats.latestWeight.weightUnit ?? 'kg'}`
                 : '—'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1">
               {stats?.latestWeight ? `as of ${stats.latestWeight.date}` : 'No measurements yet'}
             </p>
           </div>
@@ -420,16 +420,16 @@ export default function ProInsights() {
         {/* ── Streaks ──────────────────────────────────────────────────── */}
         <div className={CARD}>
           <h2 className={CARD_TITLE}>Logging Streaks</h2>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
             {[
               { label: 'Current', value: stats?.currentStreak ?? '—', suffix: stats?.currentStreak === 1 ? ' day' : ' days' },
               { label: 'Best',    value: stats?.bestStreak    ?? '—', suffix: stats?.bestStreak    === 1 ? ' day' : ' days' },
               { label: 'Total',   value: stats?.totalDays     ?? '—', suffix: stats?.totalDays     === 1 ? ' day' : ' days' },
             ].map(({ label, value, suffix }) => (
-              <div key={label} className="text-center p-2 bg-gray-50 dark:bg-gray-900/30 rounded-xl border border-gray-100 dark:border-gray-700">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">{label}</p>
-                <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-none">{value}</p>
-                {typeof value === 'number' && <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{suffix}</p>}
+              <div key={label} className="text-center p-2 lg:p-3 bg-gray-50 dark:bg-gray-900/30 rounded-xl border border-gray-100 dark:border-gray-700">
+                <p className="text-[10px] lg:text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">{label}</p>
+                <p className="text-2xl lg:text-3xl font-extrabold text-gray-900 dark:text-white leading-none">{value}</p>
+                {typeof value === 'number' && <p className="text-[10px] lg:text-xs text-gray-400 dark:text-gray-500 mt-0.5">{suffix}</p>}
               </div>
             ))}
           </div>
@@ -438,15 +438,15 @@ export default function ProInsights() {
         <div className="flex flex-col gap-4 sm:gap-5 lg:grid lg:grid-cols-2 lg:gap-4">
           {/* ── Trend chart ──────────────────────────────────────────────── */}
           <div className={CARD}>
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3 lg:mb-4">
               <h2 className={CARD_TITLE} style={{ marginBottom: 0 }}>Calories & Sleep Trend</h2>
-              <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 p-0.5 bg-gray-50 dark:bg-gray-900/30">
+              <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 p-0.5 lg:p-1 bg-gray-50 dark:bg-gray-900/30">
                 {['weekly', 'monthly'].map(p => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => setTrendPeriod(p)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                    className={`px-3 py-1 lg:px-4 lg:py-1.5 rounded-lg text-xs lg:text-sm font-semibold transition-colors ${
                       trendPeriod === p
                         ? 'bg-blue-600 text-white dark:bg-blue-500'
                         : 'text-gray-600 dark:text-gray-300'
@@ -458,11 +458,11 @@ export default function ProInsights() {
               </div>
             </div>
             {trendData?.hasData ? (
-              <div className="relative h-52 sm:h-60 w-full">
+              <div className="relative h-52 sm:h-60 lg:h-72 w-full">
                 <canvas ref={trendRef} />
               </div>
             ) : (
-              <p className="text-sm text-center text-gray-500 dark:text-gray-400 py-8">
+              <p className="text-sm lg:text-base text-center text-gray-500 dark:text-gray-400 py-8">
                 Not enough calorie or sleep data to draw a trend yet.
               </p>
             )}
@@ -473,13 +473,13 @@ export default function ProInsights() {
             <h2 className={CARD_TITLE}>Sleep vs Calories Correlation</h2>
             {corrData?.points.length >= 2 ? (
               <>
-                <div className="relative h-52 sm:h-60 w-full">
+                <div className="relative h-52 sm:h-60 lg:h-72 w-full">
                   <canvas ref={corrRef} />
                 </div>
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{corrSummary}</p>
+                <p className="mt-2 text-xs lg:text-sm text-gray-500 dark:text-gray-400">{corrSummary}</p>
               </>
             ) : (
-              <p className="text-sm text-center text-gray-500 dark:text-gray-400 py-8">
+              <p className="text-sm lg:text-base text-center text-gray-500 dark:text-gray-400 py-8">
                 Need days with both sleep and meal logs to show correlation.
               </p>
             )}

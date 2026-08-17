@@ -105,18 +105,18 @@ function CoachFeedbackCard() {
   if (comments.length === 0) return null;
   const recent = [...comments].sort((a, b) => b._creationTime - a._creationTime).slice(0, 5);
   return (
-    <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4">
-      <div className="flex items-center gap-2 mb-2 sm:mb-3">
-        <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Coach Feedback</h3>
+    <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4 lg:p-6">
+      <div className="flex items-center gap-2 mb-2 sm:mb-3 lg:mb-4">
+        <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-700 dark:text-gray-300">Coach Feedback</h3>
         {hasNew && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500 text-white">New</span>
+          <span className="text-[9px] lg:text-[11px] font-bold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full bg-blue-500 text-white">New</span>
         )}
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 lg:gap-3">
         {recent.map(c => (
-          <div key={c._id} className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30">
-            <p className="text-[10px] font-semibold text-blue-500 dark:text-blue-400 uppercase tracking-wide mb-1">{c.date}</p>
-            <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">{c.text}</p>
+          <div key={c._id} className="p-3 lg:p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/30">
+            <p className="text-[10px] lg:text-xs font-semibold text-blue-500 dark:text-blue-400 uppercase tracking-wide mb-1">{c.date}</p>
+            <p className="text-sm lg:text-base text-gray-800 dark:text-gray-200 leading-relaxed">{c.text}</p>
           </div>
         ))}
       </div>
@@ -140,10 +140,10 @@ function getMonthRange(year, month) {
   return { start, end };
 }
 
-const CARD      = 'bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4';
-const CARD_TITLE = 'text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3';
-const METRIC_VAL = 'text-xl sm:text-2xl font-bold';
-const METRIC_LBL = 'text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1';
+const CARD      = 'bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4 lg:p-6';
+const CARD_TITLE = 'text-xs sm:text-sm lg:text-base font-semibold text-gray-700 dark:text-gray-300 mb-2 sm:mb-3 lg:mb-4';
+const METRIC_VAL = 'text-xl sm:text-2xl lg:text-3xl font-bold';
+const METRIC_LBL = 'text-[10px] sm:text-xs lg:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1';
 
 export default function ProHome({ onNavigate }) {
   const isCoach = useIsCoach();
@@ -194,15 +194,15 @@ export default function ProHome({ onNavigate }) {
   if (isCoach) {
     return (
       <div className="w-full">
-        <div className="max-w-sm lg:max-w-2xl mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
+        <div className="max-w-sm lg:max-w-3xl mx-auto flex flex-col gap-4 sm:gap-6 lg:gap-8 px-3 sm:px-4 lg:px-6 w-full py-4 sm:py-6 lg:py-8">
           <div className={CARD}>
             <h3 className={CARD_TITLE}>Coach Dashboard</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 mb-4 lg:mb-5">
               View and manage your clients from the Clients tab.
             </p>
             <button
               onClick={() => onNavigate('clients')}
-              className="w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+              className="w-full py-2.5 lg:py-3.5 bg-blue-600 text-white text-sm lg:text-base font-semibold rounded-xl hover:bg-blue-700 transition-colors"
             >
               Go to Clients
             </button>
@@ -214,7 +214,7 @@ export default function ProHome({ onNavigate }) {
 
   return (
     <div className="w-full">
-      <div className="max-w-sm lg:max-w-2xl mx-auto flex flex-col gap-4 sm:gap-6 px-3 sm:px-4 w-full py-4 sm:py-6">
+      <div className="max-w-sm lg:max-w-3xl mx-auto flex flex-col gap-4 sm:gap-6 lg:gap-8 px-3 sm:px-4 lg:px-6 w-full py-4 sm:py-6 lg:py-8">
 
         <ProErrorBoundary>
           <PendingInviteModal />
@@ -224,18 +224,18 @@ export default function ProHome({ onNavigate }) {
         <div className={CARD}>
           <h3 className={CARD_TITLE}>Calorie Goal</h3>
           {calorieGoal ? (
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <div className={`text-center p-2 sm:p-3 rounded-xl ${todayCalories > calorieGoal ? 'bg-red-50 dark:bg-red-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+              <div className={`text-center p-2 sm:p-3 lg:p-4 rounded-xl ${todayCalories > calorieGoal ? 'bg-red-50 dark:bg-red-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
                 <div className={`${METRIC_VAL} ${todayCalories > calorieGoal ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
                   {todayCalories}
                 </div>
                 <div className={METRIC_LBL}>Today</div>
               </div>
-              <div className="text-center p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+              <div className="text-center p-2 sm:p-3 lg:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
                 <div className={`${METRIC_VAL} text-purple-600 dark:text-purple-400`}>{calorieGoal}</div>
                 <div className={METRIC_LBL}>Goal</div>
               </div>
-              <div className={`text-center p-2 sm:p-3 rounded-xl ${todayCalories > calorieGoal ? 'bg-red-50 dark:bg-red-900/20' : 'bg-green-50 dark:bg-green-900/20'}`}>
+              <div className={`text-center p-2 sm:p-3 lg:p-4 rounded-xl ${todayCalories > calorieGoal ? 'bg-red-50 dark:bg-red-900/20' : 'bg-green-50 dark:bg-green-900/20'}`}>
                 <div className={`${METRIC_VAL} ${todayCalories > calorieGoal ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                   {Math.abs(todayCalories - calorieGoal)}
                 </div>
@@ -243,8 +243,8 @@ export default function ProHome({ onNavigate }) {
               </div>
             </div>
           ) : (
-            <div className="text-center py-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-center py-4 lg:py-6">
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">
                 Set your goal in{' '}
                 <button onClick={() => onNavigate('settings')}
                   className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
@@ -266,20 +266,20 @@ export default function ProHome({ onNavigate }) {
         {/* Today's Summary Card */}
         <div className={CARD}>
           <h3 className={CARD_TITLE}>Today's Summary</h3>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="text-center p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+            <div className="text-center p-2 sm:p-3 lg:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
               <div className={`${METRIC_VAL} text-blue-600 dark:text-blue-400`}>
                 {todayEntries.filter(e => e.type === 'meal').length}
               </div>
               <div className={METRIC_LBL}>Meals</div>
             </div>
-            <div className="text-center p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+            <div className="text-center p-2 sm:p-3 lg:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
               <div className={`${METRIC_VAL} text-purple-600 dark:text-purple-400`}>
                 {todaySleepDuration ?? '—'}
               </div>
               <div className={METRIC_LBL}>Sleep</div>
             </div>
-            <div className="text-center p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+            <div className="text-center p-2 sm:p-3 lg:p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
               <div className={`${METRIC_VAL} text-green-600 dark:text-green-400`}>
                 {todayEntries.filter(e => e.type === 'measurements').length}
               </div>

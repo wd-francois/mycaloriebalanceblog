@@ -57,20 +57,20 @@ export default function ProClients({ onSelectClient }) {
 
   return (
     <div className="w-full">
-      <div className="max-w-sm lg:max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-4">
+      <div className="max-w-sm lg:max-w-3xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 flex flex-col gap-4 lg:gap-5">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">My Clients</h1>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">My Clients</h1>
+            <p className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 mt-0.5">
               {clients.length} client{clients.length !== 1 ? 's' : ''}
             </p>
           </div>
           <button
             type="button"
             onClick={() => { setShowAdd(v => !v); setLinkError(''); setEmail(''); setLinkOk(false); }}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-2 lg:px-4 lg:py-2.5 rounded-xl text-sm lg:text-base font-semibold transition-all ${
               showAdd
                 ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
                 : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
@@ -78,14 +78,14 @@ export default function ProClients({ onSelectClient }) {
           >
             {showAdd ? (
               <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 Cancel
               </>
             ) : (
               <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 Add client
@@ -98,12 +98,12 @@ export default function ProClients({ onSelectClient }) {
         {showAdd && (
           <form
             onSubmit={handleLink}
-            className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 flex flex-col gap-3"
+            className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 p-4 lg:p-6 flex flex-col gap-3 lg:gap-4"
           >
-            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <p className="text-xs lg:text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Add client by email
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-xs lg:text-sm text-gray-400 dark:text-gray-500">
               The client must already have a Pro account.
             </p>
             <div className="flex gap-2">
@@ -112,13 +112,13 @@ export default function ProClients({ onSelectClient }) {
                 value={email}
                 onChange={e => { setEmail(e.target.value); setLinkError(''); }}
                 placeholder="client@email.com"
-                className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[var(--color-bg-subtle)] text-sm lg:text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 autoFocus
               />
               <button
                 type="submit"
                 disabled={!email.trim() || linking}
-                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all flex-shrink-0 ${
+                className={`px-4 py-2.5 lg:px-5 lg:py-3 rounded-xl text-sm lg:text-base font-semibold transition-all flex-shrink-0 ${
                   linkOk
                     ? 'bg-green-500 text-white'
                     : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40'
@@ -128,33 +128,33 @@ export default function ProClients({ onSelectClient }) {
               </button>
             </div>
             {linkError && (
-              <p className="text-xs text-red-500 dark:text-red-400">{linkError}</p>
+              <p className="text-xs lg:text-sm text-red-500 dark:text-red-400">{linkError}</p>
             )}
           </form>
         )}
 
         {/* Pending invites */}
         {sentInvites.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide px-1">
+          <div className="flex flex-col gap-2 lg:gap-3">
+            <p className="text-xs lg:text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide px-1">
               Awaiting response
             </p>
             {sentInvites.map(invite => {
               const displayName = invite.name || invite.email || 'Unknown';
               const initial = displayName[0].toUpperCase();
               return (
-                <div key={invite.id} className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 flex items-center gap-3 px-4 py-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-base flex-shrink-0">
+                <div key={invite.id} className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 flex items-center gap-3 px-4 py-3 lg:px-5 lg:py-4">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold text-base lg:text-lg flex-shrink-0">
                     {initial}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate">{displayName}</p>
+                    <p className="text-sm lg:text-base font-semibold text-gray-700 dark:text-gray-300 truncate">{displayName}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                      <span className="text-[10px] lg:text-xs font-semibold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
                         Pending
                       </span>
                       {!invite.signedUp && (
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                        <span className="text-[10px] lg:text-xs font-semibold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
                           Not signed up yet
                         </span>
                       )}
@@ -168,7 +168,7 @@ export default function ProClients({ onSelectClient }) {
                       finally { setCancelling(null); }
                     }}
                     disabled={cancelling === invite.id}
-                    className="text-xs text-red-400 hover:text-red-600 font-semibold disabled:opacity-40 transition-colors flex-shrink-0"
+                    className="text-xs lg:text-sm text-red-400 hover:text-red-600 font-semibold disabled:opacity-40 transition-colors flex-shrink-0"
                   >
                     {cancelling === invite.id ? '…' : 'Cancel'}
                   </button>
@@ -180,19 +180,19 @@ export default function ProClients({ onSelectClient }) {
 
         {/* Client list */}
         {clients.length === 0 ? (
-          <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl p-8 text-center border border-gray-100 dark:border-gray-800">
-            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl p-8 lg:p-12 text-center border border-gray-100 dark:border-gray-800">
+            <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3 lg:mb-4">
+              <svg className="w-6 h-6 lg:w-8 lg:h-8 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
               </svg>
             </div>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No clients yet</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-sm lg:text-base font-medium text-gray-500 dark:text-gray-400">No clients yet</p>
+            <p className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 mt-1">
               Use the <strong>Add client</strong> button above to link a client by their email.
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 lg:gap-3">
             {clients.map((client) => {
               const initial     = (client.name || client.email || '?')[0].toUpperCase();
               const displayName = client.name || client.email || 'Unknown client';
@@ -202,10 +202,10 @@ export default function ProClients({ onSelectClient }) {
               return (
                 <div
                   key={client.id}
-                  className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-3 px-4 py-3 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-sm transition-all group"
+                  className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-100 dark:border-gray-800 flex items-center gap-3 lg:gap-4 px-4 py-3 lg:px-5 lg:py-4 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-sm transition-all group"
                 >
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base flex-shrink-0">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-base lg:text-lg flex-shrink-0">
                     {initial}
                   </div>
 
@@ -214,13 +214,13 @@ export default function ProClients({ onSelectClient }) {
                     className="flex-1 min-w-0 text-left"
                     onClick={() => onSelectClient(client)}
                   >
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{displayName}</p>
+                    <p className="text-sm lg:text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{displayName}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       {client.name && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{client.email}</p>
+                        <p className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 truncate">{client.email}</p>
                       )}
                       {lastSeen && (
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
+                        <span className={`text-[10px] lg:text-xs font-semibold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md ${
                           lastSeen === 'Today'
                             ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                             : lastSeen === 'Yesterday'
@@ -231,12 +231,12 @@ export default function ProClients({ onSelectClient }) {
                         </span>
                       )}
                       {clientNotifs.entries > 0 && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-orange-500 text-white">
+                        <span className="text-[9px] lg:text-[11px] font-bold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full bg-orange-500 text-white">
                           New entry
                         </span>
                       )}
                       {clientNotifs.messages > 0 && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500 text-white">
+                        <span className="text-[9px] lg:text-[11px] font-bold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full bg-blue-500 text-white">
                           New msg
                         </span>
                       )}
@@ -244,7 +244,7 @@ export default function ProClients({ onSelectClient }) {
                   </button>
 
                   {/* Chevron */}
-                  <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
+                  <svg className="w-4 h-4 lg:w-5 lg:h-5 text-gray-300 dark:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
                     onClick={() => onSelectClient(client)} style={{ cursor: 'pointer' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>

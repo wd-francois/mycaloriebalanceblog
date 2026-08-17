@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 
-const CARD = 'group block p-4 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200';
-const GRID = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+const CARD = 'group block p-4 lg:p-5 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200';
+const GRID = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4';
 
 const CalcIcon = ({ color }) => (
   <svg className={`w-7 h-7 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -261,25 +261,25 @@ export default function ProTools() {
 
   return (
     <div className="w-full">
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col gap-6">
+      <div className="max-w-2xl lg:max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 flex flex-col gap-6 lg:gap-8">
 
         {/* Header + Search */}
         <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Tools & Resources</h1>
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-3 lg:mb-4">Tools & Resources</h1>
           <div className="relative">
             <input
               type="text"
               placeholder="Search tools and resources…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full px-4 py-3 pr-10 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-muted)] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full px-4 py-3 lg:py-3.5 pr-10 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-[var(--color-bg-muted)] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm lg:text-base"
             />
-            <svg className="absolute right-3 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="absolute right-3 top-3.5 lg:top-4 w-5 h-5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
           {search.trim() && (
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+            <p className="mt-2 text-xs lg:text-sm text-gray-500 dark:text-gray-400 text-center">
               {totalResults === 0
                 ? `No results for "${search}"`
                 : `${totalResults} result${totalResults === 1 ? '' : 's'} for "${search}"`}
@@ -290,8 +290,8 @@ export default function ProTools() {
         {/* Tool Sections */}
         {filtered.map(sec => (
           <div key={sec.id}>
-            <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-0.5">{sec.title}</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{sec.subtitle}</p>
+            <h2 className="text-sm lg:text-base font-bold text-gray-900 dark:text-white mb-0.5">{sec.title}</h2>
+            <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mb-3 lg:mb-4">{sec.subtitle}</p>
             <div className={GRID}>
               {sec.items.map(item => (
                 <a
@@ -301,13 +301,13 @@ export default function ProTools() {
                   rel={item.external ? 'noopener noreferrer' : undefined}
                   className={`${CARD} ${item.hoverBorder}`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3 lg:gap-4">
                     <span className="shrink-0 mt-0.5">{item.icon}</span>
                     <div>
-                      <h3 className={`text-sm font-semibold text-gray-900 dark:text-white ${item.hoverTitle} transition-colors leading-tight`}>
+                      <h3 className={`text-sm lg:text-base font-semibold text-gray-900 dark:text-white ${item.hoverTitle} transition-colors leading-tight`}>
                         {item.title}{item.external && <ExternalIcon />}
                       </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{item.description}</p>
+                      <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1">{item.description}</p>
                     </div>
                   </div>
                 </a>
@@ -317,9 +317,9 @@ export default function ProTools() {
         ))}
 
         {/* Disclaimer */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4">
-          <h3 className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-1">Disclaimer</h3>
-          <p className="text-xs text-blue-800 dark:text-blue-200">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 lg:p-5">
+          <h3 className="text-xs lg:text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">Disclaimer</h3>
+          <p className="text-xs lg:text-sm text-blue-800 dark:text-blue-200">
             These tools are for informational purposes only. Always consult healthcare professionals before making significant changes to your diet or exercise routine.
           </p>
         </div>
