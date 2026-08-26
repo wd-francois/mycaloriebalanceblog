@@ -158,16 +158,21 @@ function useCachedCalorieGoal() {
 
   if (settings !== undefined) {
     const goal = settings?.calorieGoal ?? null;
+    console.log('[calorieGoalDebug] settings resolved', { settings, goal });
     try {
       if (goal) localStorage.setItem(CALORIE_GOAL_KEY, String(goal));
       else localStorage.removeItem(CALORIE_GOAL_KEY);
-    } catch {}
+    } catch (e) { console.log('[calorieGoalDebug] localStorage write failed', e); }
     return goal;
   }
   try {
     const cached = localStorage.getItem(CALORIE_GOAL_KEY);
+    console.log('[calorieGoalDebug] settings still loading, using cache', { cached });
     return cached ? Number(cached) : null;
-  } catch { return null; }
+  } catch (e) {
+    console.log('[calorieGoalDebug] localStorage read failed', e);
+    return null;
+  }
 }
 
 export default function ProHome({ onNavigate }) {
