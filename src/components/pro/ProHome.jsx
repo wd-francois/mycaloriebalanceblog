@@ -148,31 +148,25 @@ const METRIC_LBL = 'text-[10px] sm:text-xs lg:text-sm text-gray-600 dark:text-gr
 const CALORIE_GOAL_KEY = 'mcb_pro_calorie_goal';
 
 // ProHome fully remounts on every tab switch (see ProApp.jsx's key={tab}),
-// so this query starts loading from scratch each time. Without a cached
-// fallback, the brief `undefined` window makes the Calorie Goal card flash
-// to the "Set your goal" prompt after e.g. Home -> Messages -> Home, even
-// though a goal is set. Mirrors the same fix already applied to role in
-// useProRole.js.
+// so this query restarts from scratch each time — and diagnostic logging
+// showed it can transiently *resolve* to `null` right after remount (an
+// auth-token race on the fresh subscription, not just a slow round trip),
+// not merely stay `undefined` while loading. So a falsy result can't be
+// trusted as authoritative the way a genuine "no goal set" would be.
+// Only ever trust a truthy goal; otherwise fall back to the last known
+// value, exactly like the role caching in useProRole.js already does.
 function useCachedCalorieGoal() {
   const settings = useQuery(api.userSettings.get);
+  const goal = settings?.calorieGoal;
 
-  if (settings !== undefined) {
-    const goal = settings?.calorieGoal ?? null;
-    console.log('[calorieGoalDebug] settings resolved', { settings, goal });
-    try {
-      if (goal) localStorage.setItem(CALORIE_GOAL_KEY, String(goal));
-      else localStorage.removeItem(CALORIE_GOAL_KEY);
-    } catch (e) { console.log('[calorieGoalDebug] localStorage write failed', e); }
+  if (goal) {
+    try { localStorage.setItem(CALORIE_GOAL_KEY, String(goal)); } catch {}
     return goal;
   }
   try {
     const cached = localStorage.getItem(CALORIE_GOAL_KEY);
-    console.log('[calorieGoalDebug] settings still loading, using cache', { cached });
     return cached ? Number(cached) : null;
-  } catch (e) {
-    console.log('[calorieGoalDebug] localStorage read failed', e);
-    return null;
-  }
+  } catch { return null; }
 }
 
 export default function ProHome({ onNavigate }) {
