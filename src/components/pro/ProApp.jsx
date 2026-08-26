@@ -23,6 +23,30 @@ const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 
 const VALID_TABS = ['home', 'insights', 'tools', 'photos', 'clients', 'programs', 'messages', 'help', 'settings'];
 
+const CALORIE_GOAL_KEY = 'mcb_pro_calorie_goal';
+
+// ProHome used to run its own userSettings.get subscription, which was torn
+// down and recreated every time it remounted on tab switches (see the
+// key={tab} below) — and a fresh subscription could transiently *resolve*
+// to null (an auth-token race), not just stay loading, causing the card to
+// flash to "Set your goal" on every Home -> Messages -> Home trip. Fetching
+// it once here, where it's never torn down, avoids re-triggering that race.
+// Still only trust a truthy goal for display/caching, in case a long-lived
+// subscription ever re-evaluates transiently wrong too (e.g. on a token
+// refresh) — mirrors the same defensive pattern already used for role in
+// useProRole.js.
+function resolveCachedCalorieGoal(settings) {
+  const goal = settings?.calorieGoal;
+  if (goal) {
+    try { localStorage.setItem(CALORIE_GOAL_KEY, String(goal)); } catch {}
+    return goal;
+  }
+  try {
+    const cached = localStorage.getItem(CALORIE_GOAL_KEY);
+    return cached ? Number(cached) : null;
+  } catch { return null; }
+}
+
 // Lets other pages deep-link straight into a tab (e.g. the top-nav Messages
 // shortcut, which does a real page navigation when it isn't already on /pro/).
 function initialTabFromURL() {
@@ -37,9 +61,11 @@ function initialTabFromURL() {
 function ProShell() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user        = useQuery(api.users.viewer);
+  const settings     = useQuery(api.userSettings.get);
   const claimInvites = useMutation(api.coaches.claimPendingInvites);
 
   const role = useProRole();
+  const calorieGoal = resolveCachedCalorieGoal(settings);
 
   const [tab,            setTab]            = useState(initialTabFromURL);
   const [selectedClient, setSelectedClient] = useState(null);
@@ -101,7 +127,7 @@ function ProShell() {
       );
     }
     switch (tab) {
-      case 'home':     return <ProHome     onNavigate={navigate} />;
+      case 'home':     return <ProHome     onNavigate={navigate} calorieGoal={calorieGoal} />;
       case 'insights': return <ProInsights />;
       case 'tools':    return <ProTools />;
       case 'photos':   return <ProPhotos />;
@@ -110,7 +136,7 @@ function ProShell() {
       case 'messages': return <ProMessages />;
       case 'help':     return <ProHelp onBack={() => navigate('settings')} />;
       case 'settings': return <ProSettings user={user} />;
-      default:         return <ProHome     onNavigate={navigate} />;
+      default:         return <ProHome     onNavigate={navigate} calorieGoal={calorieGoal} />;
     }
   }
 

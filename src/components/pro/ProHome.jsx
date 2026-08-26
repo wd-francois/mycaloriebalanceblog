@@ -145,31 +145,7 @@ const CARD_TITLE = 'text-xs sm:text-sm lg:text-base font-semibold text-gray-700 
 const METRIC_VAL = 'text-xl sm:text-2xl lg:text-3xl font-bold';
 const METRIC_LBL = 'text-[10px] sm:text-xs lg:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1';
 
-const CALORIE_GOAL_KEY = 'mcb_pro_calorie_goal';
-
-// ProHome fully remounts on every tab switch (see ProApp.jsx's key={tab}),
-// so this query restarts from scratch each time — and diagnostic logging
-// showed it can transiently *resolve* to `null` right after remount (an
-// auth-token race on the fresh subscription, not just a slow round trip),
-// not merely stay `undefined` while loading. So a falsy result can't be
-// trusted as authoritative the way a genuine "no goal set" would be.
-// Only ever trust a truthy goal; otherwise fall back to the last known
-// value, exactly like the role caching in useProRole.js already does.
-function useCachedCalorieGoal() {
-  const settings = useQuery(api.userSettings.get);
-  const goal = settings?.calorieGoal;
-
-  if (goal) {
-    try { localStorage.setItem(CALORIE_GOAL_KEY, String(goal)); } catch {}
-    return goal;
-  }
-  try {
-    const cached = localStorage.getItem(CALORIE_GOAL_KEY);
-    return cached ? Number(cached) : null;
-  } catch { return null; }
-}
-
-export default function ProHome({ onNavigate }) {
+export default function ProHome({ onNavigate, calorieGoal }) {
   const isCoach = useIsCoach();
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [viewedMonth, setViewedMonth]   = useState(() => ({ year: new Date().getFullYear(), month: new Date().getMonth() }));
@@ -181,7 +157,6 @@ export default function ProHome({ onNavigate }) {
 
   const monthEntries = useQuery(api.entries.listByDateRange, { startDate: start, endDate: end }) ?? [];
   const todayEntries = useQuery(api.entries.list, { date: todayDateStr }) ?? [];
-  const calorieGoal  = useCachedCalorieGoal();
 
   const calendarEntries = useMemo(() => {
     const map = {};
