@@ -145,6 +145,31 @@ const CARD_TITLE = 'text-xs sm:text-sm lg:text-base font-semibold text-gray-700 
 const METRIC_VAL = 'text-xl sm:text-2xl lg:text-3xl font-bold';
 const METRIC_LBL = 'text-[10px] sm:text-xs lg:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1';
 
+const CALORIE_GOAL_KEY = 'mcb_pro_calorie_goal';
+
+// ProHome fully remounts on every tab switch (see ProApp.jsx's key={tab}),
+// so this query starts loading from scratch each time. Without a cached
+// fallback, the brief `undefined` window makes the Calorie Goal card flash
+// to the "Set your goal" prompt after e.g. Home -> Messages -> Home, even
+// though a goal is set. Mirrors the same fix already applied to role in
+// useProRole.js.
+function useCachedCalorieGoal() {
+  const settings = useQuery(api.userSettings.get);
+
+  if (settings !== undefined) {
+    const goal = settings?.calorieGoal ?? null;
+    try {
+      if (goal) localStorage.setItem(CALORIE_GOAL_KEY, String(goal));
+      else localStorage.removeItem(CALORIE_GOAL_KEY);
+    } catch {}
+    return goal;
+  }
+  try {
+    const cached = localStorage.getItem(CALORIE_GOAL_KEY);
+    return cached ? Number(cached) : null;
+  } catch { return null; }
+}
+
 export default function ProHome({ onNavigate }) {
   const isCoach = useIsCoach();
   const [selectedDate, setSelectedDate] = useState(() => new Date());
@@ -157,7 +182,7 @@ export default function ProHome({ onNavigate }) {
 
   const monthEntries = useQuery(api.entries.listByDateRange, { startDate: start, endDate: end }) ?? [];
   const todayEntries = useQuery(api.entries.list, { date: todayDateStr }) ?? [];
-  const settings     = useQuery(api.userSettings.get) ?? null;
+  const calorieGoal  = useCachedCalorieGoal();
 
   const calendarEntries = useMemo(() => {
     const map = {};
@@ -184,7 +209,6 @@ export default function ProHome({ onNavigate }) {
   const todayCalories = todayEntries
     .filter(e => e.type === 'meal')
     .reduce((sum, e) => sum + (e.calories ?? 0), 0);
-  const calorieGoal = settings?.calorieGoal ?? null;
 
   const sleepEntry = todayEntries.find(e => e.type === 'sleep');
   const todaySleepDuration = sleepEntry?.sleepDuration
