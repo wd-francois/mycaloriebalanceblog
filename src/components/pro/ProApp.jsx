@@ -23,7 +23,14 @@ import { useProRole } from './useProRole';
 const VALID_TABS = ['home', 'insights', 'tools', 'photos', 'clients', 'programs', 'messages', 'help', 'settings'];
 
 const SETTINGS_CACHE_KEY = 'mcb_pro_settings_cache';
-const SETTINGS_GRACE_MS = 1500;
+// Generous on purpose: this only ever applies with nothing cached yet (a
+// device's very first successful load) or on a genuinely slow connection.
+// 1.5s wasn't enough on a real mobile network — the query just hadn't
+// resolved yet, so it fell through to "no goal set" for a moment before
+// self-correcting, briefly showing the wrong thing. Once any load succeeds
+// once on a device, the localStorage cache means this timeout never comes
+// into play again for that device.
+const SETTINGS_GRACE_MS = 6000;
 // Written by the Original app's Calorie Calculator (src/pages/calorie-calculator.astro)
 // when a Goal Recommendation card is picked — see the effect in ProShell below.
 const PENDING_CALORIE_GOAL_KEY = 'mcb_pending_pro_calorie_goal';
