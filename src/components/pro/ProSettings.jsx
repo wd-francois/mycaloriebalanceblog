@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useConvexSettings } from '../../contexts/ConvexSettingsContext';
 import { useAuthActions } from '@convex-dev/auth/react';
@@ -74,9 +74,20 @@ function ToggleSwitch({ checked, onChange }) {
   );
 }
 
-export default function ProSettings({ user }) {
+export default function ProSettings({ user, convexSettings }) {
   // ── Convex goals ─────────────────────────────────────────────────────────
-  const convexSettings   = useQuery(api.userSettings.get);
+  // convexSettings comes from ProApp.jsx's useSettledUserSettings(), which
+  // never trusts a bare `null` from userSettings.get as final on its own —
+  // that query can transiently resolve null right after a fresh page load
+  // or after switching tabs/logging back in, indistinguishable at the
+  // client from a genuine new user with no settings row yet. Trusting it
+  // too early used to be a real data-loss bug: it's undefined while still
+  // deciding, so goalsLoaded (below) waits for that to resolve one way or
+  // the other before allowing a save, rather than treating "still loading"
+  // the same as "confirmed no goal", which would submit calorieGoal:
+  // undefined and (Convex's db.patch() treats that as "clear this field")
+  // silently erase whatever goal the user already had saved.
+  //
   // useProRole() already falls back to a localStorage cache while the fresh
   // query is loading, e.g. right after a back/forward navigation — avoids
   // flashing "Client" for a coach before the query resolves.
@@ -94,13 +105,15 @@ export default function ProSettings({ user }) {
   const [name,       setName]       = useState('');
   const [saved,      setSaved]      = useState(false);
   const [isDark,     setIsDark]     = useState(false);
+  const goalsLoaded = convexSettings !== undefined;
 
-  // Populate goals from Convex on load
+  // Populate goals from Convex once settled (null means confirmed no row —
+  // a genuine new user, safe to show/save as empty).
   useEffect(() => {
-    if (!convexSettings) return;
-    setCalGoal(convexSettings.calorieGoal  != null ? String(convexSettings.calorieGoal)  : '');
-    setProtGoal(convexSettings.proteinGoal != null ? String(convexSettings.proteinGoal)  : '');
-    setWeightGoal(convexSettings.weightGoal != null ? String(convexSettings.weightGoal) : '');
+    if (convexSettings === undefined) return;
+    setCalGoal(convexSettings?.calorieGoal  != null ? String(convexSettings.calorieGoal)  : '');
+    setProtGoal(convexSettings?.proteinGoal != null ? String(convexSettings.proteinGoal)  : '');
+    setWeightGoal(convexSettings?.weightGoal != null ? String(convexSettings.weightGoal) : '');
   }, [convexSettings]);
 
   // Populate display name
@@ -124,6 +137,7 @@ export default function ProSettings({ user }) {
 
   const handleSaveGoals = async (e) => {
     e.preventDefault();
+    if (!goalsLoaded) return;
     await Promise.all([
       saveGoals({
         calorieGoal:  calGoal    ? Number(calGoal)    : undefined,
@@ -204,13 +218,14 @@ export default function ProSettings({ user }) {
             </div>
             <button
               type="submit"
-              className={`w-full py-3 lg:py-3.5 rounded-xl text-sm lg:text-base font-semibold transition-all ${
+              disabled={!goalsLoaded}
+              className={`w-full py-3 lg:py-3.5 rounded-xl text-sm lg:text-base font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 saved
                   ? 'bg-green-500 text-white'
                   : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-sm'
               }`}
             >
-              {saved ? '✓ Saved' : 'Save Goals'}
+              {saved ? '✓ Saved' : goalsLoaded ? 'Save Goals' : 'Loading…'}
             </button>
           </form>
         </div>

@@ -241,8 +241,8 @@ export default function ProHome({ onNavigate, calorieGoal }) {
               </div>
             </div>
           ) : calorieGoal === undefined ? (
-            // Still deciding whether a goal is set (see useCalorieGoal in
-            // ProApp.jsx) — a neutral loading state, not "no goal set".
+            // Still deciding whether a goal is set (see useSettledUserSettings
+            // in ProApp.jsx) — a neutral loading state, not "no goal set".
             <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 animate-pulse">
               {['Today', 'Goal', 'Under'].map(label => (
                 <div key={label} className="text-center p-2 sm:p-3 lg:p-4 rounded-xl bg-gray-100 dark:bg-gray-800/50">

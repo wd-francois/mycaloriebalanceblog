@@ -23,8 +23,8 @@ const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 
 const VALID_TABS = ['home', 'insights', 'tools', 'photos', 'clients', 'programs', 'messages', 'help', 'settings'];
 
-const CALORIE_GOAL_KEY = 'mcb_pro_calorie_goal';
-const CALORIE_GOAL_GRACE_MS = 1500;
+const SETTINGS_CACHE_KEY = 'mcb_pro_settings_cache';
+const SETTINGS_GRACE_MS = 1500;
 
 // userSettings.get can transiently *resolve* to null right after a fresh
 // subscription starts (e.g. after Home -> Messages -> Home, or after
@@ -32,6 +32,14 @@ const CALORIE_GOAL_GRACE_MS = 1500;
 // slightly before the server-side query has actually been re-evaluated with
 // that identity, especially over a slow mobile connection. So a falsy
 // resolution is never trusted as final on its own.
+//
+// Note this null is indistinguishable, at the client, from a genuinely new
+// user who has no settings row yet — both come back as plain `null`. That
+// ambiguity used to cause real data loss: ProSettings populated its form
+// fields from this query, and if a user submitted while it had transiently
+// resolved null (not just still loading), it would send calorieGoal:
+// undefined for a goal that actually existed, and Convex's db.patch()
+// treats an explicit undefined as "clear this field" — silently wiping it.
 //
 // The first version of this fix used a single grace-period timer that
 // started on mount and flipped permanently "expired" ~1.5s later. That
@@ -41,54 +49,59 @@ const CALORIE_GOAL_GRACE_MS = 1500;
 // since expired and offered no protection at all against the very race it
 // was meant to cover.
 //
-// Instead: once we've ever seen a real (truthy) goal in this page session,
+// Instead: once we've ever seen a real settings row in this page session,
 // remember it in a ref for as long as ProShell is mounted (it survives tab
 // switches and logging back in, since neither remounts ProShell) and never
 // let a later falsy resolution override it. localStorage backs that up
 // across actual page reloads. Only when nothing has ever been seen at all —
-// no live value, no remembered ref, no cache — do we apply a grace period,
-// measured from when *that* uncertainty began rather than from mount, so it
-// isn't a one-shot clock that's already spent by the time it's needed.
-function useCalorieGoal(settings) {
+// no live row, no remembered ref, no cache — do we conclude "genuinely no
+// row yet" (a real new-user state, safe to treat as empty), and even then
+// only after a grace period, measured from when *that* uncertainty began
+// rather than from mount, so it isn't a one-shot clock that's already spent
+// by the time it's needed. Returns undefined while still deciding, null
+// once confirmed there's truly no row, or the settings object once known.
+function useSettledUserSettings() {
+  const liveSettings = useQuery(api.userSettings.get);
   const rememberedRef = useRef(null);
   const uncertainSinceRef = useRef(null);
   const [, retryTick] = useState(0);
 
-  const liveGoal = settings?.calorieGoal;
-
   useEffect(() => {
-    if (liveGoal || rememberedRef.current) return;
+    if (liveSettings || rememberedRef.current) return;
     let cached = null;
-    try { cached = localStorage.getItem(CALORIE_GOAL_KEY); } catch {}
+    try { cached = localStorage.getItem(SETTINGS_CACHE_KEY); } catch {}
     if (cached) return;
 
     if (uncertainSinceRef.current === null) uncertainSinceRef.current = Date.now();
     const elapsed = Date.now() - uncertainSinceRef.current;
-    if (elapsed >= CALORIE_GOAL_GRACE_MS) return;
+    if (elapsed >= SETTINGS_GRACE_MS) return;
 
-    const timer = setTimeout(() => retryTick(t => t + 1), CALORIE_GOAL_GRACE_MS - elapsed);
+    const timer = setTimeout(() => retryTick(t => t + 1), SETTINGS_GRACE_MS - elapsed);
     return () => clearTimeout(timer);
   });
 
-  if (liveGoal) {
-    rememberedRef.current = liveGoal;
+  if (liveSettings) {
+    rememberedRef.current = liveSettings;
     uncertainSinceRef.current = null;
-    try { localStorage.setItem(CALORIE_GOAL_KEY, String(liveGoal)); } catch {}
-    return liveGoal;
+    try { localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(liveSettings)); } catch {}
+    return liveSettings;
   }
 
   if (rememberedRef.current) return rememberedRef.current;
 
   let cached = null;
-  try { cached = localStorage.getItem(CALORIE_GOAL_KEY); } catch {}
+  try {
+    const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
+    if (raw) cached = JSON.parse(raw);
+  } catch {}
   if (cached) {
-    rememberedRef.current = Number(cached);
-    return rememberedRef.current;
+    rememberedRef.current = cached;
+    return cached;
   }
 
   if (uncertainSinceRef.current === null) uncertainSinceRef.current = Date.now();
   const elapsed = Date.now() - uncertainSinceRef.current;
-  return elapsed >= CALORIE_GOAL_GRACE_MS ? null : undefined;
+  return elapsed >= SETTINGS_GRACE_MS ? null : undefined;
 }
 
 // Lets other pages deep-link straight into a tab (e.g. the top-nav Messages
@@ -105,11 +118,14 @@ function initialTabFromURL() {
 function ProShell() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user        = useQuery(api.users.viewer);
-  const settings     = useQuery(api.userSettings.get);
   const claimInvites = useMutation(api.coaches.claimPendingInvites);
 
   const role = useProRole();
-  const calorieGoal = useCalorieGoal(settings);
+  const settledSettings = useSettledUserSettings();
+  // undefined (still deciding) passes straight through so ProHome can show
+  // a neutral loading state instead of "no goal set"; null/an object both
+  // mean settledSettings has been confirmed one way or the other.
+  const calorieGoal = settledSettings === undefined ? undefined : (settledSettings?.calorieGoal ?? null);
 
   const [tab,            setTab]            = useState(initialTabFromURL);
   const [selectedClient, setSelectedClient] = useState(null);
@@ -179,7 +195,7 @@ function ProShell() {
       case 'programs': return <ProPrograms />;
       case 'messages': return <ProMessages />;
       case 'help':     return <ProHelp onBack={() => navigate('settings')} />;
-      case 'settings': return <ProSettings user={user} />;
+      case 'settings': return <ProSettings user={user} convexSettings={settledSettings} />;
       default:         return <ProHome     onNavigate={navigate} calorieGoal={calorieGoal} />;
     }
   }
