@@ -26,44 +26,69 @@ const VALID_TABS = ['home', 'insights', 'tools', 'photos', 'clients', 'programs'
 const CALORIE_GOAL_KEY = 'mcb_pro_calorie_goal';
 const CALORIE_GOAL_GRACE_MS = 1500;
 
-// ProHome used to run its own userSettings.get subscription, which was torn
-// down and recreated every time it remounted on tab switches (see the
-// key={tab} below), and moving it up here (a component that never remounts)
-// was meant to fix a flash to "Set your goal" on Home -> Messages -> Home.
-// It didn't, on mobile: a diagnostic build showed that even a component that
-// never remounts can have this query transiently *resolve* to null right
-// after a fresh page load — the client-side auth state (isLoading/
-// isAuthenticated) can flip to "ready" slightly before the server-side query
-// evaluation actually sees the identity, especially over a slow mobile
-// connection. That's a real gap between "authenticated" and "this specific
-// query has been re-evaluated with that identity", not something we can
-// just await.
+// userSettings.get can transiently *resolve* to null right after a fresh
+// subscription starts (e.g. after Home -> Messages -> Home, or after
+// logging out and back in) — the client-side auth state can report "ready"
+// slightly before the server-side query has actually been re-evaluated with
+// that identity, especially over a slow mobile connection. So a falsy
+// resolution is never trusted as final on its own.
 //
-// So: never trust a falsy resolution as final. A truthy goal is trusted (and
-// cached) immediately. A falsy one is only treated as "no goal set" after a
-// short grace period with no correction — before that, and with nothing
-// cached from a previous successful load, callers get `undefined` ("still
-// deciding") rather than `null` ("confirmed unset"), so the UI can show a
-// neutral loading state instead of flashing the wrong thing.
+// The first version of this fix used a single grace-period timer that
+// started on mount and flipped permanently "expired" ~1.5s later. That
+// meant it only ever protected the first second and a half of the whole
+// page's life: by the time a user had actually navigated to Messages and
+// back (or logged back in, in the same page session), the timer had long
+// since expired and offered no protection at all against the very race it
+// was meant to cover.
+//
+// Instead: once we've ever seen a real (truthy) goal in this page session,
+// remember it in a ref for as long as ProShell is mounted (it survives tab
+// switches and logging back in, since neither remounts ProShell) and never
+// let a later falsy resolution override it. localStorage backs that up
+// across actual page reloads. Only when nothing has ever been seen at all —
+// no live value, no remembered ref, no cache — do we apply a grace period,
+// measured from when *that* uncertainty began rather than from mount, so it
+// isn't a one-shot clock that's already spent by the time it's needed.
 function useCalorieGoal(settings) {
-  const [pastGrace, setPastGrace] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setPastGrace(true), CALORIE_GOAL_GRACE_MS);
-    return () => clearTimeout(timer);
-  }, []);
+  const rememberedRef = useRef(null);
+  const uncertainSinceRef = useRef(null);
+  const [, retryTick] = useState(0);
 
   const liveGoal = settings?.calorieGoal;
+
+  useEffect(() => {
+    if (liveGoal || rememberedRef.current) return;
+    let cached = null;
+    try { cached = localStorage.getItem(CALORIE_GOAL_KEY); } catch {}
+    if (cached) return;
+
+    if (uncertainSinceRef.current === null) uncertainSinceRef.current = Date.now();
+    const elapsed = Date.now() - uncertainSinceRef.current;
+    if (elapsed >= CALORIE_GOAL_GRACE_MS) return;
+
+    const timer = setTimeout(() => retryTick(t => t + 1), CALORIE_GOAL_GRACE_MS - elapsed);
+    return () => clearTimeout(timer);
+  });
+
   if (liveGoal) {
+    rememberedRef.current = liveGoal;
+    uncertainSinceRef.current = null;
     try { localStorage.setItem(CALORIE_GOAL_KEY, String(liveGoal)); } catch {}
     return liveGoal;
   }
 
+  if (rememberedRef.current) return rememberedRef.current;
+
   let cached = null;
   try { cached = localStorage.getItem(CALORIE_GOAL_KEY); } catch {}
-  if (cached) return Number(cached);
+  if (cached) {
+    rememberedRef.current = Number(cached);
+    return rememberedRef.current;
+  }
 
-  return pastGrace ? null : undefined;
+  if (uncertainSinceRef.current === null) uncertainSinceRef.current = Date.now();
+  const elapsed = Date.now() - uncertainSinceRef.current;
+  return elapsed >= CALORIE_GOAL_GRACE_MS ? null : undefined;
 }
 
 // Lets other pages deep-link straight into a tab (e.g. the top-nav Messages
