@@ -434,7 +434,6 @@ const DateTimeSelector = () => {
   // Calculate today's total calories and get calorie goal
   const calorieGoalData = useMemo(() => {
     if (!isClient || typeof window === 'undefined') {
-      console.log('[calorieGoalDebug] blank: !isClient', { isClient });
       return { goalValue: null, todayCalories: 0, goalType: null, goalLabel: null };
     }
 
@@ -442,7 +441,6 @@ const DateTimeSelector = () => {
     const selectedGoal = settings?.calorieGoal || 'none';
 
     if (selectedGoal === 'none') {
-      console.log('[calorieGoalDebug] blank: selectedGoal is none', { rawSettingsCalorieGoal: settings?.calorieGoal });
       return { goalValue: null, todayCalories: 0, goalType: null, goalLabel: null };
     }
 
@@ -458,15 +456,11 @@ const DateTimeSelector = () => {
     }
 
     if (!calculatorData) {
-      console.log('[calorieGoalDebug] blank: no calculatorData in localStorage', { selectedGoal, raw: localStorage.getItem('calorieCalculatorData') });
       return { goalValue: null, todayCalories: 0, goalType: null, goalLabel: null };
     }
 
     // Get goal value based on selected goal type
     const goalValue = calculatorData[selectedGoal] || null;
-    if (!goalValue) {
-      console.log('[calorieGoalDebug] blank: calculatorData has no value for selectedGoal', { selectedGoal, calculatorData });
-    }
 
     // Calculate today's total calories from meal entries
     const todayCalories = todayEntries

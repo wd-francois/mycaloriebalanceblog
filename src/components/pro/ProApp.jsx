@@ -24,27 +24,46 @@ const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 const VALID_TABS = ['home', 'insights', 'tools', 'photos', 'clients', 'programs', 'messages', 'help', 'settings'];
 
 const CALORIE_GOAL_KEY = 'mcb_pro_calorie_goal';
+const CALORIE_GOAL_GRACE_MS = 1500;
 
 // ProHome used to run its own userSettings.get subscription, which was torn
 // down and recreated every time it remounted on tab switches (see the
-// key={tab} below) — and a fresh subscription could transiently *resolve*
-// to null (an auth-token race), not just stay loading, causing the card to
-// flash to "Set your goal" on every Home -> Messages -> Home trip. Fetching
-// it once here, where it's never torn down, avoids re-triggering that race.
-// Still only trust a truthy goal for display/caching, in case a long-lived
-// subscription ever re-evaluates transiently wrong too (e.g. on a token
-// refresh) — mirrors the same defensive pattern already used for role in
-// useProRole.js.
-function resolveCachedCalorieGoal(settings) {
-  const goal = settings?.calorieGoal;
-  if (goal) {
-    try { localStorage.setItem(CALORIE_GOAL_KEY, String(goal)); } catch {}
-    return goal;
+// key={tab} below), and moving it up here (a component that never remounts)
+// was meant to fix a flash to "Set your goal" on Home -> Messages -> Home.
+// It didn't, on mobile: a diagnostic build showed that even a component that
+// never remounts can have this query transiently *resolve* to null right
+// after a fresh page load — the client-side auth state (isLoading/
+// isAuthenticated) can flip to "ready" slightly before the server-side query
+// evaluation actually sees the identity, especially over a slow mobile
+// connection. That's a real gap between "authenticated" and "this specific
+// query has been re-evaluated with that identity", not something we can
+// just await.
+//
+// So: never trust a falsy resolution as final. A truthy goal is trusted (and
+// cached) immediately. A falsy one is only treated as "no goal set" after a
+// short grace period with no correction — before that, and with nothing
+// cached from a previous successful load, callers get `undefined` ("still
+// deciding") rather than `null` ("confirmed unset"), so the UI can show a
+// neutral loading state instead of flashing the wrong thing.
+function useCalorieGoal(settings) {
+  const [pastGrace, setPastGrace] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setPastGrace(true), CALORIE_GOAL_GRACE_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const liveGoal = settings?.calorieGoal;
+  if (liveGoal) {
+    try { localStorage.setItem(CALORIE_GOAL_KEY, String(liveGoal)); } catch {}
+    return liveGoal;
   }
-  try {
-    const cached = localStorage.getItem(CALORIE_GOAL_KEY);
-    return cached ? Number(cached) : null;
-  } catch { return null; }
+
+  let cached = null;
+  try { cached = localStorage.getItem(CALORIE_GOAL_KEY); } catch {}
+  if (cached) return Number(cached);
+
+  return pastGrace ? null : undefined;
 }
 
 // Lets other pages deep-link straight into a tab (e.g. the top-nav Messages
@@ -65,7 +84,7 @@ function ProShell() {
   const claimInvites = useMutation(api.coaches.claimPendingInvites);
 
   const role = useProRole();
-  const calorieGoal = resolveCachedCalorieGoal(settings);
+  const calorieGoal = useCalorieGoal(settings);
 
   const [tab,            setTab]            = useState(initialTabFromURL);
   const [selectedClient, setSelectedClient] = useState(null);

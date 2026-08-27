@@ -240,6 +240,17 @@ export default function ProHome({ onNavigate, calorieGoal }) {
                 <div className={METRIC_LBL}>{todayCalories > calorieGoal ? 'Over' : 'Under'}</div>
               </div>
             </div>
+          ) : calorieGoal === undefined ? (
+            // Still deciding whether a goal is set (see useCalorieGoal in
+            // ProApp.jsx) — a neutral loading state, not "no goal set".
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 animate-pulse">
+              {['Today', 'Goal', 'Under'].map(label => (
+                <div key={label} className="text-center p-2 sm:p-3 lg:p-4 rounded-xl bg-gray-100 dark:bg-gray-800/50">
+                  <div className={`${METRIC_VAL} text-transparent`}>0</div>
+                  <div className={`${METRIC_LBL} text-transparent`}>{label}</div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="text-center py-4 lg:py-6">
               <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">

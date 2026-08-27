@@ -40,23 +40,24 @@ export const useSettings = () => {
   return context;
 };
 
-const DEFAULT_SETTINGS = {
-  weightUnit: 'kg', // 'lbs' or 'kg'
-  lengthUnit: 'cm', // 'in' or 'cm'
-  dateFormat: 'MM/DD/YYYY', // 'MM/DD/YYYY' or 'DD/MM/YYYY'
-  timeFormat: '12h', // '12h' or '24h'
-  // Feature toggles
-  enableMeals: true,
-  enableExercise: true,
-  enableSleep: true,
-  enableMeasurements: true,
-  // Theme
-  theme: 'light',
-  // Calorie Goal
-  calorieGoal: 'none', // 'none', 'weightLoss', 'maintenance', 'weightGain'
-  // AI Settings
-  aiService: 'chatgpt', // 'chatgpt', 'claude', 'gemini', 'grok', 'custom'
-  aiPromptTemplate: `I have a meal entry for "{mealName}" with amount: {amount}.
+export const SettingsProvider = ({ children }) => {
+  const [settings, setSettings] = useState({
+    weightUnit: 'kg', // 'lbs' or 'kg'
+    lengthUnit: 'cm', // 'in' or 'cm'
+    dateFormat: 'MM/DD/YYYY', // 'MM/DD/YYYY' or 'DD/MM/YYYY'
+    timeFormat: '12h', // '12h' or '24h'
+    // Feature toggles
+    enableMeals: true,
+    enableExercise: true,
+    enableSleep: true,
+    enableMeasurements: true,
+    // Theme
+    theme: 'light',
+    // Calorie Goal
+    calorieGoal: 'none', // 'none', 'weightLoss', 'maintenance', 'weightGain'
+    // AI Settings
+    aiService: 'chatgpt', // 'chatgpt', 'claude', 'gemini', 'grok', 'custom'
+    aiPromptTemplate: `I have a meal entry for "{mealName}" with amount: {amount}. 
 
 Current nutritional values:
 - Calories: {calories}
@@ -73,62 +74,68 @@ Please provide accurate nutritional information for this meal. Include:
 5. Any additional nutritional insights
 
 Please format your response clearly so I can easily update my meal entry.`,
-  aiCustomUrl: '', // For custom AI service
-  aiIncludeCurrentValues: true, // Whether to include current nutritional values in prompt
-  aiRequestFormat: 'detailed', // 'detailed', 'simple', 'custom'
-  aiLanguage: 'english' // 'english', 'spanish', 'french', etc.
-};
+    aiCustomUrl: '', // For custom AI service
+    aiIncludeCurrentValues: true, // Whether to include current nutritional values in prompt
+    aiRequestFormat: 'detailed', // 'detailed', 'simple', 'custom'
+    aiLanguage: 'english' // 'english', 'spanish', 'french', etc.
+  });
 
-// Reads persisted settings synchronously so the first render already has the
-// real calorieGoal etc. — previously this loaded via a useEffect, so every
-// fresh page load rendered the 'none' default first and corrected a moment
-// later, which could show as the Calorie Goal card flashing to "Choose your
-// goal" before catching up.
-function loadInitialSettings() {
-  if (typeof window === 'undefined') return DEFAULT_SETTINGS;
+  // Load settings from localStorage on mount (only once)
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  useEffect(() => {
+    // Only run on client side and only once
+    if (typeof window === 'undefined' || isInitialized) return;
 
-  let merged = { ...DEFAULT_SETTINGS };
-
-  try {
     const savedSettings = localStorage.getItem('healthTrackerSettings');
+    const healthEntries = healthDB.getHealthEntries();
+
     if (savedSettings) {
-      const parsed = JSON.parse(savedSettings);
-      merged = { ...merged, ...parsed };
-      // Migration: add Fibre line to existing AI prompt templates that have Fats but not Fibre
-      if (merged.aiPromptTemplate && typeof merged.aiPromptTemplate === 'string') {
-        const hasFats = /- Fats: \{fats\}g/i.test(merged.aiPromptTemplate);
-        const hasFibre = /- Fibre: \{fibre\}g/i.test(merged.aiPromptTemplate);
-        if (hasFats && !hasFibre) {
-          merged = {
-            ...merged,
-            aiPromptTemplate: merged.aiPromptTemplate.replace(
-              /(- Fats: \{fats\}g)/i,
-              '$1\n- Fibre: {fibre}g'
-            )
-          };
-        }
+      try {
+        const parsed = JSON.parse(savedSettings);
+        console.log('Loading settings from localStorage:', parsed);
+        setSettings(prev => {
+          let merged = { ...prev, ...parsed };
+          // Migration: add Fibre line to existing AI prompt templates that have Fats but not Fibre
+          if (merged.aiPromptTemplate && typeof merged.aiPromptTemplate === 'string') {
+            const hasFats = /- Fats: \{fats\}g/i.test(merged.aiPromptTemplate);
+            const hasFibre = /- Fibre: \{fibre\}g/i.test(merged.aiPromptTemplate);
+            if (hasFats && !hasFibre) {
+              merged = {
+                ...merged,
+                aiPromptTemplate: merged.aiPromptTemplate.replace(
+                  /(- Fats: \{fats\}g)/i,
+                  '$1\n- Fibre: {fibre}g'
+                )
+              };
+            }
+          }
+          console.log('Merged settings:', merged);
+          return merged;
+        });
+      } catch (error) {
+        console.error('Error loading settings:', error);
       }
     }
-  } catch (error) {
-    console.error('Error loading settings:', error);
-  }
 
-  // Load feature toggles from healthEntries if present (same object also stores per-day entry arrays — never merge those into settings)
-  try {
-    const healthEntries = healthDB.getHealthEntries();
-    const toggleKeys = ['enableMeals', 'enableExercise', 'enableSleep', 'enableMeasurements'];
-    for (const key of toggleKeys) {
-      if (healthEntries[key] !== undefined) merged[key] = healthEntries[key];
+    // Load feature toggles from healthEntries if present (same object also stores per-day entry arrays — never merge those into settings)
+    if (Object.keys(healthEntries).length > 0) {
+      try {
+        const toggleKeys = ['enableMeals', 'enableExercise', 'enableSleep', 'enableMeasurements'];
+        const toggles = {};
+        for (const key of toggleKeys) {
+          if (healthEntries[key] !== undefined) toggles[key] = healthEntries[key];
+        }
+        if (Object.keys(toggles).length > 0) {
+          setSettings((prev) => ({ ...prev, ...toggles }));
+        }
+      } catch (error) {
+        console.error('Error loading health entries:', error);
+      }
     }
-  } catch (error) {
-    console.error('Error loading health entries:', error);
-  }
-
-  return merged;
-}
-
-export const SettingsProvider = ({ children }) => {
-  const [settings, setSettings] = useState(loadInitialSettings);
+    
+    setIsInitialized(true);
+  }, [isInitialized]);
 
   // Save settings to localStorage whenever they change
   useEffect(() => {
