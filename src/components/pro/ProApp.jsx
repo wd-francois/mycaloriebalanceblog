@@ -69,17 +69,14 @@ function ProShell() {
 
   const shellMountedAt = useRef(Date.now()).current;
   if (typeof window !== 'undefined') {
-    console.log('[calorieGoalDebug] ProShell render', {
-      shellMountedAt,
-      now: Date.now(),
-      settings,
-      calorieGoal,
-      cached: (() => { try { return localStorage.getItem(CALORIE_GOAL_KEY); } catch (e) { return 'ERR:' + e.message; } })(),
-      href: window.location.href,
-      referrer: document.referrer,
-      navType: (() => { try { return performance.getEntriesByType('navigation')[0]?.type; } catch { return 'ERR'; } })(),
-      visibilityState: document.visibilityState,
-    });
+    const cached = (() => { try { return localStorage.getItem(CALORIE_GOAL_KEY); } catch (e) { return 'ERR:' + e.message; } })();
+    const navType = (() => { try { return performance.getEntriesByType('navigation')[0]?.type; } catch { return 'ERR'; } })();
+    console.log(
+      `[calorieGoalDebug] mounted=${shellMountedAt} now=${Date.now()} ` +
+      `settings=${JSON.stringify(settings)} calorieGoal=${calorieGoal} cached=${cached} ` +
+      `href=${window.location.href} referrer=${document.referrer || '(none)'} ` +
+      `navType=${navType} visibility=${document.visibilityState}`
+    );
   }
 
   const [tab,            setTab]            = useState(initialTabFromURL);
