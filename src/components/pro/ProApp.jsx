@@ -137,29 +137,6 @@ function ProShell() {
   // mean settledSettings has been confirmed one way or the other.
   const calorieGoal = settledSettings === undefined ? undefined : (settledSettings?.calorieGoal ?? null);
 
-  // Temporary on-screen debug panel (visit /pro/?debug=1) — getting real
-  // DevTools console output off a phone needs USB debugging, which isn't
-  // practical to ask for, so this renders the same trace directly on the
-  // page for a screenshot instead. Remove once diagnosed.
-  const debugHistoryRef = useRef([]);
-  const lastLoggedRef = useRef(null);
-  const [, forceDebugRerender] = useState(0);
-  const debugEnabled = typeof window !== 'undefined' && window.location.search.includes('debug=1');
-  if (typeof window !== 'undefined') {
-    const snapshot = `auth=${isAuthenticated} authLoading=${isLoading} role=${role} ` +
-      `settledSettings=${JSON.stringify(settledSettings)} calorieGoal=${calorieGoal} ` +
-      `user=${JSON.stringify(user)} cachedSettings=${(() => { try { return localStorage.getItem(SETTINGS_CACHE_KEY); } catch (e) { return 'ERR:' + e.message; } })()}`;
-    if (snapshot !== lastLoggedRef.current) {
-      lastLoggedRef.current = snapshot;
-      console.log('[proDebug] ' + snapshot);
-      if (debugEnabled) {
-        const t = new Date().toISOString().slice(11, 23);
-        debugHistoryRef.current = [...debugHistoryRef.current, `${t} ${snapshot}`].slice(-20);
-        setTimeout(() => forceDebugRerender(n => n + 1), 0);
-      }
-    }
-  }
-
   // The Original app's Calorie Calculator (linked from Pro's Tools page)
   // has no Convex/auth context of its own, so picking a goal there just
   // queues the number in localStorage — apply it here as soon as we have
@@ -215,26 +192,17 @@ function ProShell() {
     return () => window.removeEventListener('pro:navigate', handler);
   }, [setSelectedClient, setTab]);
 
-  const debugPanel = debugEnabled ? (
-    <pre className="fixed bottom-0 left-0 right-0 z-[9999] max-h-[50vh] overflow-y-auto bg-black/90 text-green-400 text-[9px] leading-tight p-2 whitespace-pre-wrap break-all">
-      {debugHistoryRef.current.join('\n')}
-    </pre>
-  ) : null;
-
   // ── Loading splash ──────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <>
-        <div className="flex items-center justify-center py-24">
-          <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
-        </div>
-        {debugPanel}
-      </>
+      <div className="flex items-center justify-center py-24">
+        <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+      </div>
     );
   }
 
   // ── Unauthenticated ─────────────────────────────────────────────────────
-  if (!isAuthenticated) return <>{debugPanel}<SignInPage /></>;
+  if (!isAuthenticated) return <SignInPage />;
 
   // ── Tab renderer ────────────────────────────────────────────────────────
   function renderTab() {
@@ -288,7 +256,6 @@ function ProShell() {
         role={role}
         onNavigate={navigate}
       />
-      {debugPanel}
     </div>
   );
 }

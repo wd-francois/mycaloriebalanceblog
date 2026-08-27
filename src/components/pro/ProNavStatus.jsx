@@ -30,6 +30,8 @@ const StarIcon = ({ className }) => (
   </svg>
 );
 
+const WAS_AUTH_KEY = 'mcb_pro_was_authenticated';
+
 function ProNavInner() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { signOut } = useAuthActions();
@@ -55,8 +57,31 @@ function ProNavInner() {
     };
   }, [open]);
 
-  // Ghost avatar while resolving
-  if (isLoading || (isAuthenticated && user === undefined)) {
+  // This island mounts its own ConvexAuthProvider (it renders on every page,
+  // including ones where the main Pro app isn't present), and its own
+  // isLoading/isAuthenticated resolution can lag behind — a fresh load could
+  // take a few reloads before it settled here even after the user was
+  // clearly already signed in elsewhere on the page. Once we've ever seen a
+  // real "authenticated" here, remember it and keep showing the signed-in
+  // UI (Messages icon, avatar) optimistically while a later load is still
+  // resolving, instead of a ghost placeholder — it'll correct itself if the
+  // real check ultimately disagrees (e.g. after signing out elsewhere).
+  const [wasAuthed] = useState(() => {
+    try { return localStorage.getItem(WAS_AUTH_KEY) === '1'; } catch { return false; }
+  });
+  useEffect(() => {
+    if (isLoading) return;
+    try {
+      if (isAuthenticated) localStorage.setItem(WAS_AUTH_KEY, '1');
+      else localStorage.removeItem(WAS_AUTH_KEY);
+    } catch {}
+  }, [isAuthenticated, isLoading]);
+
+  const showAuthenticated = isAuthenticated || (isLoading && wasAuthed);
+
+  // Ghost avatar only when there's truly no signal yet (first-ever visit,
+  // still loading, nothing cached).
+  if (!showAuthenticated && isLoading) {
     return (
       <span
         data-pro-nav="true"
@@ -66,7 +91,7 @@ function ProNavInner() {
     );
   }
 
-  if (isAuthenticated) {
+  if (showAuthenticated) {
     const tokenPayload = token ? decodeJwtPayload(token) : null;
     const email   = user?.email ?? tokenPayload?.email ?? '';
     const name    = user?.name  ?? '';
