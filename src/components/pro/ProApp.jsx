@@ -137,6 +137,17 @@ function ProShell() {
   // mean settledSettings has been confirmed one way or the other.
   const calorieGoal = settledSettings === undefined ? undefined : (settledSettings?.calorieGoal ?? null);
 
+  const lastLoggedRef = useRef(null);
+  if (typeof window !== 'undefined') {
+    const snapshot = `auth=${isAuthenticated} authLoading=${isLoading} role=${role} ` +
+      `settledSettings=${JSON.stringify(settledSettings)} calorieGoal=${calorieGoal} ` +
+      `user=${JSON.stringify(user)} cachedSettings=${(() => { try { return localStorage.getItem(SETTINGS_CACHE_KEY); } catch (e) { return 'ERR:' + e.message; } })()}`;
+    if (snapshot !== lastLoggedRef.current) {
+      lastLoggedRef.current = snapshot;
+      console.log('[proDebug] ' + snapshot);
+    }
+  }
+
   // The Original app's Calorie Calculator (linked from Pro's Tools page)
   // has no Convex/auth context of its own, so picking a goal there just
   // queues the number in localStorage — apply it here as soon as we have
