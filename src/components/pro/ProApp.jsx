@@ -74,6 +74,10 @@ function ProShell() {
     settings,
     calorieGoal,
     cached: (() => { try { return localStorage.getItem(CALORIE_GOAL_KEY); } catch (e) { return 'ERR:' + e.message; } })(),
+    href: window.location.href,
+    referrer: document.referrer,
+    navType: (() => { try { return performance.getEntriesByType('navigation')[0]?.type; } catch { return 'ERR'; } })(),
+    visibilityState: document.visibilityState,
   });
 
   const [tab,            setTab]            = useState(initialTabFromURL);
