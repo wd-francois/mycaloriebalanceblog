@@ -19,6 +19,7 @@ const homeHref = currentUrl.startsWith('/pro') ? '/pro' : '/';
       <h1 class="min-w-0">
         <a
           href={homeHref}
+          id="top-nav-home-link"
           class="inline-block group transition-all duration-200 relative"
           aria-label="Home"
           title="Go to Home"
@@ -51,6 +52,22 @@ const homeHref = currentUrl.startsWith('/pro') ? '/pro' : '/';
     </div>
   </div>
 </nav>
+
+<script>
+  // While already inside the Pro SPA, clicking the logo would otherwise do a
+  // full page navigation to /pro (same as any other <a href>) even though
+  // Pro can switch to its Home tab in-app. A full reload here forces a fresh
+  // Convex/auth handshake every time and can trigger the browser's "unsaved
+  // changes" warning (and abandon an in-flight save) if a mutation hasn't
+  // finished yet — dispatch the same in-SPA navigation event ProNavStatus's
+  // Messages shortcut already uses instead, and only fall back to a real
+  // navigation when actually leaving Pro.
+  document.getElementById('top-nav-home-link')?.addEventListener('click', (e) => {
+    if (window.location.pathname.replace(/\/?$/, '/') !== '/pro/') return;
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent('pro:navigate', { detail: 'home' }));
+  });
+</script>
 
 <!-- Add padding to prevent content from being hidden behind the fixed top nav -->
 <style>
