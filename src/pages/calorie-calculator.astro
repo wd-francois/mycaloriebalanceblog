@@ -352,6 +352,24 @@ import { siteConfig } from '@config/site';
       } catch (e) {
         console.error('Error saving selected goal:', e);
       }
+
+      // This page has no Convex/auth context to write directly to a Pro
+      // account, so queue the picked value here instead — the Pro app
+      // picks it up and saves it next time it loads (see ProApp.jsx).
+      // Harmless no-op for anyone who never opens Pro.
+      try {
+        const calculatorData = loadCalculatorData();
+        const numericValue = calculatorData ? calculatorData[goal] : null;
+        if (typeof numericValue === 'number') {
+          localStorage.setItem('mcb_pending_pro_calorie_goal', JSON.stringify({
+            value: numericValue,
+            goalType: goal,
+            timestamp: new Date().toISOString(),
+          }));
+        }
+      } catch (e) {
+        console.error('Error queuing Pro calorie goal sync:', e);
+      }
     }
 
     // Function to update selected goal card UI

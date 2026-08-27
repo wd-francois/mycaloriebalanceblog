@@ -25,6 +25,9 @@ const VALID_TABS = ['home', 'insights', 'tools', 'photos', 'clients', 'programs'
 
 const SETTINGS_CACHE_KEY = 'mcb_pro_settings_cache';
 const SETTINGS_GRACE_MS = 1500;
+// Written by the Original app's Calorie Calculator (src/pages/calorie-calculator.astro)
+// when a Goal Recommendation card is picked — see the effect in ProShell below.
+const PENDING_CALORIE_GOAL_KEY = 'mcb_pending_pro_calorie_goal';
 
 // userSettings.get can transiently *resolve* to null right after a fresh
 // subscription starts (e.g. after Home -> Messages -> Home, or after
@@ -119,6 +122,7 @@ function ProShell() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user        = useQuery(api.users.viewer);
   const claimInvites = useMutation(api.coaches.claimPendingInvites);
+  const saveGoals    = useMutation(api.userSettings.set);
 
   const role = useProRole();
   const settledSettings = useSettledUserSettings();
@@ -126,6 +130,24 @@ function ProShell() {
   // a neutral loading state instead of "no goal set"; null/an object both
   // mean settledSettings has been confirmed one way or the other.
   const calorieGoal = settledSettings === undefined ? undefined : (settledSettings?.calorieGoal ?? null);
+
+  // The Original app's Calorie Calculator (linked from Pro's Tools page)
+  // has no Convex/auth context of its own, so picking a goal there just
+  // queues the number in localStorage — apply it here as soon as we have
+  // an authenticated Pro session. Passing only `calorieGoal` (not the other
+  // optional fields) means Convex leaves proteinGoal/weightGoal untouched.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let pending = null;
+    try {
+      const raw = localStorage.getItem(PENDING_CALORIE_GOAL_KEY);
+      if (raw) pending = JSON.parse(raw);
+    } catch {}
+    if (!pending || typeof pending.value !== 'number') return;
+    saveGoals({ calorieGoal: pending.value })
+      .then(() => { try { localStorage.removeItem(PENDING_CALORIE_GOAL_KEY); } catch {} })
+      .catch(() => {}); // leave it queued to retry on the next load if the save failed
+  }, [isAuthenticated]);
 
   const [tab,            setTab]            = useState(initialTabFromURL);
   const [selectedClient, setSelectedClient] = useState(null);
