@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { ConvexReactClient, useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { ConvexAuthProvider, useConvexAuth } from '@convex-dev/auth/react';
 import { api } from '../../../convex/_generated/api';
 import { ConvexSettingsProvider } from '../../contexts/ConvexSettingsContext';
+import { convex } from './convexClient';
 import SignInPage    from './SignInPage';
 import ProNavigation from './ProNavigation';
 import ProHome       from './ProHome';
@@ -18,8 +19,6 @@ import ProPrograms   from './ProPrograms';
 import ProHelp       from './ProHelp';
 import ProErrorBoundary from './ProErrorBoundary';
 import { useProRole } from './useProRole';
-
-const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 
 const VALID_TABS = ['home', 'insights', 'tools', 'photos', 'clients', 'programs', 'messages', 'help', 'settings'];
 

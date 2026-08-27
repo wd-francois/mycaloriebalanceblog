@@ -1,8 +1,6 @@
-import { ConvexReactClient } from 'convex/react';
 import { ConvexAuthProvider, useConvexAuth } from '@convex-dev/auth/react';
+import { convex } from './convexClient';
 import { useIsCoach } from './useProRole';
-
-const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 
 function DashboardButtonInner() {
   const { isAuthenticated, isLoading } = useConvexAuth();

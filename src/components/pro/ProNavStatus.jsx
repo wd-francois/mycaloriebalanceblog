@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { ConvexReactClient, useQuery } from 'convex/react';
+import { useQuery } from 'convex/react';
 import { ConvexAuthProvider, useConvexAuth } from '@convex-dev/auth/react';
 import { useAuthActions, useAuthToken } from '@convex-dev/auth/react';
 import { api } from '../../../convex/_generated/api';
+import { convex } from './convexClient';
 import { useProRole } from './useProRole';
 
 function proNavigate(tab) {
@@ -22,8 +23,6 @@ function decodeJwtPayload(token) {
     return JSON.parse(atob(b64.padEnd(b64.length + (4 - b64.length % 4) % 4, '=')));
   } catch { return null; }
 }
-
-const convex = new ConvexReactClient(import.meta.env.PUBLIC_CONVEX_URL);
 
 const StarIcon = ({ className }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
