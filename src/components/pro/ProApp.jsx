@@ -137,7 +137,14 @@ function ProShell() {
   // mean settledSettings has been confirmed one way or the other.
   const calorieGoal = settledSettings === undefined ? undefined : (settledSettings?.calorieGoal ?? null);
 
+  // Temporary on-screen debug panel (visit /pro/?debug=1) — getting real
+  // DevTools console output off a phone needs USB debugging, which isn't
+  // practical to ask for, so this renders the same trace directly on the
+  // page for a screenshot instead. Remove once diagnosed.
+  const debugHistoryRef = useRef([]);
   const lastLoggedRef = useRef(null);
+  const [, forceDebugRerender] = useState(0);
+  const debugEnabled = typeof window !== 'undefined' && window.location.search.includes('debug=1');
   if (typeof window !== 'undefined') {
     const snapshot = `auth=${isAuthenticated} authLoading=${isLoading} role=${role} ` +
       `settledSettings=${JSON.stringify(settledSettings)} calorieGoal=${calorieGoal} ` +
@@ -145,6 +152,11 @@ function ProShell() {
     if (snapshot !== lastLoggedRef.current) {
       lastLoggedRef.current = snapshot;
       console.log('[proDebug] ' + snapshot);
+      if (debugEnabled) {
+        const t = new Date().toISOString().slice(11, 23);
+        debugHistoryRef.current = [...debugHistoryRef.current, `${t} ${snapshot}`].slice(-20);
+        setTimeout(() => forceDebugRerender(n => n + 1), 0);
+      }
     }
   }
 
@@ -203,17 +215,26 @@ function ProShell() {
     return () => window.removeEventListener('pro:navigate', handler);
   }, [setSelectedClient, setTab]);
 
+  const debugPanel = debugEnabled ? (
+    <pre className="fixed bottom-0 left-0 right-0 z-[9999] max-h-[50vh] overflow-y-auto bg-black/90 text-green-400 text-[9px] leading-tight p-2 whitespace-pre-wrap break-all">
+      {debugHistoryRef.current.join('\n')}
+    </pre>
+  ) : null;
+
   // ── Loading splash ──────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
-      </div>
+      <>
+        <div className="flex items-center justify-center py-24">
+          <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+        </div>
+        {debugPanel}
+      </>
     );
   }
 
   // ── Unauthenticated ─────────────────────────────────────────────────────
-  if (!isAuthenticated) return <SignInPage />;
+  if (!isAuthenticated) return <>{debugPanel}<SignInPage /></>;
 
   // ── Tab renderer ────────────────────────────────────────────────────────
   function renderTab() {
@@ -267,6 +288,7 @@ function ProShell() {
         role={role}
         onNavigate={navigate}
       />
+      {debugPanel}
     </div>
   );
 }
