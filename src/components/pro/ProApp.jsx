@@ -67,6 +67,15 @@ function ProShell() {
   const role = useProRole();
   const calorieGoal = resolveCachedCalorieGoal(settings);
 
+  const shellMountedAt = useRef(Date.now()).current;
+  console.log('[calorieGoalDebug] ProShell render', {
+    shellMountedAt,
+    now: Date.now(),
+    settings,
+    calorieGoal,
+    cached: (() => { try { return localStorage.getItem(CALORIE_GOAL_KEY); } catch (e) { return 'ERR:' + e.message; } })(),
+  });
+
   const [tab,            setTab]            = useState(initialTabFromURL);
   const [selectedClient, setSelectedClient] = useState(null);
 
