@@ -41,11 +41,12 @@ export function TimeSelect({ value, onChange }) {
   );
 }
 
-export default function SleepForm({ dateStr, onSave, onCancel }) {
-  const [bedtime,  setBedtime]  = useState(defaultBedtime);
-  const [waketime, setWaketime] = useState(defaultWaketime);
-  const [quality,  setQuality]  = useState('Good');
-  const [notes,    setNotes]    = useState('');
+// `initial` is an existing sleep entry when editing; omitted when adding.
+export default function SleepForm({ dateStr, onSave, onCancel, initial, submitLabel = 'Add Sleep Entry' }) {
+  const [bedtime,  setBedtime]  = useState(initial?.bedtime  ?? defaultBedtime);
+  const [waketime, setWaketime] = useState(initial?.waketime ?? defaultWaketime);
+  const [quality,  setQuality]  = useState(initial?.sleepQuality ?? 'Good');
+  const [notes,    setNotes]    = useState(initial?.notes ?? '');
 
   const durationStr = calculateSleepDuration(bedtime, waketime);
 
@@ -107,7 +108,7 @@ export default function SleepForm({ dateStr, onSave, onCancel }) {
         <textarea rows={2} className={INPUT + ' resize-none'} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional…" />
       </div>
 
-      <FormButtons onCancel={onCancel} submitLabel="Add Sleep Entry" />
+      <FormButtons onCancel={onCancel} submitLabel={submitLabel} />
     </form>
   );
 }

@@ -25,23 +25,31 @@ export function MeasurementField({ label, value, onChange, suffix }) {
 }
 
 // ── Measurements Form ──────────────────────────────────────────────────────────
-export default function MeasurementsForm({ dateStr, weightUnit: initialWeightUnit = 'kg', onSave, onCancel }) {
-  const [time]      = useState(() => getCurrentTimeParts());
-  const [unit, setUnit] = useState(initialWeightUnit);
-  const [form, setForm] = useState({
-    weight: '', neck: '', shoulders: '', chest: '', waist: '', hips: '',
-    thigh: '', arm: '', calf: '',
-    chestSkinfold: '', abdominalSkinfold: '', thighSkinfold: '',
-    tricepSkinfold: '', subscapularSkinfold: '', suprailiacSkinfold: '',
-    notes: '',
-  });
+const FIELDS = [
+  'weight', 'neck', 'shoulders', 'chest', 'waist', 'hips', 'thigh', 'arm', 'calf',
+  'chestSkinfold', 'abdominalSkinfold', 'thighSkinfold',
+  'tricepSkinfold', 'subscapularSkinfold', 'suprailiacSkinfold',
+  'notes',
+];
 
-  const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
+// `initial` is an existing measurements entry when editing; omitted when adding.
+export default function MeasurementsForm({ dateStr, weightUnit: initialWeightUnit = 'kg', onSave, onCancel, initial, submitLabel = 'Add Measurements' }) {
+  const [time]      = useState(() => initial?.time ?? getCurrentTimeParts());
+  const [unit, setUnit] = useState(initial?.weightUnit ?? initialWeightUnit);
+  const [form, setForm] = useState(() =>
+    Object.fromEntries(FIELDS.map(k => [k, initial?.[k] == null ? '' : String(initial[k])]))
+  );
+  const [weightError, setWeightError] = useState(false);
+
+  const set = (key) => (e) => {
+    setForm(f => ({ ...f, [key]: e.target.value }));
+    if (key === 'weight') setWeightError(false);
+  };
   const num = (val) => val ? Number(val) : undefined;
 
   const submit = (e) => {
     e.preventDefault();
-    if (!form.weight) return;
+    if (!form.weight) { setWeightError(true); return; }
     onSave({
       type: 'measurements', date: dateStr, time,
       weight: num(form.weight), weightUnit: unit,
@@ -71,6 +79,11 @@ export default function MeasurementsForm({ dateStr, weightUnit: initialWeightUni
       <div>
         <label className={LABEL}>Weight *</label>
         <MeasurementField label="" value={form.weight} onChange={set('weight')} suffix={unit} />
+        {weightError && (
+          <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">
+            Please enter your weight.
+          </p>
+        )}
       </div>
 
       <div>
@@ -104,7 +117,7 @@ export default function MeasurementsForm({ dateStr, weightUnit: initialWeightUni
         <textarea rows={2} className={INPUT + ' resize-none'} value={form.notes} onChange={set('notes')} placeholder="Optional…" />
       </div>
 
-      <FormButtons onCancel={onCancel} submitLabel="Add Measurements" />
+      <FormButtons onCancel={onCancel} submitLabel={submitLabel} />
     </form>
   );
 }

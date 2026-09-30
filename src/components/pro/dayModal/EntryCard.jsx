@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
+import { useConvexSettings } from '../../../contexts/ConvexSettingsContext';
+import { openAINutritionLookup, AIIcon } from './aiLookup';
+
+const ACTION_BTN = 'flex-shrink-0 p-1.5 rounded-lg text-gray-400 transition-colors disabled:opacity-30';
+
+// Types with an edit form. Legacy 'activity' entries have no form, so they
+// can only be deleted.
+export const EDITABLE_TYPES = ['meal', 'exercise', 'sleep', 'measurements'];
 
 // ── Entry row (view existing entries) ─────────────────────────────────────────
 const ENTRY_TYPE_COLOR = {
@@ -42,8 +50,10 @@ function CoachFeedbackSection({ entryId }) {
 }
 
 // ── Entry card (used in View Entries screen) ───────────────────────────────────
-export default function EntryCard({ entry, weightUnit: wUnit, onDelete }) {
+export default function EntryCard({ entry, weightUnit: wUnit, onDelete, onEdit }) {
   const [deleting, setDeleting] = useState(false);
+  const aiSettings = useConvexSettings();
+  const isMeal = entry.type === 'meal';
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -160,20 +170,47 @@ export default function EntryCard({ entry, weightUnit: wUnit, onDelete }) {
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic">"{entry.notes}"</p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={deleting}
-          title="Delete entry"
-          className="opacity-0 group-hover:opacity-100 flex-shrink-0 p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all disabled:opacity-30"
-        >
-          {deleting
-            ? <div className="w-3.5 h-3.5 rounded-full border-2 border-red-400 border-t-transparent animate-spin" />
-            : <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <div className="flex items-center gap-0.5 flex-shrink-0 -mr-1.5 -mt-0.5">
+          {isMeal && (
+            <button
+              type="button"
+              onClick={() => openAINutritionLookup(aiSettings, entry)}
+              title="Get AI nutrition info"
+              aria-label="Get AI nutrition info"
+              className={`${ACTION_BTN} hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20`}
+            >
+              <AIIcon />
+            </button>
+          )}
+          {onEdit && EDITABLE_TYPES.includes(entry.type) && (
+            <button
+              type="button"
+              onClick={() => onEdit(entry)}
+              title="Edit entry"
+              aria-label="Edit entry"
+              className={`${ACTION_BTN} hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-          }
-        </button>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Delete entry"
+            aria-label="Delete entry"
+            className={`${ACTION_BTN} hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20`}
+          >
+            {deleting
+              ? <div className="w-3.5 h-3.5 rounded-full border-2 border-red-400 border-t-transparent animate-spin" />
+              : <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            }
+          </button>
+        </div>
       </div>
       <CoachFeedbackSection entryId={entry._id} />
     </div>

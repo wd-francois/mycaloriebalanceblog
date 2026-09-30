@@ -332,7 +332,10 @@ export default function ProHelp({ onBack }) {
             Go to Settings → Account → Account role and toggle to Coach. The navigation will update immediately to show the Clients and Programs tabs.
           </Q>
           <Q q="Can I delete an entry I logged by mistake?">
-            Yes. Open the day, tap "View Entries", then hover (or long-press on mobile) the entry to reveal the × delete button.
+            Yes. Open the day, tap "View Entries", then tap the × button on the entry.
+          </Q>
+          <Q q="Can I edit an entry after saving it?">
+            Yes. Open the day, tap "View Entries", then tap the pencil button on the entry to change any of its details. This works for meals, exercises, sleep, and measurements.
           </Q>
           <Q q="What does the AI button do on the meal form?">
             It opens your configured AI assistant (ChatGPT, Claude, etc.) with a pre-written prompt asking for the nutritional breakdown of the food you entered. Paste the result back into the form.

@@ -2,22 +2,36 @@ import { useState } from 'react';
 import AutocompleteInput from '../../AutocompleteInput';
 import TimePicker from '../../TimePicker';
 import { getCurrentTimeParts } from '../../../lib/dateUtils';
+import { useConvexSettings } from '../../../contexts/ConvexSettingsContext';
 import { LABEL, INPUT } from './styles';
 import FormButtons from './FormButtons';
+import { openAINutritionLookup, AIIcon } from './aiLookup';
+
+const str = (v) => (v == null ? '' : String(v));
 
 // ── Meal Form ──────────────────────────────────────────────────────────────────
-export default function MealForm({ dateStr, onSave, onCancel }) {
-  const [name, setName]       = useState('');
-  const [amount, setAmount]   = useState('');
-  const [meal, setMeal]       = useState(1);
-  const [cal, setCal]         = useState('');
-  const [protein, setProtein] = useState('');
-  const [carbs, setCarbs]     = useState('');
-  const [fat, setFat]         = useState('');
-  const [fibre, setFibre]     = useState('');
-  const [other, setOther]     = useState('');
-  const [notes, setNotes]     = useState('');
-  const [time, setTime]       = useState(() => getCurrentTimeParts());
+// `initial` is an existing meal entry when editing; omitted when adding.
+export default function MealForm({ dateStr, onSave, onCancel, initial, submitLabel = 'Add Meal Entry' }) {
+  const [name, setName]       = useState(str(initial?.name));
+  const [amount, setAmount]   = useState(str(initial?.amount));
+  const [meal, setMeal]       = useState(initial?.mealNumber ?? 1);
+  const [cal, setCal]         = useState(str(initial?.calories));
+  const [protein, setProtein] = useState(str(initial?.protein));
+  const [carbs, setCarbs]     = useState(str(initial?.carbs));
+  const [fat, setFat]         = useState(str(initial?.fat));
+  const [fibre, setFibre]     = useState(str(initial?.fibre));
+  const [other, setOther]     = useState(str(initial?.other));
+  const [notes, setNotes]     = useState(str(initial?.notes));
+  const [time, setTime]       = useState(() => initial?.time ?? getCurrentTimeParts());
+  const [nameError, setNameError] = useState(false);
+  const aiSettings = useConvexSettings();
+
+  const handleAIClick = () => {
+    if (!name.trim()) { setNameError(true); return; }
+    openAINutritionLookup(aiSettings, {
+      name: name.trim(), amount, calories: cal, protein, carbs, fat, fibre, other,
+    });
+  };
 
   const MEAL_LABELS = ['Breakfast', 'Snack', 'Lunch', 'Snack', 'Dinner', 'Snack'];
 
@@ -35,7 +49,7 @@ export default function MealForm({ dateStr, onSave, onCancel }) {
 
   const submit = (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) { setNameError(true); return; }
     onSave({
       type: 'meal', date: dateStr, time,
       name:      name.trim(),
@@ -59,15 +73,31 @@ export default function MealForm({ dateStr, onSave, onCancel }) {
       </div>
 
       <div>
-        <label className={LABEL}>Meal Name</label>
+        <div className="flex items-center justify-between">
+          <label className={LABEL}>Meal Name</label>
+          <button
+            type="button"
+            onClick={handleAIClick}
+            title="Get nutrition info from your AI assistant"
+            className="mb-1 inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+          >
+            <AIIcon className="w-3.5 h-3.5" />
+            Ask AI
+          </button>
+        </div>
         <AutocompleteInput
           type="food"
           value={name}
-          onChange={setName}
+          onChange={(v) => { setName(v); if (nameError) setNameError(false); }}
           onSelect={handleAutocompleteSelect}
           placeholder="e.g. Oatmeal, Chicken salad…"
           autoFocus
         />
+        {nameError && (
+          <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">
+            Please enter a meal name.
+          </p>
+        )}
       </div>
 
       <div>
@@ -118,7 +148,7 @@ export default function MealForm({ dateStr, onSave, onCancel }) {
         <textarea rows={2} className={INPUT + ' resize-none'} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional…" />
       </div>
 
-      <FormButtons onCancel={onCancel} submitLabel="Add Meal Entry" />
+      <FormButtons onCancel={onCancel} submitLabel={submitLabel} />
     </form>
   );
 }

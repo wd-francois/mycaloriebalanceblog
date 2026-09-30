@@ -93,12 +93,14 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
             </svg>
           </a>
         ))}
-        <button type="button" onClick={e => { e.stopPropagation(); onRemove(); }}
-          className="p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
+        {onRemove && (
+          <button type="button" onClick={e => { e.stopPropagation(); onRemove(); }}
+            className="p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
         <svg className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${ex.expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
@@ -255,10 +257,29 @@ function CoachProgramPicker({ onSelect, onClose }) {
   );
 }
 
+// Turns a saved exercise entry back into the card shape the form edits.
+function exerciseFromEntry(entry) {
+  let sets = [];
+  try { sets = JSON.parse(entry.exercisesData ?? '[]'); } catch {}
+  const [first = {}, ...rest] = sets;
+  return {
+    ...emptyExercise(),
+    name: entry.name ?? '',
+    load: first.load ?? '',
+    reps: first.reps ?? '',
+    extraSets: rest.map(s => ({ load: s.load ?? '', reps: s.reps ?? '' })),
+    notes: entry.notes ?? '',
+  };
+}
+
 // ── Exercise Form ──────────────────────────────────────────────────────────────
-export default function ExerciseLogForm({ dateStr, onSave, onCancel }) {
-  const [time]                      = useState(() => getCurrentTimeParts());
-  const [exercises, setExercises]   = useState([emptyExercise()]);
+// `initial` is an existing exercise entry when editing. Each saved exercise is
+// its own entry, so edit mode shows just that one card and saves a single
+// entry instead of an array.
+export default function ExerciseLogForm({ dateStr, onSave, onCancel, initial, submitLabel = 'Save to entry' }) {
+  const isEditing = !!initial;
+  const [time]                      = useState(() => initial?.time ?? getCurrentTimeParts());
+  const [exercises, setExercises]   = useState(() => [initial ? exerciseFromEntry(initial) : emptyExercise()]);
   const [showPicker, setShowPicker] = useState(false);
 
   const updateEx = (i, updated) =>
@@ -290,14 +311,14 @@ export default function ExerciseLogForm({ dateStr, onSave, onCancel }) {
       ]),
       notes: e.notes?.trim() || undefined,
     }));
-    onSave(entries);
+    onSave(isEditing ? entries[0] : entries);
   };
 
   return (
     <>
       {showPicker && <CoachProgramPicker onSelect={loadProgram} onClose={() => setShowPicker(false)} />}
 
-      <div className="flex justify-end mb-3">
+      {!isEditing && <div className="flex justify-end mb-3">
         <button type="button" onClick={() => setShowPicker(true)}
           className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -305,7 +326,7 @@ export default function ExerciseLogForm({ dateStr, onSave, onCancel }) {
           </svg>
           Load coach program
         </button>
-      </div>
+      </div>}
 
       <div className="flex flex-col gap-2.5">
         {exercises.map((ex, i) => (
@@ -314,21 +335,25 @@ export default function ExerciseLogForm({ dateStr, onSave, onCancel }) {
             ex={ex}
             index={i}
             onChange={updated => updateEx(i, updated)}
-            onRemove={() => removeEx(i)}
+            // Removing the only card while editing would leave nothing to save;
+            // deleting the entry is the card's × button in View Entries instead.
+            onRemove={isEditing ? undefined : () => removeEx(i)}
           />
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mt-3">
-        <button type="button" onClick={addEx}
-          className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-sm font-semibold">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-          Add Exercise
-        </button>
+      <div className={`grid gap-3 mt-3 ${isEditing ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        {!isEditing && (
+          <button type="button" onClick={addEx}
+            className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-sm font-semibold">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+            Add Exercise
+          </button>
+        )}
         <button type="button" onClick={handleSave}
           disabled={!exercises.some(e => e.name.trim())}
           className="py-3 rounded-xl bg-gray-900 dark:bg-gray-700 text-white text-sm font-bold hover:bg-gray-800 dark:hover:bg-gray-600 disabled:opacity-40 transition-all">
-          Save to entry
+          {submitLabel}
         </button>
       </div>
 

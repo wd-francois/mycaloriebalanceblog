@@ -32,7 +32,9 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   const [activeType, setActiveType] = useState(null);
   const [photoFile, setPhotoFile]   = useState(null);
   const [savingPhoto, setSavingPhoto] = useState(false);
+  const [editingId, setEditingId]   = useState(null);
   const addEntry          = useMutation(api.entries.add);
+  const updateEntry       = useMutation(api.entries.update);
   const deleteEntry       = useMutation(api.entries.remove);
   const generateUploadUrl = useMutation(api.photos.generateUploadUrl);
   const savePhoto         = useMutation(api.photos.save);
@@ -87,10 +89,34 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
 
   const handleDelete = (id) => deleteEntry({ id });
 
+  // The forms hand back the same shape they use for `add`; `update` takes only
+  // the editable fields plus the entry id.
+  const handleUpdate = async ({ type, date, ...fields }) => {
+    await updateEntry({ id: editingId, ...fields });
+    setEditingId(null);
+  };
+
   const renderForm = () => {
     if (!activeType) return null;
     const props = { dateStr, onSave: handleSave, onCancel: () => setActiveType(null) };
     switch (activeType) {
+      case 'meal':         return <MealForm         {...props} />;
+      case 'exercise':     return <ExerciseLogForm  {...props} />;
+      case 'sleep':        return <SleepForm        {...props} />;
+      case 'measurements': return <MeasurementsForm {...props} weightUnit={settings?.weightUnit ?? 'kg'} />;
+      default:             return null;
+    }
+  };
+
+  const renderEditForm = (entry) => {
+    const props = {
+      dateStr,
+      initial: entry,
+      submitLabel: 'Save Changes',
+      onSave: handleUpdate,
+      onCancel: () => setEditingId(null),
+    };
+    switch (entry.type) {
       case 'meal':         return <MealForm         {...props} />;
       case 'exercise':     return <ExerciseLogForm  {...props} />;
       case 'sleep':        return <SleepForm        {...props} />;
@@ -191,7 +217,22 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
             ) : (
               <div className="flex flex-col gap-2">
                 {entries.map(entry => (
-                  <EntryCard key={entry._id} entry={entry} weightUnit={settings?.weightUnit ?? 'kg'} onDelete={handleDelete} />
+                  entry._id === editingId ? (
+                    <div key={entry._id} className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl p-4 shadow-sm border border-blue-200 dark:border-blue-800">
+                      <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4">
+                        {TYPE_BTNS.find(t => t.id === entry.type)?.emoji} Edit {entry.type === 'measurements' ? 'Measurements' : TYPE_BTNS.find(t => t.id === entry.type)?.label}
+                      </h3>
+                      {renderEditForm(entry)}
+                    </div>
+                  ) : (
+                    <EntryCard
+                      key={entry._id}
+                      entry={entry}
+                      weightUnit={settings?.weightUnit ?? 'kg'}
+                      onDelete={handleDelete}
+                      onEdit={(e) => setEditingId(e._id)}
+                    />
+                  )
                 ))}
               </div>
             )}

@@ -3,6 +3,19 @@ import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { notifyOnce } from "./lib";
 
+// Optional fields a user can blank out when editing an entry, per type.
+const CLEARABLE_FIELDS: Record<string, readonly string[]> = {
+  meal: ["amount", "calories", "protein", "carbs", "fat", "fibre", "other", "notes"],
+  exercise: ["notes"],
+  sleep: ["notes"],
+  measurements: [
+    "neck", "shoulders", "chest", "waist", "hips", "thigh", "arm", "calf",
+    "chestSkinfold", "abdominalSkinfold", "thighSkinfold",
+    "tricepSkinfold", "subscapularSkinfold", "suprailiacSkinfold",
+    "notes",
+  ],
+};
+
 export const list = query({
   args: {
     date: v.optional(v.string()),
@@ -137,23 +150,33 @@ export const update = mutation({
     id: v.id("entries"),
     name: v.optional(v.string()),
     notes: v.optional(v.string()),
+    time: v.optional(
+      v.object({ hour: v.number(), minute: v.number(), period: v.string() })
+    ),
     // Meal
     calories: v.optional(v.number()),
     protein: v.optional(v.number()),
     carbs: v.optional(v.number()),
     fat: v.optional(v.number()),
+    fibre: v.optional(v.number()),
+    other: v.optional(v.string()),
+    amount: v.optional(v.string()),
+    mealNumber: v.optional(v.number()),
     // Exercise
     durationMinutes: v.optional(v.string()),
     distance: v.optional(v.string()),
     steps: v.optional(v.string()),
     exercisesData: v.optional(v.string()),
     // Sleep
+    sleepStart: v.optional(v.string()),
+    sleepEnd: v.optional(v.string()),
     sleepDuration: v.optional(v.number()),
     sleepQuality: v.optional(v.string()),
     bedtime: v.optional(v.object({ hour: v.number(), minute: v.number(), period: v.string() })),
     waketime: v.optional(v.object({ hour: v.number(), minute: v.number(), period: v.string() })),
     // Measurements
     weight: v.optional(v.number()),
+    weightUnit: v.optional(v.string()),
     neck: v.optional(v.number()),
     shoulders: v.optional(v.number()),
     chest: v.optional(v.number()),
@@ -176,6 +199,13 @@ export const update = mutation({
     const { id, ...patch } = args;
     const entry = await ctx.db.get(id);
     if (!entry || entry.userId !== userId) throw new Error("Not authorized");
+
+    // The edit forms always send every field that has a value, so an optional
+    // field missing from the args was cleared by the user — unset it instead
+    // of silently keeping the old value.
+    for (const field of CLEARABLE_FIELDS[entry.type] ?? []) {
+      if (!(field in patch)) (patch as Record<string, unknown>)[field] = undefined;
+    }
 
     await ctx.db.patch(id, patch);
   },
