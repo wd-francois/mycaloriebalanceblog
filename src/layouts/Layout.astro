@@ -107,11 +107,13 @@ const {
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> {/* Added apple-touch-icon */}
     
     <!-- PWA Meta Tags -->
-    <link rel="manifest" href="/manifest.json" />
+    <!-- Pro pages get their own manifest so "Add to Home Screen" from Pro
+         creates a separate app that always opens /pro/, not the free app. -->
+    <link rel="manifest" href={Astro.url.pathname.startsWith('/pro') ? '/pro-manifest.json' : '/manifest.json'} />
     <meta name="theme-color" content="#3b82f6" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="My Calorie Balance" />
+    <meta name="apple-mobile-web-app-title" content={Astro.url.pathname.startsWith('/pro') ? 'MCB Pro' : 'My Calorie Balance'} />
    
     <meta name="generator" content={Astro.generator} />
     

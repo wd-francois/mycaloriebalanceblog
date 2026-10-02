@@ -62,6 +62,9 @@ export const getClients = query({
           email,
           name: user?.name ?? null,
           lastActiveDate: lastEntry?.date ?? null,
+          // When the client last actually logged something — unlike
+          // lastActiveDate, not fooled by backfilling an older day.
+          lastLoggedAt: lastEntry?._creationTime ?? null,
         };
       }),
     );

@@ -249,16 +249,19 @@ function ProNavInner() {
     );
   }
 
-  // Not signed in — show Upgrade button
+  // Not signed in — show Upgrade button. On the free app's pages it says
+  // "Upgrade to Pro" so it's clear you're not in Pro yet; on /pro/ itself
+  // (the sign-in screen) plain "Pro" is enough.
+  const onPro = isOnPro();
   return (
     <a
       data-pro-nav="true"
       href="/pro/"
-      className="inline-flex items-center gap-1 flex-shrink-0 px-2.5 py-1 text-[11px] font-bold transition-all duration-200 rounded-lg group bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:from-blue-700 hover:to-violet-700 hover:shadow-md"
-      aria-label="Go to Pro"
+      className="inline-flex items-center gap-1 flex-shrink-0 whitespace-nowrap px-2.5 py-1 text-[11px] font-bold transition-all duration-200 rounded-lg group bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:from-blue-700 hover:to-violet-700 hover:shadow-md"
+      aria-label={onPro ? 'Go to Pro' : 'Upgrade to Pro'}
     >
       <StarIcon className="w-3 h-3 transition-all duration-200 group-hover:scale-110" />
-      <span>Pro</span>
+      <span>{onPro ? 'Pro' : 'Upgrade to Pro'}</span>
     </a>
   );
 }

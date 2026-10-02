@@ -6,6 +6,7 @@ import Calendar from '../Calendar';
 import ProDayModal from './ProDayModal';
 import { useIsCoach } from './useProRole';
 import ProErrorBoundary from './ProErrorBoundary';
+import FreeAppImport from './FreeAppImport';
 
 // Isolated so a query failure can't crash the home screen
 function PendingInviteModal() {
@@ -216,6 +217,10 @@ export default function ProHome({ onNavigate, calorieGoal }) {
 
         <ProErrorBoundary>
           <PendingInviteModal />
+        </ProErrorBoundary>
+
+        <ProErrorBoundary>
+          <FreeAppImport />
         </ProErrorBoundary>
 
         {/* Calorie Goal Card */}

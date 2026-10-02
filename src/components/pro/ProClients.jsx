@@ -15,6 +15,22 @@ function relativeDate(dateStr) {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+// A client who hasn't logged anything for this many days gets flagged, so a
+// coach notices quickly when entries stop arriving (e.g. a client logging in
+// the free app by mistake, where nothing reaches the coach).
+const QUIET_DAYS = 3;
+
+function daysSinceLogged(client) {
+  if (client.lastLoggedAt) return Math.floor((Date.now() - client.lastLoggedAt) / 86400000);
+  if (client.lastActiveDate) return Math.floor((Date.now() - new Date(client.lastActiveDate + 'T00:00:00')) / 86400000);
+  return null; // never logged
+}
+
+const needsAttention = (client) => {
+  const days = daysSinceLogged(client);
+  return days === null || days >= QUIET_DAYS;
+};
+
 export default function ProClients({ onSelectClient }) {
   const clients        = useQuery(api.coaches.getClients);
   const sentInvites    = useQuery(api.coaches.getSentInvites) ?? [];
@@ -54,6 +70,10 @@ export default function ProClients({ onSelectClient }) {
       </div>
     );
   }
+
+  // Quiet clients first (stable sort keeps the existing order within each group).
+  const sortedClients = [...clients].sort((a, b) => needsAttention(b) - needsAttention(a));
+  const quietCount = clients.filter(needsAttention).length;
 
   return (
     <div className="w-full">
@@ -193,10 +213,19 @@ export default function ProClients({ onSelectClient }) {
           </div>
         ) : (
           <div className="flex flex-col gap-2 lg:gap-3">
-            {clients.map((client) => {
+            {quietCount > 0 && (
+              <p className="px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-xs lg:text-sm font-medium text-amber-700 dark:text-amber-400">
+                ⚠ {quietCount} client{quietCount !== 1 ? 's haven’t' : ' hasn’t'} logged anything in {QUIET_DAYS}+ days
+              </p>
+            )}
+            {sortedClients.map((client) => {
               const initial     = (client.name || client.email || '?')[0].toUpperCase();
               const displayName = client.name || client.email || 'Unknown client';
-              const lastSeen    = relativeDate(client.lastActiveDate);
+              const days        = daysSinceLogged(client);
+              const quiet       = needsAttention(client);
+              const lastSeen    = client.lastLoggedAt
+                ? relativeDate(new Date(client.lastLoggedAt).toLocaleDateString('en-CA'))
+                : relativeDate(client.lastActiveDate);
               const clientNotifs = unreadCounts.byClient[client.id] ?? { entries: 0, messages: 0 };
 
               return (
@@ -219,7 +248,11 @@ export default function ProClients({ onSelectClient }) {
                       {client.name && (
                         <p className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 truncate">{client.email}</p>
                       )}
-                      {lastSeen && (
+                      {quiet ? (
+                        <span className="text-[10px] lg:text-xs font-semibold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md whitespace-nowrap bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                          ⚠ {days === null ? 'Never logged' : `No entries in ${days}d`}
+                        </span>
+                      ) : lastSeen && (
                         <span className={`text-[10px] lg:text-xs font-semibold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md ${
                           lastSeen === 'Today'
                             ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'

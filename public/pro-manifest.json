@@ -1,0 +1,32 @@
+{
+  "name": "My Calorie Balance Pro",
+  "short_name": "MCB Pro",
+  "description": "Track your nutrition and fitness with My Calorie Balance Pro — synced to your account and your coach.",
+  "id": "/pro/",
+  "start_url": "/pro/",
+  "scope": "/pro/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["health", "fitness", "lifestyle"],
+  "lang": "en"
+}
