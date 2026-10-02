@@ -575,6 +575,19 @@ export default function ProPrograms() {
     }
   };
 
+  // Opens the editor pre-filled with a copy of the program. It's saved through
+  // the "new" path, so the original is untouched and assignments aren't copied.
+  const handleDuplicate = (program) => {
+    setEditTarget({
+      name: `${program.name} (copy)`,
+      description: program.description,
+      exercises: program.exercises,
+      assignedTo: [],
+    });
+    setView('new');
+    setSaveError('');
+  };
+
   const handleDelete = async (programId) => {
     setDeleting(programId);
     try { await removeProg({ programId }); }
@@ -610,7 +623,7 @@ export default function ProPrograms() {
               </svg>
             </button>
             <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
-              {view === 'new' ? 'New Program' : 'Edit Program'}
+              {view === 'edit' ? 'Edit Program' : editTarget ? 'Copy Program' : 'New Program'}
             </h1>
           </div>
           {saveError && (
@@ -748,6 +761,14 @@ export default function ProPrograms() {
                     className="px-2.5 py-2 lg:px-3 lg:py-2.5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleDuplicate(program)}
+                    title="Duplicate program"
+                    className="px-2.5 py-2 lg:px-3 lg:py-2.5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                   </button>
                   <button
