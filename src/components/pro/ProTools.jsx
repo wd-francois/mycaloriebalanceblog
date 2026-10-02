@@ -1,4 +1,27 @@
 import { useState, useMemo } from 'react';
+import CalorieCalculatorTool from './tools/CalorieCalculatorTool';
+import KilojouleConverterTool from './tools/KilojouleConverterTool';
+import PortionGuideTool from './tools/PortionGuideTool';
+import ProteinCalculatorTool from './tools/ProteinCalculatorTool';
+
+// Built-in tools render inside Pro (items below with `tool:` instead of
+// `href:`), so Pro users never get sent to the Original app's tool pages.
+const TOOL_COMPONENTS = {
+  calorie:   CalorieCalculatorTool,
+  kilojoule: KilojouleConverterTool,
+  portion:   PortionGuideTool,
+  protein:   ProteinCalculatorTool,
+};
+
+// Lets a link open straight to one tool, e.g. /pro/?tab=tools&tool=calorie
+// (used when a signed-in user is redirected from an Original tool page).
+// Read during the first render — ProApp strips the query string in an effect.
+function initialToolFromURL() {
+  try {
+    const requested = new URLSearchParams(window.location.search).get('tool');
+    return requested in TOOL_COMPONENTS ? requested : null;
+  } catch { return null; }
+}
 
 const CARD = 'group block p-4 lg:p-5 bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200';
 const GRID = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4';
@@ -16,7 +39,7 @@ const sections = [
     subtitle: 'Essential calculators for tracking your nutrition',
     items: [
       {
-        href: '/calorie-calculator/',
+        tool: 'calorie',
         title: 'Calorie Calculator',
         description: 'Calculate your BMR and TDEE using the Mifflin-St Jeor Equation',
         tags: 'calculator bmr tdee calories mifflin-st-jeor',
@@ -26,7 +49,7 @@ const sections = [
         icon: <CalcIcon color="text-blue-600 dark:text-blue-400" />,
       },
       {
-        href: '/kilojoule-converter/',
+        tool: 'kilojoule',
         title: 'Kilojoule Converter',
         description: 'Convert between kilojoules (kJ) and kilocalories (kcal)',
         tags: 'converter kilojoules calories kj kcal',
@@ -40,7 +63,7 @@ const sections = [
         ),
       },
       {
-        href: '/portion-guide/',
+        tool: 'portion',
         title: 'Hand Portion Guide',
         description: 'Use your hand as a measuring tool for portion control',
         tags: 'guide portion control hand measurement nutrition',
@@ -54,7 +77,7 @@ const sections = [
         ),
       },
       {
-        href: '/protein-calculator/',
+        tool: 'protein',
         title: 'Protein Calculator',
         description: 'Calculate protein per calorie ratio for any food',
         tags: 'calculator protein calories ratio macros',
@@ -243,6 +266,7 @@ const ExternalIcon = () => (
 
 export default function ProTools() {
   const [search, setSearch] = useState('');
+  const [openTool, setOpenTool] = useState(initialToolFromURL);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -258,6 +282,31 @@ export default function ProTools() {
   }, [search]);
 
   const totalResults = filtered.reduce((s, sec) => s + sec.items.length, 0);
+
+  // ── Built-in tool view ──────────────────────────────────────────────────────
+  if (openTool) {
+    const Tool = TOOL_COMPONENTS[openTool];
+    const item = sections.flatMap(sec => sec.items).find(i => i.tool === openTool);
+    return (
+      <div className="w-full">
+        <div className="max-w-2xl lg:max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 flex flex-col gap-4 lg:gap-5">
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => setOpenTool(null)} aria-label="Back to Tools"
+              className="p-2 lg:p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <svg className="w-5 h-5 lg:w-6 lg:h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{item.title}</h1>
+              <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">{item.description}</p>
+            </div>
+          </div>
+          <Tool />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -293,14 +342,8 @@ export default function ProTools() {
             <h2 className="text-sm lg:text-base font-bold text-gray-900 dark:text-white mb-0.5">{sec.title}</h2>
             <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mb-3 lg:mb-4">{sec.subtitle}</p>
             <div className={GRID}>
-              {sec.items.map(item => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  target={item.external ? '_blank' : undefined}
-                  rel={item.external ? 'noopener noreferrer' : undefined}
-                  className={`${CARD} ${item.hoverBorder}`}
-                >
+              {sec.items.map(item => {
+                const body = (
                   <div className="flex items-start gap-3 lg:gap-4">
                     <span className="shrink-0 mt-0.5">{item.icon}</span>
                     <div>
@@ -310,8 +353,28 @@ export default function ProTools() {
                       <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1">{item.description}</p>
                     </div>
                   </div>
-                </a>
-              ))}
+                );
+                return item.tool ? (
+                  <button
+                    key={item.tool}
+                    type="button"
+                    onClick={() => { setOpenTool(item.tool); window.scrollTo(0, 0); }}
+                    className={`${CARD} ${item.hoverBorder} text-left w-full`}
+                  >
+                    {body}
+                  </button>
+                ) : (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${CARD} ${item.hoverBorder}`}
+                  >
+                    {body}
+                  </a>
+                );
+              })}
             </div>
           </div>
         ))}

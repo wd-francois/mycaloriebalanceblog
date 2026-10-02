@@ -51,6 +51,7 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   const handleTypeSelect = (id) => {
     setActiveType(id);
     setPhotoFile(null);
+    setSaveError('');
   };
 
   const uploadPhoto = async () => {
@@ -66,14 +67,26 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
     return await savePhoto({ storageId, date: dateStr });
   };
 
+  // The forms call onSave without awaiting it, so a failed save has to be
+  // caught and shown here — otherwise it fails silently and the user thinks
+  // the entry was logged.
+  const [saveError, setSaveError] = useState('');
+  const saveFailed = (err) =>
+    setSaveError(`Couldn't save this entry — please check your connection and try again. (${err?.message || 'Unknown error'})`);
+
   const handleSave = async (dataOrArray) => {
-    const photoId = await uploadPhoto();
-    const items = Array.isArray(dataOrArray) ? dataOrArray : [dataOrArray];
-    for (const item of items) {
-      await addEntry({ ...item, photoId });
+    setSaveError('');
+    try {
+      const photoId = await uploadPhoto();
+      const items = Array.isArray(dataOrArray) ? dataOrArray : [dataOrArray];
+      for (const item of items) {
+        await addEntry({ ...item, photoId });
+      }
+      setPhotoFile(null);
+      setActiveType(null);
+    } catch (err) {
+      saveFailed(err);
     }
-    setPhotoFile(null);
-    setActiveType(null);
   };
 
   const handleSavePhotoOnly = async () => {
@@ -92,9 +105,20 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   // The forms hand back the same shape they use for `add`; `update` takes only
   // the editable fields plus the entry id.
   const handleUpdate = async ({ type, date, ...fields }) => {
-    await updateEntry({ id: editingId, ...fields });
-    setEditingId(null);
+    setSaveError('');
+    try {
+      await updateEntry({ id: editingId, ...fields });
+      setEditingId(null);
+    } catch (err) {
+      saveFailed(err);
+    }
   };
+
+  const errorBanner = saveError && (
+    <p role="alert" className="mb-3 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm font-medium text-red-600 dark:text-red-400">
+      {saveError}
+    </p>
+  );
 
   const renderForm = () => {
     if (!activeType) return null;
@@ -166,6 +190,7 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
         {/* Entries list */}
         <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="max-w-lg mx-auto px-4 py-4">
+            {errorBanner}
             {dayPhotos.length > 0 && (
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
@@ -382,6 +407,7 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
                     </svg>
                   </button>
                 </div>
+                {errorBanner}
                 {renderForm()}
               </div>
             )}

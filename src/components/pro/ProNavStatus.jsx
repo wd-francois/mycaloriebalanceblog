@@ -32,6 +32,46 @@ const StarIcon = ({ className }) => (
 
 const WAS_AUTH_KEY = 'mcb_pro_was_authenticated';
 
+// Original-app pages a signed-in Pro user gets sent away from, mapped to the
+// matching place in Pro. The Original app stores entries only on the device,
+// and this top bar shows the Pro badge/avatar on every page, so clients who
+// wandered into it believed they were logging in Pro while nothing reached
+// their coach. Pages not listed here (e.g. /export, so old local entries can
+// still be downloaded, and /features) are left alone.
+const PRO_REDIRECTS = {
+  '/':                    '/pro/',
+  '/add-meal/':           '/pro/',
+  '/add-sleep/':          '/pro/',
+  '/add-measurement/':    '/pro/',
+  '/entries/':            '/pro/',
+  '/daily-calories/':     '/pro/',
+  '/daily-sleep/':        '/pro/',
+  '/daily-weight/':       '/pro/',
+  '/library/':            '/pro/',
+  '/exercise-library/':   '/pro/',
+  '/insights/':           '/pro/?tab=insights',
+  '/statistics/':         '/pro/?tab=insights',
+  '/gallery/':            '/pro/?tab=photos',
+  '/settings/':           '/pro/?tab=settings',
+  '/help/':               '/pro/?tab=help',
+  '/help-page/':          '/pro/?tab=help',
+  '/tools/':              '/pro/?tab=tools',
+  '/helpful-links/':      '/pro/?tab=tools',
+  '/calorie-calculator/': '/pro/?tab=tools&tool=calorie',
+  '/protein-calculator/': '/pro/?tab=tools&tool=protein',
+  '/kilojoule-converter/':'/pro/?tab=tools&tool=kilojoule',
+  '/portion-guide/':      '/pro/?tab=tools&tool=portion',
+};
+
+function proRedirectTarget(pathname) {
+  const path = pathname.replace(/\/?$/, '/');
+  if (path.startsWith('/insights/')) return PRO_REDIRECTS['/insights/'];
+  return PRO_REDIRECTS[path] ?? null;
+}
+
+const isOnPro = () =>
+  typeof window !== 'undefined' && window.location.pathname.replace(/\/?$/, '/').startsWith('/pro/');
+
 function ProNavInner() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { signOut } = useAuthActions();
@@ -75,6 +115,14 @@ function ProNavInner() {
       if (isAuthenticated) localStorage.setItem(WAS_AUTH_KEY, '1');
       else localStorage.removeItem(WAS_AUTH_KEY);
     } catch {}
+  }, [isAuthenticated, isLoading]);
+
+  // Only on a server-confirmed sign-in — never on the optimistic wasAuthed
+  // cache — so a signed-out visitor is never bounced out of the Original app.
+  useEffect(() => {
+    if (isLoading || !isAuthenticated) return;
+    const target = proRedirectTarget(window.location.pathname);
+    if (target) window.location.replace(target);
   }, [isAuthenticated, isLoading]);
 
   const showAuthenticated = isAuthenticated || (isLoading && wasAuthed);
@@ -126,11 +174,19 @@ function ProNavInner() {
           );
         })()}
 
-        {/* ★ Pro badge — hidden on very small screens */}
-        <span className="hidden xs:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 text-white pointer-events-none select-none">
-          <StarIcon className="w-3 h-3" />
-          Pro
-        </span>
+        {/* ★ Pro badge — hidden on very small screens. Outside /pro/ it's an
+            "Open Pro" link instead, so a page that isn't Pro never looks like it. */}
+        {isOnPro() ? (
+          <span className="hidden xs:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 text-white pointer-events-none select-none">
+            <StarIcon className="w-3 h-3" />
+            Pro
+          </span>
+        ) : (
+          <a href="/pro/" className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:from-blue-700 hover:to-violet-700 transition-colors">
+            <StarIcon className="w-3 h-3" />
+            Open Pro
+          </a>
+        )}
 
         {/* Avatar button */}
         <button
