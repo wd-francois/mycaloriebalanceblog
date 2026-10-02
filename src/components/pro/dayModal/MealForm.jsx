@@ -50,8 +50,10 @@ export default function MealForm({ dateStr, onSave, onCancel, initial, submitLab
   const submit = (e) => {
     e.preventDefault();
     if (!name.trim()) { setNameError(true); return; }
+    // TimePicker adds a display-only `formatted` field the Convex validator rejects.
+    const { hour, minute, period } = time;
     onSave({
-      type: 'meal', date: dateStr, time,
+      type: 'meal', date: dateStr, time: { hour, minute, period },
       name:      name.trim(),
       amount:    amount    || undefined,
       mealNumber: meal,
