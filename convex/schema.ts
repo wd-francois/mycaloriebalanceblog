@@ -123,6 +123,8 @@ export default defineSchema({
     coachId: v.id("users"),
     name: v.string(),
     description: v.optional(v.string()),
+    // General, free-form information about the program as a whole
+    notes: v.optional(v.string()),
     // JSON array of { name, sets, reps, weight, notes }
     exercises: v.string(),
   }).index("by_coach", ["coachId"]),

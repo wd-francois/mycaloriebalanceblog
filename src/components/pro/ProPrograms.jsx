@@ -72,6 +72,9 @@ function exportProgram(program, exercises) {
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; padding: 32px; max-width: 720px; margin: 0 auto; }
         h1 { font-size: 22px; margin: 0 0 4px; }
         .desc { color: #6b7280; font-size: 14px; margin: 0 0 24px; }
+        .program-notes { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; margin: 0 0 24px; }
+        .program-notes h2 { font-size: 13px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 6px; }
+        .program-notes p { font-size: 14px; color: #374151; margin: 0; white-space: pre-wrap; }
         .exercise { margin-bottom: 24px; page-break-inside: avoid; }
         h3 { font-size: 15px; margin: 0 0 8px; }
         table { border-collapse: collapse; width: 100%; max-width: 320px; margin-bottom: 6px; }
@@ -87,6 +90,7 @@ function exportProgram(program, exercises) {
     <body>
       <h1>${escapeHtml(program.name)}</h1>
       ${program.description ? `<p class="desc">${escapeHtml(program.description)}</p>` : ''}
+      ${program.notes ? `<div class="program-notes"><h2>Program Notes</h2><p>${escapeHtml(program.notes)}</p></div>` : ''}
       ${exerciseHtml || '<p class="desc">No exercises yet.</p>'}
     </body>
     </html>
@@ -316,6 +320,7 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
 function ProgramEditor({ program, clients, onSave, onCancel }) {
   const [name, setName]         = useState(program?.name ?? '');
   const [description, setDesc]  = useState(program?.description ?? '');
+  const [notes, setNotes]       = useState(program?.notes ?? '');
   const [exercises, setExercises] = useState(() => {
     if (program?.exercises) {
       try { return JSON.parse(program.exercises).map(normaliseEx); } catch {}
@@ -347,6 +352,7 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
       await onSave({
         name: name.trim(),
         description: description.trim() || undefined,
+        notes: notes.trim() || undefined,
         exercises: JSON.stringify(exercises.filter(e => e.name.trim())),
         assignedTo: [...selectedClients],
       });
@@ -393,6 +399,11 @@ function ProgramEditor({ program, clients, onSave, onCancel }) {
             <label className={LABEL}>Description (optional)</label>
             <input className={INPUT} value={description} onChange={e => setDesc(e.target.value)}
               placeholder="e.g. Push-focused, 4×/week" />
+          </div>
+          <div>
+            <label className={LABEL}>Program notes (optional)</label>
+            <textarea rows={4} className={INPUT + ' resize-y'} value={notes} onChange={e => setNotes(e.target.value)}
+              placeholder="General information about the program — e.g. warm-up, rest periods, progression, schedule" />
           </div>
         </div>
 
@@ -545,21 +556,21 @@ export default function ProPrograms() {
     email: c.email,
   }));
 
-  const handleSave = async ({ name, description, exercises, assignedTo }) => {
+  const handleSave = async ({ name, description, notes, exercises, assignedTo }) => {
     setSaveError('');
     try {
       if (view === 'new') {
-        const programId = await createProg({ name, description, exercises });
+        const programId = await createProg({ name, description, notes, exercises });
         // Switch to "edit" pointing at the new program so a retry after a
         // partial assignment failure updates it instead of creating a duplicate.
         setView('edit');
-        setEditTarget({ _id: programId, name, description, exercises, assignedTo: [] });
+        setEditTarget({ _id: programId, name, description, notes, exercises, assignedTo: [] });
         await runAssignments(
           assignedTo.map(clientId => ({ clientId, type: 'assign' })),
           programId, assignProg, unassignProg, clients,
         );
       } else if (view === 'edit' && editTarget) {
-        await updateProg({ programId: editTarget._id, name, description, exercises });
+        await updateProg({ programId: editTarget._id, name, description, notes, exercises });
         // Diff assignments
         const prevIds = new Set((editTarget.assignedTo ?? []).map(c => c.id));
         const nextIds = new Set(assignedTo);
@@ -582,6 +593,7 @@ export default function ProPrograms() {
     setEditTarget({
       name: `${program.name} (copy)`,
       description: program.description,
+      notes: program.notes,
       exercises: program.exercises,
       assignedTo: [],
     });

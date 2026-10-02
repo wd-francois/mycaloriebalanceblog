@@ -57,6 +57,7 @@ export const create = mutation({
   args: {
     name: v.string(),
     description: v.optional(v.string()),
+    notes: v.optional(v.string()),
     exercises: v.string(),
   },
   handler: async (ctx, args) => {
@@ -65,6 +66,7 @@ export const create = mutation({
       coachId,
       name: args.name,
       description: args.description,
+      notes: args.notes,
       exercises: args.exercises,
     });
   },
@@ -75,6 +77,7 @@ export const update = mutation({
     programId: v.id("programs"),
     name: v.string(),
     description: v.optional(v.string()),
+    notes: v.optional(v.string()),
     exercises: v.string(),
   },
   handler: async (ctx, args) => {
@@ -84,6 +87,7 @@ export const update = mutation({
     await ctx.db.patch(args.programId, {
       name: args.name,
       description: args.description,
+      notes: args.notes,
       exercises: args.exercises,
     });
   },
