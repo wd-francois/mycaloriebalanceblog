@@ -12,6 +12,7 @@ export function openAINutritionLookup({ generateAIPrompt, getAIServiceUrl }, mea
     carbs:    meal.carbs,
     fats:     meal.fat,
     fibre:    meal.fibre,
+    sodium:   meal.sodium,
     other:    meal.other,
   });
   window.open(getAIServiceUrl(prompt), '_blank', 'noopener');

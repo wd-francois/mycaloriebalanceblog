@@ -30,7 +30,7 @@ export default function MealForm({ dateStr, onSave, onCancel, initial, submitLab
   const handleAIClick = () => {
     if (!name.trim()) { setNameError(true); return; }
     openAINutritionLookup(aiSettings, {
-      name: name.trim(), amount, calories: cal, protein, carbs, fat, fibre, other,
+      name: name.trim(), amount, calories: cal, protein, carbs, fat, fibre, sodium, other,
     });
   };
 

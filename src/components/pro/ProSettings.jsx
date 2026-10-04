@@ -160,6 +160,7 @@ export default function ProSettings({ user, convexSettings }) {
     .replace(/{carbs}/g,    'not specified')
     .replace(/{fats}/g,     'not specified')
     .replace(/{fibre}/g,    'not specified')
+    .replace(/{sodium}/g,   'not specified')
     .replace(/{other}/g,    'not specified');
 
   return (
@@ -377,7 +378,8 @@ export default function ProSettings({ user, convexSettings }) {
                     <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-[10px] lg:text-xs">{'{protein}'}</code>{' '}
                     <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-[10px] lg:text-xs">{'{carbs}'}</code>{' '}
                     <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-[10px] lg:text-xs">{'{fats}'}</code>{' '}
-                    <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-[10px] lg:text-xs">{'{fibre}'}</code>
+                    <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-[10px] lg:text-xs">{'{fibre}'}</code>{' '}
+                    <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-[10px] lg:text-xs">{'{sodium}'}</code>
                   </p>
                   <textarea
                     value={settings.aiPromptTemplate ?? ''}

@@ -33,13 +33,15 @@ Current nutritional values:
 - Carbs: {carbs}g
 - Fats: {fats}g
 - Fibre: {fibre}g
+- Sodium: {sodium}mg
 
 Please provide accurate nutritional information for this meal. Include:
 1. Calories per serving
 2. Protein content in grams
 3. Carbohydrates content in grams
 4. Fats content in grams
-5. Any additional nutritional insights
+5. Sodium content in milligrams
+6. Any additional nutritional insights
 
 Please format your response clearly so I can easily update my meal entry.`,
   aiCustomUrl: '',
@@ -47,6 +49,19 @@ Please format your response clearly so I can easily update my meal entry.`,
   aiRequestFormat: 'detailed',
   aiLanguage: 'english',
 };
+
+// Saved settings include the full prompt template, so templates saved before
+// sodium existed won't pick up the new default. Add the sodium line (and, if
+// the default request list is intact, the sodium request) to those.
+function addSodiumToTemplate(template) {
+  if (typeof template !== 'string' || template.includes('{sodium}')) return template;
+  return template
+    .replace(/(- Fibre: \{fibre\}g)/i, '$1\n- Sodium: {sodium}mg')
+    .replace(
+      /4\. Fats content in grams\n5\. Any additional nutritional insights/,
+      '4. Fats content in grams\n5. Sodium content in milligrams\n6. Any additional nutritional insights',
+    );
+}
 
 export const useConvexSettings = () => {
   const context = useContext(ConvexSettingsContext);
@@ -80,6 +95,7 @@ export const ConvexSettingsProvider = ({ children }) => {
       const saved = localStorage.getItem(LS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        if (parsed.aiPromptTemplate) parsed.aiPromptTemplate = addSodiumToTemplate(parsed.aiPromptTemplate);
         setSettings(prev => ({ ...prev, ...parsed }));
       }
     } catch {}
@@ -125,7 +141,7 @@ export const ConvexSettingsProvider = ({ children }) => {
   };
 
   const generateAIPrompt = (mealData) => {
-    const { name, amount, calories, protein, carbs, fats, fibre, other } = mealData;
+    const { name, amount, calories, protein, carbs, fats, fibre, sodium, other } = mealData;
     return settings.aiPromptTemplate
       .replace(/{mealName}/g, name    || 'Unknown Meal')
       .replace(/{amount}/g,   amount  || 'not specified')
@@ -134,6 +150,7 @@ export const ConvexSettingsProvider = ({ children }) => {
       .replace(/{carbs}/g,    carbs   || 'not specified')
       .replace(/{fats}/g,     fats    || 'not specified')
       .replace(/{fibre}/g,    fibre   || 'not specified')
+      .replace(/{sodium}/g,   sodium  || 'not specified')
       .replace(/{other}/g,    other   || 'not specified');
   };
 
