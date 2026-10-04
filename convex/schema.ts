@@ -26,6 +26,7 @@ export default defineSchema({
     carbs: v.optional(v.number()),
     fat: v.optional(v.number()),
     fibre: v.optional(v.number()),
+    sodium: v.optional(v.number()), // mg
     other: v.optional(v.string()),
     amount: v.optional(v.string()),
     mealNumber: v.optional(v.number()),

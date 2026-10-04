@@ -20,6 +20,7 @@ export default function MealForm({ dateStr, onSave, onCancel, initial, submitLab
   const [carbs, setCarbs]     = useState(str(initial?.carbs));
   const [fat, setFat]         = useState(str(initial?.fat));
   const [fibre, setFibre]     = useState(str(initial?.fibre));
+  const [sodium, setSodium]   = useState(str(initial?.sodium));
   const [other, setOther]     = useState(str(initial?.other));
   const [notes, setNotes]     = useState(str(initial?.notes));
   const [time, setTime]       = useState(() => initial?.time ?? getCurrentTimeParts());
@@ -62,6 +63,7 @@ export default function MealForm({ dateStr, onSave, onCancel, initial, submitLab
       carbs:     carbs   ? Number(carbs)   : undefined,
       fat:       fat     ? Number(fat)     : undefined,
       fibre:     fibre   ? Number(fibre)   : undefined,
+      sodium:    sodium  ? Number(sodium)  : undefined,
       other:     other.trim() || undefined,
       notes:     notes.trim() || undefined,
     });
@@ -126,6 +128,7 @@ export default function MealForm({ dateStr, onSave, onCancel, initial, submitLab
           ['Carbs (g)',   carbs,   setCarbs,   'number'],
           ['Fats (g)',    fat,     setFat,     'number'],
           ['Fibre (g)',   fibre,   setFibre,   'number'],
+          ['Sodium (mg)', sodium,  setSodium,  'number'],
         ].map(([lbl, val, set, type]) => (
           <div key={lbl}>
             <label className={LABEL}>{lbl}</label>
@@ -141,7 +144,7 @@ export default function MealForm({ dateStr, onSave, onCancel, initial, submitLab
           className={INPUT}
           value={other}
           onChange={e => setOther(e.target.value)}
-          placeholder="e.g. Sodium 200mg, Sugar 5g, Cholesterol 30mg…"
+          placeholder="e.g. Sugar 5g, Cholesterol 30mg…"
         />
       </div>
 

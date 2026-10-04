@@ -72,6 +72,7 @@ export default function EntryCard({ entry, weightUnit: wUnit, onDelete, onEdit }
       entry.carbs    != null && `🍞 ${entry.carbs}g carbs`,
       entry.fat      != null && `🥑 ${entry.fat}g fats`,
       entry.fibre    != null && `🌾 ${entry.fibre}g fibre`,
+      entry.sodium   != null && `🧂 ${entry.sodium}mg sodium`,
     ].filter(Boolean);
     body = (
       <div className="mt-1 flex flex-col gap-1">
