@@ -16,6 +16,16 @@ function getRange(days) {
   return { startDate: dateToStr(start), endDate: dateToStr(end) };
 }
 
+function fmtTime(t) {
+  return `${t.hour}:${String(t.minute).padStart(2,'0')} ${t.period}`;
+}
+
+// Minutes since midnight, for ordering a day's entries; untimed entries sort last.
+function timeToMinutes(t) {
+  if (!t) return Infinity;
+  return (t.hour % 12 + (t.period === 'PM' ? 12 : 0)) * 60 + t.minute;
+}
+
 const RANGES = [
   { label: '7d',   days: 7  },
   { label: '30d',  days: 30 },
@@ -108,8 +118,8 @@ function EntryMeta({ entry }) {
   } else if (entry.type === 'sleep') {
     if (entry.sleepDuration != null) items.push(`${entry.sleepDuration.toFixed(1)}h`);
     if (entry.sleepQuality)          items.push(entry.sleepQuality);
-    if (entry.bedtime)               items.push(`Bed ${entry.bedtime.hour}:${String(entry.bedtime.minute).padStart(2,'0')} ${entry.bedtime.period}`);
-    if (entry.waketime)              items.push(`Wake ${entry.waketime.hour}:${String(entry.waketime.minute).padStart(2,'0')} ${entry.waketime.period}`);
+    if (entry.bedtime)               items.push(`Bed ${fmtTime(entry.bedtime)}`);
+    if (entry.waketime)              items.push(`Wake ${fmtTime(entry.waketime)}`);
   } else if (entry.type === 'measurements') {
     if (entry.weight != null) items.push(`${entry.weight} ${entry.weightUnit ?? 'kg'}`);
     if (entry.waist  != null) items.push(`Waist ${entry.waist}cm`);
@@ -154,7 +164,12 @@ function EntryCard({ entry, comments, onAddComment, onDeleteComment }) {
           {TYPE_LABEL[entry.type] ?? entry.type}
         </span>
         <div className="flex-1 min-w-0">
-          {entry.name && <p className="text-sm lg:text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{entry.name}</p>}
+          {(entry.name || entry.time) && (
+            <div className="flex items-baseline gap-2">
+              {entry.name && <p className="text-sm lg:text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{entry.name}</p>}
+              {entry.time && <span className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 flex-shrink-0">{fmtTime(entry.time)}</span>}
+            </div>
+          )}
           <EntryMeta entry={entry} />
         </div>
         <button
@@ -387,6 +402,9 @@ export default function ProClientDetail({ client, onBack }) {
     for (const e of entries) {
       if (!map[e.date]) map[e.date] = [];
       map[e.date].push(e);
+    }
+    for (const day of Object.values(map)) {
+      day.sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
     }
     return map;
   }, [entries]);
