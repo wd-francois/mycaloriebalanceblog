@@ -153,25 +153,119 @@ function EntryMeta({ entry }) {
   );
 }
 
+const MEAL_LABELS = ['Breakfast', 'Snack', 'Lunch', 'Snack', 'Dinner', 'Snack'];
+
+const MEASUREMENT_FIELDS = [
+  ['neck', 'Neck', 'cm'], ['shoulders', 'Shoulders', 'cm'], ['chest', 'Chest', 'cm'],
+  ['waist', 'Waist', 'cm'], ['hips', 'Hips', 'cm'], ['thigh', 'Thigh', 'cm'],
+  ['arm', 'Arm', 'cm'], ['calf', 'Calf', 'cm'],
+  ['chestSkinfold', 'Chest skinfold', 'mm'], ['abdominalSkinfold', 'Abdominal skinfold', 'mm'],
+  ['thighSkinfold', 'Thigh skinfold', 'mm'], ['tricepSkinfold', 'Tricep skinfold', 'mm'],
+  ['subscapularSkinfold', 'Subscapular skinfold', 'mm'], ['suprailiacSkinfold', 'Suprailiac skinfold', 'mm'],
+];
+
+// Every recorded field of an entry as [label, value] pairs, for the expanded card.
+function entryDetails(entry) {
+  const rows = [];
+  const add = (label, value, unit = '') => {
+    if (value != null && value !== '') rows.push([label, `${value}${unit}`]);
+  };
+
+  if (entry.type === 'meal') {
+    add('Amount', entry.amount);
+    if (entry.mealNumber) add('Meal', `${entry.mealNumber}. ${MEAL_LABELS[entry.mealNumber - 1] ?? ''}`.trim());
+    add('Calories', entry.calories, ' kcal');
+    add('Protein', entry.protein, 'g');
+    add('Carbs', entry.carbs, 'g');
+    add('Fats', entry.fat, 'g');
+    add('Fibre', entry.fibre, 'g');
+    add('Sodium', entry.sodium, 'mg');
+    add('Other', entry.other);
+  } else if (entry.type === 'exercise') {
+    let sets = [];
+    try { sets = JSON.parse(entry.exercisesData ?? '[]'); } catch {}
+    if (!Array.isArray(sets)) sets = [];
+    sets.forEach((s, i) => {
+      const parts = [s.load, s.reps && `${s.reps} reps`].filter(Boolean);
+      if (parts.length) add(`Set ${i + 1}`, parts.join(' · '));
+    });
+    add('Duration', entry.durationMinutes, ' min');
+  } else if (entry.type === 'activity') {
+    add('Duration', entry.durationMinutes, ' min');
+    add('Distance', entry.distance);
+    add('Steps', entry.steps);
+  } else if (entry.type === 'sleep') {
+    if (entry.bedtime)  add('Bedtime', fmtTime(entry.bedtime));
+    if (entry.waketime) add('Wake time', fmtTime(entry.waketime));
+    if (entry.sleepDuration != null) add('Duration', entry.sleepDuration.toFixed(1), 'h');
+    add('Quality', entry.sleepQuality);
+  } else if (entry.type === 'measurements') {
+    add('Weight', entry.weight, ` ${entry.weightUnit ?? 'kg'}`);
+    MEASUREMENT_FIELDS.forEach(([key, label, unit]) => add(label, entry[key], unit));
+  }
+
+  return rows;
+}
+
+function EntryDetails({ entry }) {
+  const rows = entryDetails(entry);
+  return (
+    <div className="border-t border-gray-100 dark:border-gray-800 px-3 py-2.5 lg:px-4 lg:py-3 bg-gray-50/60 dark:bg-gray-900/30">
+      {rows.length > 0 ? (
+        <dl className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2">
+          {rows.map(([label, value]) => (
+            <div key={label} className="min-w-0">
+              <dt className="text-[10px] lg:text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">{label}</dt>
+              <dd className="text-xs lg:text-sm text-gray-800 dark:text-gray-200 break-words">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p className="text-xs lg:text-sm text-gray-400 dark:text-gray-500">No extra details recorded.</p>
+      )}
+      {entry.notes && (
+        <div className="mt-2.5">
+          <p className="text-[10px] lg:text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Notes</p>
+          <p className="text-xs lg:text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">{entry.notes}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EntryCard({ entry, comments, onAddComment, onDeleteComment }) {
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const entryComments = comments.filter(c => c.entryId === entry._id);
 
   return (
     <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
       <div className="px-3 py-2.5 lg:px-4 lg:py-3.5 flex items-start gap-2 lg:gap-3">
-        <span className={`text-[10px] lg:text-xs font-bold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md flex-shrink-0 mt-0.5 ${TYPE_COLOR[entry.type] ?? 'bg-gray-100 text-gray-700'}`}>
-          {TYPE_LABEL[entry.type] ?? entry.type}
-        </span>
-        <div className="flex-1 min-w-0">
-          {(entry.name || entry.time) && (
-            <div className="flex items-baseline gap-2">
-              {entry.name && <p className="text-sm lg:text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{entry.name}</p>}
-              {entry.time && <span className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 flex-shrink-0">{fmtTime(entry.time)}</span>}
-            </div>
-          )}
-          <EntryMeta entry={entry} />
-        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded(v => !v)}
+          aria-expanded={expanded}
+          className="flex-1 min-w-0 flex items-start gap-2 lg:gap-3 text-left"
+        >
+          <span className={`text-[10px] lg:text-xs font-bold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md flex-shrink-0 mt-0.5 ${TYPE_COLOR[entry.type] ?? 'bg-gray-100 text-gray-700'}`}>
+            {TYPE_LABEL[entry.type] ?? entry.type}
+          </span>
+          <div className="flex-1 min-w-0">
+            {(entry.name || entry.time) && (
+              <div className="flex items-baseline gap-2">
+                {entry.name && <p className="text-sm lg:text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{entry.name}</p>}
+                {entry.time && <span className="text-xs lg:text-sm text-gray-400 dark:text-gray-500 flex-shrink-0">{fmtTime(entry.time)}</span>}
+              </div>
+            )}
+            {!expanded && <EntryMeta entry={entry} />}
+          </div>
+          <svg
+            className={`w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`}
+            fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
         <button
           onClick={() => setOpen(v => !v)}
           className="flex-shrink-0 text-xs lg:text-sm font-semibold text-blue-500 hover:text-blue-700 dark:hover:text-blue-300 transition-colors whitespace-nowrap"
@@ -179,6 +273,8 @@ function EntryCard({ entry, comments, onAddComment, onDeleteComment }) {
           {open ? 'Cancel' : '+ Comment'}
         </button>
       </div>
+
+      {expanded && <EntryDetails entry={entry} />}
 
       {entryComments.length > 0 && (
         <div className="border-t border-gray-100 dark:border-gray-800 px-3 py-2 lg:px-4 lg:py-3 flex flex-col gap-1.5 lg:gap-2">
