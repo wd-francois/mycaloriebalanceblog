@@ -68,6 +68,15 @@ export const remove = mutation({
     const photo = await ctx.db.get(args.id);
     if (!photo || photo.userId !== userId) throw new Error("Not authorized");
 
+    // Unlink any entry that had this photo attached so it doesn't point at a deleted row.
+    const linked = await ctx.db
+      .query("entries")
+      .withIndex("by_user_date", (q) => q.eq("userId", userId).eq("date", photo.date))
+      .collect();
+    for (const entry of linked) {
+      if (entry.photoId === args.id) await ctx.db.patch(entry._id, { photoId: undefined });
+    }
+
     await ctx.storage.delete(photo.storageId);
     await ctx.db.delete(args.id);
   },

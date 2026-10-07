@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useConvexSettings } from '../../contexts/ConvexSettingsContext';
@@ -32,13 +32,19 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   const [activeType, setActiveType] = useState(null);
   const [photoFile, setPhotoFile]   = useState(null);
   const [savingPhoto, setSavingPhoto] = useState(false);
+  const [photoError, setPhotoError]   = useState('');
   const [editingId, setEditingId]   = useState(null);
   const addEntry          = useMutation(api.entries.add);
   const updateEntry       = useMutation(api.entries.update);
   const deleteEntry       = useMutation(api.entries.remove);
   const generateUploadUrl = useMutation(api.photos.generateUploadUrl);
   const savePhoto         = useMutation(api.photos.save);
+  const removePhoto       = useMutation(api.photos.remove);
   const dayPhotos         = useQuery(api.photos.list, { date: dateStr }) ?? [];
+  // Photos attached to an entry show on that entry's card; the rest stay in the strip.
+  const photoById      = useMemo(() => new Map(dayPhotos.map(p => [p._id, p])), [dayPhotos]);
+  const linkedPhotoIds = useMemo(() => new Set(entries.map(e => e.photoId).filter(Boolean)), [entries]);
+  const loosePhotos    = dayPhotos.filter(p => !linkedPhotoIds.has(p._id));
   const { settings } = useConvexSettings();
 
   const isFormActive = !!activeType;
@@ -49,8 +55,8 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   };
 
   const handleTypeSelect = (id) => {
+    // Keep any attached photo — it's picked before the type, then saved with the entry.
     setActiveType(id);
-    setPhotoFile(null);
     setSaveError('');
   };
 
@@ -62,7 +68,7 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
       headers: { 'Content-Type': photoFile.type },
       body: photoFile,
     });
-    if (!res.ok) return undefined;
+    if (!res.ok) throw new Error(`Photo upload failed (${res.status})`);
     const { storageId } = await res.json();
     return await savePhoto({ storageId, date: dateStr });
   };
@@ -92,15 +98,28 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   const handleSavePhotoOnly = async () => {
     if (!photoFile) return;
     setSavingPhoto(true);
+    setPhotoError('');
     try {
       await uploadPhoto();
       setPhotoFile(null);
+    } catch (err) {
+      setPhotoError(`Couldn't save this photo — please try again. (${err?.message || 'Unknown error'})`);
     } finally {
       setSavingPhoto(false);
     }
   };
 
   const handleDelete = (id) => deleteEntry({ id });
+
+  const handleDeletePhoto = async (id) => {
+    if (!window.confirm('Delete this photo? This cannot be undone.')) return;
+    setSaveError('');
+    try {
+      await removePhoto({ id });
+    } catch (err) {
+      setSaveError(`Couldn't delete this photo — please try again. (${err?.message || 'Unknown error'})`);
+    }
+  };
 
   // The forms hand back the same shape they use for `add`; `update` takes only
   // the editable fields plus the entry id.
@@ -191,11 +210,11 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
         <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="max-w-lg mx-auto px-4 py-4">
             {errorBanner}
-            {dayPhotos.length > 0 && (
+            {loosePhotos.length > 0 && (
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                    Photos ({dayPhotos.length})
+                    Photos ({loosePhotos.length})
                   </p>
                   <button
                     type="button"
@@ -206,20 +225,30 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
                   </button>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-1">
-                  {dayPhotos.map(p => (
-                    <button
-                      key={p._id}
-                      type="button"
-                      onClick={goToPhotoGallery}
-                      className="flex-shrink-0"
-                      aria-label="Open Photo Gallery"
-                    >
-                      <img
-                        src={p.url ?? ''}
-                        alt={p.caption ?? 'Photo'}
-                        className="w-20 h-20 rounded-xl object-cover border border-gray-100 dark:border-gray-800"
-                      />
-                    </button>
+                  {loosePhotos.map(p => (
+                    <div key={p._id} className="relative flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={goToPhotoGallery}
+                        aria-label="Open Photo Gallery"
+                      >
+                        <img
+                          src={p.url ?? ''}
+                          alt={p.caption ?? 'Photo'}
+                          className="w-20 h-20 rounded-xl object-cover border border-gray-100 dark:border-gray-800"
+                        />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePhoto(p._id)}
+                        className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
+                        aria-label="Delete photo"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -253,6 +282,8 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
                     <EntryCard
                       key={entry._id}
                       entry={entry}
+                      photo={entry.photoId ? photoById.get(entry.photoId) : undefined}
+                      onDeletePhoto={handleDeletePhoto}
                       weightUnit={settings?.weightUnit ?? 'kg'}
                       onDelete={handleDelete}
                       onEdit={(e) => setEditingId(e._id)}
@@ -384,6 +415,11 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
                   </>
                 ) : 'Save Photo'}
               </button>
+              {photoError && (
+                <p role="alert" className="mt-2 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm font-medium text-red-600 dark:text-red-400">
+                  {photoError}
+                </p>
+              )}
               </>
             )}
 
@@ -424,7 +460,8 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                View All Entries ({entries.length})
+                View All Entries ({entries.length}
+                {dayPhotos.length > 0 && ` · ${dayPhotos.length} photo${dayPhotos.length === 1 ? '' : 's'}`})
               </button>
             </div>
           )}

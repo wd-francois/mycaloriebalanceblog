@@ -50,8 +50,9 @@ function CoachFeedbackSection({ entryId }) {
 }
 
 // ── Entry card (used in View Entries screen) ───────────────────────────────────
-export default function EntryCard({ entry, weightUnit: wUnit, onDelete, onEdit }) {
+export default function EntryCard({ entry, photo, weightUnit: wUnit, onDelete, onEdit, onDeletePhoto }) {
   const [deleting, setDeleting] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
   const aiSettings = useConvexSettings();
   const isMeal = entry.type === 'meal';
 
@@ -170,6 +171,35 @@ export default function EntryCard({ entry, weightUnit: wUnit, onDelete, onEdit }
           {entry.notes && (
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic">"{entry.notes}"</p>
           )}
+          {photo?.url && (
+            <div className="relative mt-2">
+              <button
+                type="button"
+                onClick={() => setPhotoOpen(true)}
+                className="block w-full"
+                aria-label="View photo"
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.caption ?? entry.name ?? 'Entry photo'}
+                  className="w-full max-h-48 rounded-xl object-cover border border-gray-100 dark:border-gray-800"
+                />
+              </button>
+              {onDeletePhoto && (
+                <button
+                  type="button"
+                  onClick={() => onDeletePhoto(photo._id)}
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
+                  aria-label="Delete photo"
+                  title="Delete photo"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-0.5 flex-shrink-0 -mr-1.5 -mt-0.5">
           {isMeal && (
@@ -214,6 +244,29 @@ export default function EntryCard({ entry, weightUnit: wUnit, onDelete, onEdit }
         </div>
       </div>
       <CoachFeedbackSection entryId={entry._id} />
+      {photoOpen && (
+        <div
+          className="fixed inset-0 z-[300] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setPhotoOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setPhotoOpen(false)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors"
+            aria-label="Close photo"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          <img
+            src={photo.url}
+            alt={photo.caption ?? entry.name ?? 'Entry photo'}
+            className="max-w-full max-h-[85vh] object-contain rounded-xl"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
