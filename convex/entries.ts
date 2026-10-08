@@ -149,6 +149,7 @@ export const add = mutation({
 export const update = mutation({
   args: {
     id: v.id("entries"),
+    date: v.optional(v.string()), // "YYYY-MM-DD" — moves the entry to another day
     name: v.optional(v.string()),
     notes: v.optional(v.string()),
     time: v.optional(
@@ -207,6 +208,12 @@ export const update = mutation({
     // of silently keeping the old value.
     for (const field of CLEARABLE_FIELDS[entry.type] ?? []) {
       if (!(field in patch)) (patch as Record<string, unknown>)[field] = undefined;
+    }
+
+    // An attached photo is listed by date, so move it along with the entry.
+    if (patch.date && patch.date !== entry.date && entry.photoId) {
+      const photo = await ctx.db.get(entry.photoId);
+      if (photo && photo.userId === userId) await ctx.db.patch(photo._id, { date: patch.date });
     }
 
     await ctx.db.patch(id, patch);

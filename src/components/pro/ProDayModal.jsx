@@ -126,7 +126,8 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   const handleUpdate = async ({ type, date, ...fields }) => {
     setSaveError('');
     try {
-      await updateEntry({ id: editingId, ...fields });
+      // Only send the date when the form moved the entry to another day.
+      await updateEntry({ id: editingId, ...fields, ...(date && date !== dateStr ? { date } : {}) });
       setEditingId(null);
     } catch (err) {
       saveFailed(err);

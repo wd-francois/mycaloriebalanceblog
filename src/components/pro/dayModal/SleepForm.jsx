@@ -47,6 +47,8 @@ export default function SleepForm({ dateStr, onSave, onCancel, initial, submitLa
   const [waketime, setWaketime] = useState(initial?.waketime ?? defaultWaketime);
   const [quality,  setQuality]  = useState(initial?.sleepQuality ?? 'Good');
   const [notes,    setNotes]    = useState(initial?.notes ?? '');
+  // Only editable when editing — a new entry always goes on the day that was opened.
+  const [date,     setDate]     = useState(initial?.date ?? dateStr);
 
   const durationStr = calculateSleepDuration(bedtime, waketime);
 
@@ -62,7 +64,7 @@ export default function SleepForm({ dateStr, onSave, onCancel, initial, submitLa
   const submit = (e) => {
     e.preventDefault();
     onSave({
-      type: 'sleep', date: dateStr,
+      type: 'sleep', date: date || dateStr,
       bedtime, waketime,
       sleepStart:    formatTime(bedtime),
       sleepEnd:      formatTime(waketime),
@@ -74,6 +76,12 @@ export default function SleepForm({ dateStr, onSave, onCancel, initial, submitLa
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
+      {initial && (
+        <div>
+          <label className={LABEL}>Date</label>
+          <input type="date" className={INPUT} value={date} onChange={e => setDate(e.target.value)} required />
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={LABEL}>Bedtime</label>

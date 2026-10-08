@@ -24,6 +24,8 @@ export default function MealForm({ dateStr, onSave, onCancel, initial, submitLab
   const [other, setOther]     = useState(str(initial?.other));
   const [notes, setNotes]     = useState(str(initial?.notes));
   const [time, setTime]       = useState(() => initial?.time ?? getCurrentTimeParts());
+  // Only editable when editing — a new meal always goes on the day that was opened.
+  const [date, setDate]       = useState(initial?.date ?? dateStr);
   const [nameError, setNameError] = useState(false);
   const aiSettings = useConvexSettings();
 
@@ -54,7 +56,7 @@ export default function MealForm({ dateStr, onSave, onCancel, initial, submitLab
     // TimePicker adds a display-only `formatted` field the Convex validator rejects.
     const { hour, minute, period } = time;
     onSave({
-      type: 'meal', date: dateStr, time: { hour, minute, period },
+      type: 'meal', date: date || dateStr, time: { hour, minute, period },
       name:      name.trim(),
       amount:    amount    || undefined,
       mealNumber: meal,
@@ -71,6 +73,12 @@ export default function MealForm({ dateStr, onSave, onCancel, initial, submitLab
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
+      {initial && (
+        <div>
+          <label className={LABEL}>Date</label>
+          <input type="date" className={INPUT} value={date} onChange={e => setDate(e.target.value)} required />
+        </div>
+      )}
       <div>
         <label className={LABEL}>Time</label>
         <TimePicker value={time} onChange={setTime} />

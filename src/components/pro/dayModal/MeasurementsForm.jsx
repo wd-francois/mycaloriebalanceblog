@@ -35,6 +35,8 @@ const FIELDS = [
 // `initial` is an existing measurements entry when editing; omitted when adding.
 export default function MeasurementsForm({ dateStr, weightUnit: initialWeightUnit = 'kg', onSave, onCancel, initial, submitLabel = 'Add Measurements' }) {
   const [time]      = useState(() => initial?.time ?? getCurrentTimeParts());
+  // Only editable when editing — a new entry always goes on the day that was opened.
+  const [date, setDate] = useState(initial?.date ?? dateStr);
   const [unit, setUnit] = useState(initial?.weightUnit ?? initialWeightUnit);
   const [form, setForm] = useState(() =>
     Object.fromEntries(FIELDS.map(k => [k, initial?.[k] == null ? '' : String(initial[k])]))
@@ -51,7 +53,7 @@ export default function MeasurementsForm({ dateStr, weightUnit: initialWeightUni
     e.preventDefault();
     if (!form.weight) { setWeightError(true); return; }
     onSave({
-      type: 'measurements', date: dateStr, time,
+      type: 'measurements', date: date || dateStr, time,
       weight: num(form.weight), weightUnit: unit,
       neck:      num(form.neck),
       shoulders: num(form.shoulders),
@@ -76,6 +78,12 @@ export default function MeasurementsForm({ dateStr, weightUnit: initialWeightUni
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
+      {initial && (
+        <div>
+          <label className={LABEL}>Date</label>
+          <input type="date" className={INPUT} value={date} onChange={e => setDate(e.target.value)} required />
+        </div>
+      )}
       <div>
         <label className={LABEL}>Weight *</label>
         <MeasurementField label="" value={form.weight} onChange={set('weight')} suffix={unit} />

@@ -279,6 +279,8 @@ function exerciseFromEntry(entry) {
 export default function ExerciseLogForm({ dateStr, onSave, onCancel, initial, submitLabel = 'Save to entry' }) {
   const isEditing = !!initial;
   const [time]                      = useState(() => initial?.time ?? getCurrentTimeParts());
+  // Only editable when editing — new exercises always go on the day that was opened.
+  const [date, setDate]             = useState(initial?.date ?? dateStr);
   const [exercises, setExercises]   = useState(() => [initial ? exerciseFromEntry(initial) : emptyExercise()]);
   const [showPicker, setShowPicker] = useState(false);
 
@@ -302,7 +304,7 @@ export default function ExerciseLogForm({ dateStr, onSave, onCancel, initial, su
     if (named.length === 0) return;
     const entries = named.map(e => ({
       type: 'exercise',
-      date: dateStr,
+      date: date || dateStr,
       time,
       name: e.name.trim(),
       exercisesData: JSON.stringify([
@@ -327,6 +329,13 @@ export default function ExerciseLogForm({ dateStr, onSave, onCancel, initial, su
           Load coach program
         </button>
       </div>}
+
+      {isEditing && (
+        <div className="mb-3">
+          <label className={LABEL}>Date</label>
+          <input type="date" className={INPUT} value={date} onChange={e => setDate(e.target.value)} required />
+        </div>
+      )}
 
       <div className="flex flex-col gap-2.5">
         {exercises.map((ex, i) => (
