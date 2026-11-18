@@ -35,19 +35,30 @@ const RANGES = [
 
 // ── Comment sub-components ───────────────────────────────────────────────────
 
+// Comments by the client (replies on their workout entries) get a green avatar
+// and no delete button — only the author can remove a comment.
 function CommentRow({ comment, onDelete }) {
+  const byClient = comment.byClient;
   return (
     <div className="flex items-start gap-2 lg:gap-2.5 group">
-      <div className="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-[9px] lg:text-[11px] font-bold flex-shrink-0 mt-0.5">
-        {comment.authorInitial ?? 'C'}
+      <div
+        title={byClient ? 'Client' : 'You'}
+        className={`w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[9px] lg:text-[11px] font-bold flex-shrink-0 mt-0.5 ${
+          byClient ? 'from-green-500 to-emerald-600' : 'from-blue-600 to-indigo-600'
+        }`}
+      >
+        {comment.authorInitial ?? (byClient ? '?' : 'C')}
       </div>
       <p className="flex-1 text-xs lg:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{comment.text}</p>
-      <button
-        onClick={onDelete}
-        className="opacity-0 group-hover:opacity-100 text-[10px] lg:text-xs text-red-400 hover:text-red-600 transition-all flex-shrink-0 px-1"
-      >
-        ×
-      </button>
+      {!byClient && (
+        <button
+          onClick={onDelete}
+          aria-label="Delete comment"
+          className="opacity-0 group-hover:opacity-100 focus:opacity-100 text-[10px] lg:text-xs text-red-400 hover:text-red-600 transition-all flex-shrink-0 px-1"
+        >
+          ×
+        </button>
+      )}
     </div>
   );
 }
@@ -331,6 +342,45 @@ function PhotoCard({ photo, comments, onAddComment, onDeleteComment }) {
   );
 }
 
+// ── Day-level workout comments ────────────────────────────────────────────────
+// A comment with no entry or photo is about the whole day's workout: the
+// client's final comment when they logged the session, or a coach reply to it.
+function DayWorkoutComments({ date, comments, onAddComment, onDeleteComment }) {
+  const [open, setOpen] = useState(false);
+  const dayComments = comments.filter(c => c.date === date && !c.entryId && !c.photoId);
+  if (dayComments.length === 0) return null;
+
+  return (
+    <div className="bg-white dark:bg-[var(--color-bg-muted)] rounded-xl border border-indigo-100 dark:border-indigo-900/40 overflow-hidden">
+      <div className="px-3 py-2.5 lg:px-4 lg:py-3.5 flex items-center gap-2">
+        <span className="text-[10px] lg:text-xs font-bold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+          Workout
+        </span>
+        <p className="flex-1 text-sm lg:text-base font-semibold text-gray-900 dark:text-gray-100">Final comment</p>
+        <button
+          onClick={() => setOpen(v => !v)}
+          className="flex-shrink-0 text-xs lg:text-sm font-semibold text-blue-500 hover:text-blue-700 dark:hover:text-blue-300 transition-colors whitespace-nowrap"
+        >
+          {open ? 'Cancel' : '+ Reply'}
+        </button>
+      </div>
+
+      <div className="border-t border-gray-100 dark:border-gray-800 px-3 py-2 lg:px-4 lg:py-3 flex flex-col gap-1.5 lg:gap-2">
+        {dayComments.map(c => (
+          <CommentRow key={c._id} comment={c} onDelete={() => onDeleteComment(c._id)} />
+        ))}
+      </div>
+
+      {open && (
+        <CommentInput onSubmit={async text => {
+          await onAddComment({ text, date });
+          setOpen(false);
+        }} />
+      )}
+    </div>
+  );
+}
+
 // ── Overview tab ─────────────────────────────────────────────────────────────
 
 function OverviewTab({ entries, photos, comments }) {
@@ -377,7 +427,7 @@ function OverviewTab({ entries, photos, comments }) {
 
   if (!stats) return <div className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">Loading…</div>;
 
-  const totalComments = comments?.length ?? 0;
+  const totalComments = comments?.filter(c => !c.byClient).length ?? 0;
   const totalPhotos   = photos?.length   ?? 0;
 
   return (
@@ -477,10 +527,16 @@ export default function ProClientDetail({ client, onBack }) {
       ? viewer.email[0].toUpperCase()
       : 'C';
 
-  // Attach coach initial to comments for display
+  const clientInitial = (client.name || client.email || '?')[0].toUpperCase();
+
+  // Attach an avatar initial to each comment — the client's for their own
+  // workout replies, the coach's for everything else.
   const enrichedComments = useMemo(() =>
-    (comments ?? []).map(c => ({ ...c, authorInitial: coachInitial })),
-    [comments, coachInitial]
+    (comments ?? []).map(c => {
+      const byClient = c.authorId === client.id;
+      return { ...c, byClient, authorInitial: byClient ? clientInitial : coachInitial };
+    }),
+    [comments, coachInitial, clientInitial, client.id]
   );
 
   const handleAddComment = (args) =>
@@ -488,7 +544,7 @@ export default function ProClientDetail({ client, onBack }) {
 
   const handleDeleteComment = (id) => delComment({ id });
 
-  const initial     = (client.name || client.email || '?')[0].toUpperCase();
+  const initial     = clientInitial;
   const displayName = client.name || client.email || 'Unknown client';
 
   // Group entries by date for the entries tab
@@ -612,6 +668,12 @@ export default function ProClientDetail({ client, onBack }) {
                         onDeleteComment={handleDeleteComment}
                       />
                     ))}
+                    <DayWorkoutComments
+                      date={date}
+                      comments={enrichedComments}
+                      onAddComment={handleAddComment}
+                      onDeleteComment={handleDeleteComment}
+                    />
                   </div>
                 </div>
               ))}

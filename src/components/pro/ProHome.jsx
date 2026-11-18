@@ -103,8 +103,11 @@ function CoachFeedbackCard() {
     if (hasNew) markReadByType({ type: 'comment' });
   }, [hasNew]);
 
-  if (comments.length === 0) return null;
-  const recent = [...comments].sort((a, b) => b._creationTime - a._creationTime).slice(0, 5);
+  // Only the coach's comments belong here — the client's own workout replies
+  // show in the day log under the entry instead.
+  const coachComments = comments.filter(c => c.authorId !== self?._id);
+  if (coachComments.length === 0) return null;
+  const recent = [...coachComments].sort((a, b) => b._creationTime - a._creationTime).slice(0, 5);
   return (
     <div className="bg-white dark:bg-transparent rounded-2xl dark:rounded-none shadow-lg dark:shadow-none border border-gray-100 dark:border-transparent p-3 sm:p-4 lg:p-6">
       <div className="flex items-center gap-2 mb-2 sm:mb-3 lg:mb-4">

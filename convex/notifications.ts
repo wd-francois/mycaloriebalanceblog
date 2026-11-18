@@ -8,7 +8,7 @@ export const getUnreadCounts = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return {
       total: 0,
-      byClient: {} as Record<string, { entries: number; messages: number }>,
+      byClient: {} as Record<string, { entries: number; messages: number; comments: number }>,
       byType: { entries: 0, messages: 0, comments: 0 },
     };
 
@@ -18,7 +18,7 @@ export const getUnreadCounts = query({
       .filter((q) => q.eq(q.field("readAt"), undefined))
       .collect();
 
-    const byClient: Record<string, { entries: number; messages: number }> = {};
+    const byClient: Record<string, { entries: number; messages: number; comments: number }> = {};
     const byType = { entries: 0, messages: 0, comments: 0 };
 
     for (const n of unread) {
@@ -27,13 +27,12 @@ export const getUnreadCounts = query({
       if (n.type === "message") byType.messages++;
       if (n.type === "comment") byType.comments++;
 
-      // byClient counts — for coaches (entries + messages from clients)
-      if (n.type === "entry" || n.type === "message") {
-        const key = n.senderId;
-        if (!byClient[key]) byClient[key] = { entries: 0, messages: 0 };
-        if (n.type === "entry")   byClient[key].entries++;
-        if (n.type === "message") byClient[key].messages++;
-      }
+      // byClient counts — for coaches (entries, messages + workout comments from clients)
+      const key = n.senderId;
+      if (!byClient[key]) byClient[key] = { entries: 0, messages: 0, comments: 0 };
+      if (n.type === "entry")   byClient[key].entries++;
+      if (n.type === "message") byClient[key].messages++;
+      if (n.type === "comment") byClient[key].comments++;
     }
 
     return { total: unread.length, byClient, byType };

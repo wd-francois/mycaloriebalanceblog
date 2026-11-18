@@ -4,11 +4,12 @@ import { api } from '../../../../convex/_generated/api';
 import ExercisePickerModal from '../ExercisePickerModal';
 import { getCurrentTimeParts } from '../../../lib/dateUtils';
 import { LABEL, INPUT, SET_INPUT } from './styles';
+import { normaliseExerciseName, parseReps, REPS_MIN, REPS_MAX } from './exerciseUtils';
 
 // ── Exercise builder (shared card, matches ProPrograms) ───────────────────────
 export const emptyExercise = () => ({
   id: Date.now() + Math.random(),
-  name: '', load: '', reps: '', extraSets: [], notes: '', videoUrls: [], expanded: true,
+  name: '', load: '', reps: '', extraSets: [], notes: '', videoUrls: [], muscleGroup: '', expanded: true,
 });
 
 export function normaliseEx(e) {
@@ -110,11 +111,11 @@ function ExerciseCard({ ex, index, onChange, onRemove }) {
         <div className="px-3.5 pb-3.5 border-t border-gray-200 dark:border-gray-600/50 pt-3 flex flex-col gap-4">
           {showPicker && (
             <ExercisePickerModal
-              onSelect={({ name, gifUrl }) => {
+              onSelect={({ name, gifUrl, bodyPart }) => {
                 const videoUrls = gifUrl
                   ? [gifUrl, ...(ex.videoUrls ?? []).filter(u => !u.endsWith('.gif'))]
                   : (ex.videoUrls ?? []);
-                onChange({ ...ex, name, videoUrls });
+                onChange({ ...ex, name, videoUrls, muscleGroup: bodyPart ?? ex.muscleGroup ?? '' });
                 setShowPicker(false);
               }}
               onClose={() => setShowPicker(false)}
@@ -269,7 +270,25 @@ function exerciseFromEntry(entry) {
     reps: first.reps ?? '',
     extraSets: rest.map(s => ({ load: s.load ?? '', reps: s.reps ?? '' })),
     notes: entry.notes ?? '',
+    muscleGroup: entry.muscleGroup ?? '',
   };
+}
+
+// Reps outside REPS_MIN–REPS_MAX are usually typos ("88" for "8"). Returns
+// false if the user cancels on any of them.
+function confirmRepsLookRight(exercises) {
+  for (const e of exercises) {
+    const sets = [{ reps: e.reps }, ...(e.extraSets ?? [])];
+    for (let i = 0; i < sets.length; i++) {
+      const n = parseReps(sets[i].reps);
+      if (n == null || (n >= REPS_MIN && n <= REPS_MAX)) continue;
+      const ok = window.confirm(
+        `Set ${i + 1} of ${normaliseExerciseName(e.name)} has ${n} reps. Is that right?`
+      );
+      if (!ok) return false;
+    }
+  }
+  return true;
 }
 
 // ── Exercise Form ──────────────────────────────────────────────────────────────
@@ -283,6 +302,9 @@ export default function ExerciseLogForm({ dateStr, onSave, onCancel, initial, su
   const [date, setDate]             = useState(initial?.date ?? dateStr);
   const [exercises, setExercises]   = useState(() => [initial ? exerciseFromEntry(initial) : emptyExercise()]);
   const [showPicker, setShowPicker] = useState(false);
+  // One closing comment about the whole session, posted for the coach once
+  // the exercises are saved. Only offered when logging a new workout.
+  const [workoutComment, setWorkoutComment] = useState('');
 
   const updateEx = (i, updated) =>
     setExercises(prev => prev.map((ex, idx) => idx === i ? updated : ex));
@@ -302,18 +324,22 @@ export default function ExerciseLogForm({ dateStr, onSave, onCancel, initial, su
   const handleSave = () => {
     const named = exercises.filter(e => e.name.trim());
     if (named.length === 0) return;
+    if (!confirmRepsLookRight(named)) return;
     const entries = named.map(e => ({
       type: 'exercise',
       date: date || dateStr,
       time,
-      name: e.name.trim(),
+      // Stored title-cased so "push up" and "Push Up" are the same exercise.
+      name: normaliseExerciseName(e.name),
+      muscleGroup: e.muscleGroup?.trim() || undefined,
       exercisesData: JSON.stringify([
         { reps: e.reps || '', load: e.load || '' },
         ...(e.extraSets ?? []).map(s => ({ reps: s.reps || '', load: s.load || '' })),
       ]),
       notes: e.notes?.trim() || undefined,
     }));
-    onSave(isEditing ? entries[0] : entries);
+    if (isEditing) onSave(entries[0]);
+    else onSave(entries, { workoutComment: workoutComment.trim() || undefined });
   };
 
   return (
@@ -350,6 +376,19 @@ export default function ExerciseLogForm({ dateStr, onSave, onCancel, initial, su
           />
         ))}
       </div>
+
+      {!isEditing && (
+        <div className="mt-3">
+          <label className={LABEL}>Final comment</label>
+          <textarea
+            rows={2}
+            className={INPUT + ' resize-none'}
+            value={workoutComment}
+            placeholder="How did the workout go? Your coach will see this."
+            onChange={e => setWorkoutComment(e.target.value)}
+          />
+        </div>
+      )}
 
       <div className={`grid gap-3 mt-3 ${isEditing ? 'grid-cols-1' : 'grid-cols-2'}`}>
         {!isEditing && (

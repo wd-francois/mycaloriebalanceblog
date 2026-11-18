@@ -226,7 +226,7 @@ export default function ProClients({ onSelectClient }) {
               const lastSeen    = client.lastLoggedAt
                 ? relativeDate(new Date(client.lastLoggedAt).toLocaleDateString('en-CA'))
                 : relativeDate(client.lastActiveDate);
-              const clientNotifs = unreadCounts.byClient[client.id] ?? { entries: 0, messages: 0 };
+              const clientNotifs = unreadCounts.byClient[client.id] ?? { entries: 0, messages: 0, comments: 0 };
 
               return (
                 <div
@@ -271,6 +271,11 @@ export default function ProClients({ onSelectClient }) {
                       {clientNotifs.messages > 0 && (
                         <span className="text-[9px] lg:text-[11px] font-bold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full bg-blue-500 text-white">
                           New msg
+                        </span>
+                      )}
+                      {clientNotifs.comments > 0 && (
+                        <span className="text-[9px] lg:text-[11px] font-bold px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full bg-indigo-500 text-white">
+                          New comment
                         </span>
                       )}
                     </div>

@@ -267,7 +267,7 @@ export default function ProHelp({ onBack }) {
           <div className="flex flex-col gap-3 mt-1">
             <div>
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Clients tab</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Invite clients by email. Once they accept, you can view their full log — meals, exercise, sleep, and measurements — and leave comments on individual entries. A notification badge appears when clients have new activity.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Invite clients by email. Once they accept, you can view their full log — meals, exercise, sleep, and measurements — and leave comments on individual entries. Clients can reply with their own comments on workout entries. A notification badge appears when clients have new activity, including new comments.</p>
             </div>
 
             <div>
@@ -306,7 +306,7 @@ export default function ProHelp({ onBack }) {
 
             <div>
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Coach feedback</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Coach comments appear below the relevant entry in your day log. A notification badge on your Home tab alerts you to new feedback.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Coach comments appear below the relevant entry in your day log. A notification badge on your Home tab alerts you to new feedback. On workout entries you can reply with your own comment — how the session felt, what you'd change — and your coach is notified. When logging a workout, the <strong>Final comment</strong> box at the bottom of the form leaves one closing note about the whole session.</p>
             </div>
           </div>
         </Section>

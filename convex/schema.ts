@@ -32,6 +32,7 @@ export default defineSchema({
     mealNumber: v.optional(v.number()),
     // Exercise (stored as JSON string to allow flexible nested structure)
     exercisesData: v.optional(v.string()),
+    muscleGroup: v.optional(v.string()), // body part from the exercise picker, e.g. "chest"
     // Activity
     durationMinutes: v.optional(v.string()),
     distance: v.optional(v.string()),

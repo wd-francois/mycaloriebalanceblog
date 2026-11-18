@@ -161,7 +161,7 @@ export default function ExercisePickerModal({ onSelect, onClose }) {
                 <button
                   key={ex.exerciseId ?? ex.name}
                   type="button"
-                  onClick={() => onSelect({ name: ex.name, gifUrl: ex.gifUrl })}
+                  onClick={() => onSelect({ name: ex.name, gifUrl: ex.gifUrl, bodyPart: ex.bodyParts?.[0] })}
                   className="text-left rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[var(--color-bg-subtle)] hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all overflow-hidden"
                 >
                   {ex.gifUrl && (

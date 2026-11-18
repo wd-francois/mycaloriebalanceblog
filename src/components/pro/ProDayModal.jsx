@@ -8,6 +8,7 @@ import ExerciseLogForm from './dayModal/ExerciseLogForm';
 import SleepForm from './dayModal/SleepForm';
 import MeasurementsForm from './dayModal/MeasurementsForm';
 import EntryCard from './dayModal/EntryCard';
+import WorkoutComments from './dayModal/WorkoutComments';
 
 // ── Type button config ─────────────────────────────────────────────────────────
 const TYPE_BTNS = [
@@ -40,6 +41,8 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   const generateUploadUrl = useMutation(api.photos.generateUploadUrl);
   const savePhoto         = useMutation(api.photos.save);
   const removePhoto       = useMutation(api.photos.remove);
+  const addComment        = useMutation(api.comments.add);
+  const viewer            = useQuery(api.users.viewer);
   const dayPhotos         = useQuery(api.photos.list, { date: dateStr }) ?? [];
   // Photos attached to an entry show on that entry's card; the rest stay in the strip.
   const photoById      = useMemo(() => new Map(dayPhotos.map(p => [p._id, p])), [dayPhotos]);
@@ -80,7 +83,9 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
   const saveFailed = (err) =>
     setSaveError(`Couldn't save this entry — please check your connection and try again. (${err?.message || 'Unknown error'})`);
 
-  const handleSave = async (dataOrArray) => {
+  // `extra.workoutComment` is the closing comment from the exercise form. It's
+  // posted after the exercises so a comment failure never loses the workout.
+  const handleSave = async (dataOrArray, extra) => {
     setSaveError('');
     try {
       const photoId = await uploadPhoto();
@@ -92,6 +97,18 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
       setActiveType(null);
     } catch (err) {
       saveFailed(err);
+      return;
+    }
+    if (extra?.workoutComment) {
+      try {
+        if (!viewer?._id) throw new Error('Not signed in');
+        await addComment({ targetUserId: viewer._id, date: dateStr, text: extra.workoutComment });
+      } catch (err) {
+        // Entries are saved; show the problem on the View Entries screen where
+        // the comment can be re-posted.
+        setSaveError(`Your workout was saved, but the final comment couldn't be posted. (${err?.message || 'Unknown error'})`);
+        setMode('view');
+      }
     }
   };
 
@@ -270,7 +287,8 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
+              <>
+              <div className="flex flex-col gap-3">
                 {entries.map(entry => (
                   entry._id === editingId ? (
                     <div key={entry._id} className="bg-white dark:bg-[var(--color-bg-muted)] rounded-2xl p-4 shadow-sm border border-blue-200 dark:border-blue-800">
@@ -292,6 +310,8 @@ export default function ProDayModal({ date, dateStr, entries, onClose }) {
                   )
                 ))}
               </div>
+              <WorkoutComments dateStr={dateStr} hasWorkout={entries.some(e => e.type === 'exercise')} />
+              </>
             )}
           </div>
         </div>

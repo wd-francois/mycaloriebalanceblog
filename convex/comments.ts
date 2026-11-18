@@ -47,6 +47,11 @@ export const listMyCoachComments = query({
   },
 });
 
+// Two kinds of author are allowed:
+//  - a coach commenting on a linked client's entry, photo, or day (notifies the client)
+//  - a client commenting on their own workout: either on one exercise entry
+//    (entryId) or on the whole day's session with no entryId — the "final
+//    comment" left when logging a workout (notifies each of their coaches)
 export const add = mutation({
   args: {
     targetUserId: v.id("users"),
@@ -59,6 +64,36 @@ export const add = mutation({
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
 
+    const text = args.text.trim();
+    if (!text) throw new Error("Comment cannot be empty");
+
+    if (userId === args.targetUserId) {
+      // Clients can't comment on photos; with no entryId this is a day-level
+      // workout comment, otherwise it must be their own exercise entry.
+      if (args.photoId) throw new Error("Not authorized");
+      if (args.entryId) {
+        const entry = await ctx.db.get(args.entryId);
+        if (!entry || entry.userId !== userId) throw new Error("Not authorized");
+        if (entry.type !== "exercise") throw new Error("Comments are only available on workout entries");
+      }
+
+      const commentId = await ctx.db.insert("comments", { authorId: userId, ...args, text });
+
+      // Notify each coach — coalesced so only one unread comment notification per coach at a time
+      const relationships = await ctx.db
+        .query("coachClients")
+        .withIndex("by_client", (q) => q.eq("clientId", userId))
+        .filter((q) => q.neq(q.field("status"), "pending"))
+        .collect();
+      await Promise.all(
+        relationships.map((rel) =>
+          notifyOnce(ctx, { recipientId: rel.coachId, senderId: userId, type: "comment" })
+        )
+      );
+
+      return commentId;
+    }
+
     const settings = await ctx.db
       .query("userSettings")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -67,7 +102,7 @@ export const add = mutation({
 
     await assertCoachOf(ctx, userId, args.targetUserId);
 
-    const commentId = await ctx.db.insert("comments", { authorId: userId, ...args });
+    const commentId = await ctx.db.insert("comments", { authorId: userId, ...args, text });
 
     // Notify the client — coalesced so only one unread comment notification at a time
     await notifyOnce(ctx, { recipientId: args.targetUserId, senderId: userId, type: "comment" });

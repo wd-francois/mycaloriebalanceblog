@@ -6,7 +6,7 @@ import { notifyOnce } from "./lib";
 // Optional fields a user can blank out when editing an entry, per type.
 const CLEARABLE_FIELDS: Record<string, readonly string[]> = {
   meal: ["amount", "calories", "protein", "carbs", "fat", "fibre", "sodium", "other", "notes"],
-  exercise: ["notes"],
+  exercise: ["notes", "muscleGroup"],
   sleep: ["notes"],
   measurements: [
     "neck", "shoulders", "chest", "waist", "hips", "thigh", "arm", "calf",
@@ -95,6 +95,7 @@ export const add = mutation({
     mealNumber: v.optional(v.number()),
     // Exercise
     exercisesData: v.optional(v.string()),
+    muscleGroup: v.optional(v.string()),
     durationMinutes: v.optional(v.string()),
     distance: v.optional(v.string()),
     steps: v.optional(v.string()),
@@ -170,6 +171,7 @@ export const update = mutation({
     distance: v.optional(v.string()),
     steps: v.optional(v.string()),
     exercisesData: v.optional(v.string()),
+    muscleGroup: v.optional(v.string()),
     // Sleep
     sleepStart: v.optional(v.string()),
     sleepEnd: v.optional(v.string()),
